@@ -1,0 +1,47 @@
+# Template Security - Generated Files and Temporary Data
+
+# Temporary files
+tmp/
+*.tmp
+.last-validation
+
+# Generated reports
+reports/temp/
+security-report-*.pdf
+compliance-*.json
+metrics-*.json
+
+# User-specific files
+.env
+.env.local
+.security-config.yaml.local
+
+# Generated policies (users should commit these)
+# SECURITY.md
+# incident-response.md
+# privacy-policy.md
+
+# Operating system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
