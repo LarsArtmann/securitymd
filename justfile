@@ -43,10 +43,25 @@ bug-bounty:
     @echo "🐛 Generating bug bounty program..."
     @./security-setup.sh --type bug-bounty --interactive
 
+# 📋 Generate incident response plan - comprehensive incident management
+incident-response:
+    @echo "📋 Generating incident response plan..."
+    @./security-setup.sh --type incident-response --interactive
+
+# 🔒 Generate privacy policy - GDPR/CCPA compliance
+privacy-policy:
+    @echo "🔒 Generating privacy policy..."
+    @./security-setup.sh --type privacy-policy --interactive
+
 # 📊 Generate compliance report - assess policy coverage
 compliance-report FRAMEWORK:
     @echo "📊 Generating compliance report for: {{FRAMEWORK}}"
-    @./scripts/compliance-check.sh --framework {{FRAMEWORK}} --report
+    @./scripts/compliance-check.sh --framework {{FRAMEWORK}}
+
+# 📊 Generate full compliance dashboard - all frameworks
+compliance-dashboard:
+    @echo "📊 Generating comprehensive compliance dashboard..."
+    @./scripts/compliance-check.sh --report
 
 # 🧪 Test security contact channels - verify contact information works
 test-contacts:
