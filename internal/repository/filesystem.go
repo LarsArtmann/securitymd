@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/domain"
-	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/errors"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 )
 
 // FileSystemRepository implements file-based repository storage
@@ -23,7 +23,7 @@ type FileSystemRepository struct {
 // NewFileSystemRepository creates a new file system repository
 func NewFileSystemRepository(basePath string) (*FileSystemRepository, error) {
 	// Create base directory if it doesn't exist
-	if err := os.MkdirAll(basePath, 0755); err != nil {
+	if err := os.MkdirAll(basePath, 0o755); err != nil {
 		return nil, FileOperationError{
 			BaseError: NewBaseError("FILE001", "Failed to create repository directory", "filesystem"),
 			Operation: "mkdir",
@@ -58,13 +58,13 @@ func (pfsr *projectFileSystemRepository) Save(ctx context.Context, project domai
 	defer pfsr.mu.Unlock()
 
 	filePath := filepath.Join(pfsr.basePath, project.Name+".json")
-	
+
 	data, err := json.MarshalIndent(project, "", "  ")
 	if err != nil {
 		return NewFileOperationError("FILE003", "Failed to marshal project data", "write", filePath)
 	}
 
-	return os.WriteFile(filePath, data, 0644)
+	return os.WriteFile(filePath, data, 0o644)
 }
 
 // Get retrieves project information
@@ -73,7 +73,7 @@ func (pfsr *projectFileSystemRepository) Get(ctx context.Context, id domain.Poli
 	defer pfsr.mu.RUnlock()
 
 	filePath := filepath.Join(pfsr.basePath, id.Value+".json")
-	
+
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -96,7 +96,7 @@ func (pfsr *projectFileSystemRepository) Delete(ctx context.Context, id domain.P
 	defer pfsr.mu.Unlock()
 
 	filePath := filepath.Join(pfsr.basePath, id.Value+".json")
-	
+
 	return os.Remove(filePath)
 }
 
@@ -117,7 +117,7 @@ func (pfsr *projectFileSystemRepository) List(ctx context.Context) ([]domain.Pro
 		}
 
 		filePath := filepath.Join(pfsr.basePath, file.Name())
-		
+
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			continue // Skip corrupted files
@@ -142,7 +142,7 @@ func (pfsr *projectFileSystemRepository) Search(ctx context.Context, criteria Pr
 	}
 
 	var results []domain.ProjectInfo
-	
+
 	for _, project := range allProjects {
 		if pfsr.matchesCriteria(project, criteria) {
 			results = append(results, project)
@@ -170,7 +170,7 @@ func (pfsr *projectFileSystemRepository) matchesCriteria(project domain.ProjectI
 		for _, tech := range project.TechStack {
 			projectStack[tech] = true
 		}
-		
+
 		for _, requiredTech := range criteria.TechStack {
 			if !projectStack[requiredTech] {
 				return false
@@ -184,7 +184,7 @@ func (pfsr *projectFileSystemRepository) matchesCriteria(project domain.ProjectI
 		for _, lang := range project.Languages {
 			projectLangs[lang] = true
 		}
-		
+
 		for _, requiredLang := range criteria.Languages {
 			if !projectLangs[requiredLang] {
 				return false
@@ -253,13 +253,13 @@ func (pfsr *policyFileSystemRepository) Save(ctx context.Context, policy domain.
 	defer pfsr.mu.Unlock()
 
 	filePath := filepath.Join(pfsr.basePath, policy.ID.Value+".json")
-	
+
 	data, err := json.MarshalIndent(policy, "", "  ")
 	if err != nil {
 		return NewFileOperationError("FILE003", "Failed to marshal policy data", "write", filePath)
 	}
 
-	return os.WriteFile(filePath, data, 0644)
+	return os.WriteFile(filePath, data, 0o644)
 }
 
 // Get retrieves a security policy by ID
@@ -268,7 +268,7 @@ func (pfsr *policyFileSystemRepository) Get(ctx context.Context, id domain.Polic
 	defer pfsr.mu.RUnlock()
 
 	filePath := filepath.Join(pfsr.basePath, id.Value+".json")
-	
+
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -302,7 +302,7 @@ func (pfsr *policyFileSystemRepository) GetByType(ctx context.Context, policyTyp
 		}
 
 		filePath := filepath.Join(pfsr.basePath, file.Name())
-		
+
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			continue
@@ -341,7 +341,7 @@ func (pfsr *policyFileSystemRepository) Delete(ctx context.Context, id domain.Po
 	defer pfsr.mu.Unlock()
 
 	filePath := filepath.Join(pfsr.basePath, id.Value+".json")
-	
+
 	return os.Remove(filePath)
 }
 
@@ -362,7 +362,7 @@ func (pfsr *policyFileSystemRepository) List(ctx context.Context) ([]domain.Secu
 		}
 
 		filePath := filepath.Join(pfsr.basePath, file.Name())
-		
+
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			continue
@@ -398,12 +398,12 @@ func (pfsr *policyFileSystemRepository) Validate(ctx context.Context, policy dom
 		validation.Status = types.StatusInvalid
 		validation.Score = 0
 		validation.Issues = append(validation.Issues, domain.ValidationIssue{
-			ID:          "VAL001",
-			Field:       "policy",
-			Category:    domain.CategoryStructure,
-			Level:       types.ValidationLevelError,
-			Message:     "Policy is not valid",
-			Suggestion:  "Check required fields",
+			ID:         "VAL001",
+			Field:      "policy",
+			Category:   domain.CategoryStructure,
+			Level:      types.ValidationLevelError,
+			Message:    "Policy is not valid",
+			Suggestion: "Check required fields",
 		})
 	}
 
@@ -434,13 +434,13 @@ func (vfsr *validationFileSystemRepository) Save(ctx context.Context, result dom
 	// Create filename with policy ID and timestamp
 	fileName := fmt.Sprintf("%s_%d.json", "validation", time.Now().Unix())
 	filePath := filepath.Join(vfsr.basePath, fileName)
-	
+
 	data, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
 		return NewFileOperationError("FILE003", "Failed to marshal validation data", "write", filePath)
 	}
 
-	return os.WriteFile(filePath, data, 0644)
+	return os.WriteFile(filePath, data, 0o644)
 }
 
 // Get retrieves validation results by policy ID
@@ -460,7 +460,7 @@ func (vfsr *validationFileSystemRepository) Get(ctx context.Context, policyID do
 		}
 
 		filePath := filepath.Join(vfsr.basePath, file.Name())
-		
+
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			continue
@@ -497,7 +497,7 @@ func (vfsr *validationFileSystemRepository) GetLatest(ctx context.Context, polic
 		}
 
 		filePath := filepath.Join(vfsr.basePath, file.Name())
-		
+
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			continue
@@ -538,7 +538,7 @@ func (vfsr *validationFileSystemRepository) GetHistory(ctx context.Context, poli
 		}
 
 		filePath := filepath.Join(vfsr.basePath, file.Name())
-		
+
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			continue

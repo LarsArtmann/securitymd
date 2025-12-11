@@ -16,7 +16,7 @@ import (
 
 // SecurityTool represents main security policy tool with clean architecture
 type SecurityTool struct {
-	templateManager    *vfs.TemplateManager
+	templateManager   *vfs.TemplateManager
 	fileSystem        vfs.FileSystem
 	fileOps           *fileops.Service
 	processor         *vfs.TemplateProcessor
@@ -37,7 +37,7 @@ func NewSecurityTool() *SecurityTool {
 	})
 
 	return &SecurityTool{
-		templateManager:    vfs.NewTemplateManager(vfsImpl),
+		templateManager:   vfs.NewTemplateManager(vfsImpl),
 		fileSystem:        vfsImpl,
 		fileOps:           fileOps,
 		processor:         vfs.NewTemplateProcessor(),
@@ -53,20 +53,20 @@ func NewSecurityTool() *SecurityTool {
 // PolicyConfig represents security policy configuration
 type PolicyConfig struct {
 	Type         types.PolicyType  `json:"type"`
-	Organization string             `json:"organization"`
-	Email        string             `json:"email"`
-	Variables    map[string]string  `json:"variables"`
-	QuickMode    bool               `json:"quick_mode"`
-	Options      PolicyOptions      `json:"options"`
+	Organization string            `json:"organization"`
+	Email        string            `json:"email"`
+	Variables    map[string]string `json:"variables"`
+	QuickMode    bool              `json:"quick_mode"`
+	Options      PolicyOptions     `json:"options"`
 }
 
 // PolicyOptions represents additional policy options
 type PolicyOptions struct {
-	Validation     bool   `json:"validation"`
-	AutoDetect     bool   `json:"auto_detect"`
-	OutputFile     string `json:"output_file"`
-	Overwrite      bool   `json:"overwrite"`
-	Template       string `json:"template"`
+	Validation bool   `json:"validation"`
+	AutoDetect bool   `json:"auto_detect"`
+	OutputFile string `json:"output_file"`
+	Overwrite  bool   `json:"overwrite"`
+	Template   string `json:"template"`
 }
 
 // GeneratePolicy generates a security policy
@@ -118,8 +118,8 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 
 	// Build domain model
 	policy := domain.SecurityPolicy{
-		ID:          policyID,
-		Type:        config.Type,
+		ID:           policyID,
+		Type:         config.Type,
 		Organization: st.buildOrganization(ctx, config),
 		Contact:      st.buildContact(ctx, config),
 		Versions:     st.buildVersions(),
@@ -162,15 +162,15 @@ func (st *SecurityTool) validateConfig(config PolicyConfig) error {
 	if !config.Type.IsValid() {
 		return fmt.Errorf("invalid policy type: %s", config.Type)
 	}
-	
+
 	if config.Organization == "" {
 		return fmt.Errorf("organization name is required")
 	}
-	
+
 	if config.Email == "" {
 		return fmt.Errorf("contact email is required")
 	}
-	
+
 	return nil
 }
 
@@ -213,7 +213,7 @@ func (st *SecurityTool) getTemplatePath(policyType types.PolicyType) string {
 
 func (st *SecurityTool) processTemplate(template string, variables map[string]string) string {
 	result := template
-	
+
 	// Multi-pass variable resolution for nested variables
 	maxPasses := 3
 	for pass := 0; pass < maxPasses; pass++ {
@@ -229,7 +229,7 @@ func (st *SecurityTool) processTemplate(template string, variables map[string]st
 			break
 		}
 	}
-	
+
 	return result
 }
 
@@ -241,16 +241,16 @@ func (st *SecurityTool) generatePolicyID(policyType types.PolicyType, organizati
 func (st *SecurityTool) buildOrganization(ctx context.Context, config PolicyConfig) domain.Organization {
 	// Get GitHub info if available
 	githubInfo, _ := st.githubService.GetGitHubInfo(ctx)
-	
+
 	org := domain.Organization{
-		Name:   config.Organization,
-		Email:  config.Email,
+		Name:    config.Organization,
+		Email:   config.Email,
 		Website: "https://" + st.detectDomain(config.Organization),
 		Type:    domain.OrgTypeOpenSource,
 		Size:    domain.SizeSmall,
 		GitHub:  githubInfo,
 	}
-	
+
 	return org
 }
 
@@ -269,31 +269,31 @@ func (st *SecurityTool) buildContact(ctx context.Context, config PolicyConfig) d
 			Encrypted:   false,
 		},
 		Responsibilities: domain.Responsibilities{
-			ResponseTime:     24 * time.Hour,
+			ResponseTime:      24 * time.Hour,
 			InvestigationTime: 72 * time.Hour,
-			PatchTime:        14 * 24 * time.Hour,
-			DisclosureTime:   90 * 24 * time.Hour,
-			SafeHarbor:       true,
-			CoordinateCVE:    true,
+			PatchTime:         14 * 24 * time.Hour,
+			DisclosureTime:    90 * 24 * time.Hour,
+			SafeHarbor:        true,
+			CoordinateCVE:     true,
 		},
 	}
 }
 
 func (st *SecurityTool) buildVersions() []domain.Version {
 	now := time.Now()
-	
+
 	return []domain.Version{
 		{
 			Name:            "v2.x",
 			SemanticVersion: "2.0.0",
-			SupportedUntil:   now.AddDate(1, 0, 0),
+			SupportedUntil:  now.AddDate(1, 0, 0),
 			Status:          domain.StatusSupported,
 			IsLatest:        true,
 		},
 		{
 			Name:            "v1.x",
 			SemanticVersion: "1.0.0",
-			SupportedUntil:   now,
+			SupportedUntil:  now,
 			Status:          domain.StatusDeprecated,
 			IsLatest:        false,
 			IsPrevious:      true,
@@ -307,12 +307,12 @@ func (st *SecurityTool) buildValidation(ctx context.Context, content string) dom
 	if len(content) < 500 {
 		score = 50
 	}
-	
+
 	status := types.StatusValid
 	if score < 70 {
 		status = types.StatusWarning
 	}
-	
+
 	return domain.Validation{
 		Status:    status,
 		Score:     score,
@@ -333,20 +333,20 @@ func (st *SecurityTool) buildValidation(ctx context.Context, content string) dom
 
 func (st *SecurityTool) buildMetadata(ctx context.Context, registry *domain.TemplateVariableRegistry, content string) domain.PolicyMetadata {
 	stats := registry.Stats()
-	
+
 	return domain.PolicyMetadata{
-		TemplateVersion:   "2.0",
-		GeneratorVersion:  "v2.0.0",
-		VariableCount:     stats.TotalVariables,
-		ResolvedCount:     stats.TotalVariables - stats.UnresolvedCount,
-		Variables:         st.convertRegistryToVariables(registry.GetAll()),
-		Project:           st.buildProjectInfo(ctx),
+		TemplateVersion:  "2.0",
+		GeneratorVersion: "v2.0.0",
+		VariableCount:    stats.TotalVariables,
+		ResolvedCount:    stats.TotalVariables - stats.UnresolvedCount,
+		Variables:        st.convertRegistryToVariables(registry.GetAll()),
+		Project:          st.buildProjectInfo(ctx),
 	}
 }
 
 func (st *SecurityTool) convertRegistryToVariables(variables map[string]domain.TemplateVariable) []domain.Variable {
 	var result []domain.Variable
-	
+
 	for _, variable := range variables {
 		result = append(result, domain.Variable{
 			Placeholder: variable.Placeholder,
@@ -360,7 +360,7 @@ func (st *SecurityTool) convertRegistryToVariables(variables map[string]domain.T
 			Required:    variable.Required,
 		})
 	}
-	
+
 	return result
 }
 

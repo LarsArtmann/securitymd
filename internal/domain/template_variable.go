@@ -3,24 +3,24 @@ package domain
 import (
 	"time"
 
-	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/errors"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 )
 
 // TemplateVariable represents a template variable with type safety
 type TemplateVariable struct {
-	Placeholder string                    `json:"placeholder"`
-	Name        string                    `json:"name"`
-	Description string                    `json:"description"`
-	Value       string                    `json:"value"`
-	Priority    types.Priority           `json:"priority"`
-	Category    types.VariableCategory  `json:"category"`
-	Detected    bool                      `json:"detected"`
-	Overridden  bool                      `json:"overridden"`
-	Required    bool                      `json:"required"`
-	Source      VariableSource            `json:"source"`
-	CreatedAt   time.Time                  `json:"created_at"`
-	UpdatedAt   time.Time                  `json:"updated_at"`
+	Placeholder string                 `json:"placeholder"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Value       string                 `json:"value"`
+	Priority    types.Priority         `json:"priority"`
+	Category    types.VariableCategory `json:"category"`
+	Detected    bool                   `json:"detected"`
+	Overridden  bool                   `json:"overridden"`
+	Required    bool                   `json:"required"`
+	Source      VariableSource         `json:"source"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
 }
 
 // VariableSource represents where a variable comes from
@@ -39,7 +39,7 @@ const (
 func (vs VariableSource) IsValid() bool {
 	switch vs {
 	case SourceAutoDetected, SourceGitConfig, SourceProject,
-		 SourceGitHub, SourceUserInput, SourceDefault:
+		SourceGitHub, SourceUserInput, SourceDefault:
 		return true
 	default:
 		return false
@@ -53,7 +53,7 @@ func (tv TemplateVariable) IsValid() bool {
 		tv.Category.IsValid() &&
 		tv.Source.IsValid() &&
 		(tv.Placeholder[0] == '{' && tv.Placeholder[1] == '{' &&
-		 tv.Placeholder[len(tv.Placeholder)-2] == '}' && tv.Placeholder[len(tv.Placeholder)-1] == '}')
+			tv.Placeholder[len(tv.Placeholder)-2] == '}' && tv.Placeholder[len(tv.Placeholder)-1] == '}')
 }
 
 // TemplateVariableRegistry manages template variables with type safety
@@ -177,12 +177,12 @@ func (tvr *TemplateVariableRegistry) Validate() Validation {
 	// Check for unresolved required variables
 	for _, variable := range tvr.GetUnresolved() {
 		issues = append(issues, ValidationIssue{
-			ID:          "unresolved_required_variable",
-			Field:       variable.Placeholder,
-			Category:    CategoryContent,
-			Level:       types.ValidationLevelError,
-			Message:     "Required variable is unresolved",
-			Suggestion:  "Provide a value for " + variable.Description,
+			ID:         "unresolved_required_variable",
+			Field:      variable.Placeholder,
+			Category:   CategoryContent,
+			Level:      types.ValidationLevelError,
+			Message:    "Required variable is unresolved",
+			Suggestion: "Provide a value for " + variable.Description,
 		})
 	}
 
@@ -190,12 +190,12 @@ func (tvr *TemplateVariableRegistry) Validate() Validation {
 	for _, variable := range tvr.variables {
 		if variable.Overridden {
 			warnings = append(warnings, ValidationWarning{
-				ID:          "overridden_variable",
-				Field:       variable.Placeholder,
-				Category:    CategoryContent,
-				Level:       types.ValidationLevelWarning,
-				Message:     "Variable was overridden by higher priority source",
-				Suggestion:  "Review variable priorities if unexpected",
+				ID:         "overridden_variable",
+				Field:      variable.Placeholder,
+				Category:   CategoryContent,
+				Level:      types.ValidationLevelWarning,
+				Message:    "Variable was overridden by higher priority source",
+				Suggestion: "Review variable priorities if unexpected",
 			})
 		}
 	}
@@ -247,12 +247,12 @@ func (tvr *TemplateVariableRegistry) ExportMap() map[string]string {
 // Stats returns registry statistics
 func (tvr *TemplateVariableRegistry) Stats() RegistryStats {
 	return RegistryStats{
-		TotalVariables: uint16(len(tvr.variables)),
-		TotalSources:   uint16(len(tvr.sources)),
-		RequiredCount:  uint16(len(tvr.GetRequired())),
+		TotalVariables:  uint16(len(tvr.variables)),
+		TotalSources:    uint16(len(tvr.sources)),
+		RequiredCount:   uint16(len(tvr.GetRequired())),
 		UnresolvedCount: uint16(len(tvr.GetUnresolved())),
-		CategoryCount:  uint16(len(tvr.GetCategories())),
-		LastUpdated:    tvr.updated,
+		CategoryCount:   uint16(len(tvr.GetCategories())),
+		LastUpdated:     tvr.updated,
 	}
 }
 
@@ -272,13 +272,13 @@ func (tvr *TemplateVariableRegistry) GetCategories() []types.VariableCategory {
 
 // RegistryStats represents registry statistics
 type RegistryStats struct {
-	TotalVariables    uint16                `json:"total_variables"`
-	TotalSources      uint16                `json:"total_sources"`
-	RequiredCount     uint16                `json:"required_count"`
-	UnresolvedCount  uint16                `json:"unresolved_count"`
-	CategoryCount     uint16                `json:"category_count"`
-	LastUpdated       time.Time             `json:"last_updated"`
-	Sources          map[VariableSource]uint16 `json:"sources"`
+	TotalVariables  uint16                    `json:"total_variables"`
+	TotalSources    uint16                    `json:"total_sources"`
+	RequiredCount   uint16                    `json:"required_count"`
+	UnresolvedCount uint16                    `json:"unresolved_count"`
+	CategoryCount   uint16                    `json:"category_count"`
+	LastUpdated     time.Time                 `json:"last_updated"`
+	Sources         map[VariableSource]uint16 `json:"sources"`
 }
 
 // Clear removes all variables from registry

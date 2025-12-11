@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/domain"
-	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/errors"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 )
 
 // projectDetectionService implements ProjectDetectionService interface
 type projectDetectionService struct {
-	gitService GitService
+	gitService   GitService
 	errorHandler ErrorHandler
 }
 
@@ -22,9 +22,9 @@ type projectDetectionService struct {
 func NewProjectDetectionService() ProjectDetectionService {
 	errorHandler := NewErrorHandler(true)
 	gitService := NewGitService()
-	
+
 	return &projectDetectionService{
-		gitService: gitService,
+		gitService:   gitService,
 		errorHandler: errorHandler,
 	}
 }
@@ -165,14 +165,14 @@ func (p *projectDetectionService) AnalyzeProject(ctx context.Context) (domain.Pr
 	dependencies := p.detectDependencies()
 
 	return domain.ProjectInfo{
-		Name:        projectName,
-		Type:        projectType,
-		TechStack:   techStack,
-		Languages:   languages,
-		Frameworks:  frameworks,
+		Name:         projectName,
+		Type:         projectType,
+		TechStack:    techStack,
+		Languages:    languages,
+		Frameworks:   frameworks,
 		Dependencies: dependencies,
-		Size:        p.calculateProjectSize(),
-		Complexity:  p.calculateComplexity(),
+		Size:         p.calculateProjectSize(),
+		Complexity:   p.calculateComplexity(),
 	}, nil
 }
 
@@ -268,7 +268,7 @@ func (p *projectDetectionService) detectFrameworks() []string {
 	if p.fileExists("package.json") {
 		content, _ := os.ReadFile("package.json")
 		jsonContent := string(content)
-		
+
 		if strings.Contains(jsonContent, "\"react\"") {
 			frameworks = append(frameworks, "React")
 		}
@@ -293,7 +293,7 @@ func (p *projectDetectionService) detectDependencies() []string {
 	if p.fileExists("go.mod") {
 		content, _ := os.ReadFile("go.mod")
 		modContent := string(content)
-		
+
 		// Extract direct dependencies
 		lines := strings.Split(modContent, "\n")
 		for _, line := range lines {
@@ -311,7 +311,7 @@ func (p *projectDetectionService) detectDependencies() []string {
 	if p.fileExists("package.json") {
 		content, _ := os.ReadFile("package.json")
 		jsonContent := string(content)
-		
+
 		// Simple regex to extract dependencies
 		depRegex := regexp.MustCompile(`"([^"]+)"\s*:\s*"[^"]+"`)
 		matches := depRegex.FindAllStringSubmatch(jsonContent, -1)
@@ -328,7 +328,7 @@ func (p *projectDetectionService) detectDependencies() []string {
 func (p *projectDetectionService) calculateProjectSize() domain.ProjectSize {
 	// Count files (simplified)
 	fileCount := p.countFiles(".")
-	
+
 	switch {
 	case fileCount <= 10:
 		return domain.SizeMicro
@@ -347,9 +347,9 @@ func (p *projectDetectionService) calculateComplexity() domain.ProjectComplexity
 	// Simple complexity calculation based on file count and dependencies
 	fileCount := p.countFiles(".")
 	depCount := len(p.detectDependencies())
-	
+
 	score := fileCount + (depCount * 2)
-	
+
 	switch {
 	case score <= 20:
 		return domain.ComplexitySimple
@@ -364,12 +364,12 @@ func (p *projectDetectionService) calculateComplexity() domain.ProjectComplexity
 
 func (p *projectDetectionService) countFiles(dir string) int {
 	count := 0
-	
+
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
 		}
-		
+
 		// Skip hidden files and directories
 		if strings.HasPrefix(filepath.Base(path), ".") && path != "." {
 			if info.IsDir() {
@@ -377,7 +377,7 @@ func (p *projectDetectionService) countFiles(dir string) int {
 			}
 			return nil
 		}
-		
+
 		// Skip vendor, node_modules, etc.
 		if strings.Contains(path, "vendor/") || strings.Contains(path, "node_modules/") {
 			if info.IsDir() {
@@ -385,14 +385,14 @@ func (p *projectDetectionService) countFiles(dir string) int {
 			}
 			return nil
 		}
-		
+
 		if !info.IsDir() {
 			count++
 		}
-		
+
 		return nil
 	})
-	
+
 	return count
 }
 

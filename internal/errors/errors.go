@@ -45,10 +45,10 @@ func NewBaseError(code, message, component string) BaseError {
 // ValidationError represents validation errors
 type ValidationError struct {
 	BaseError
-	Level   types.ValidationLevel `json:"level"`
-	Line    uint32             `json:"line,omitempty"`
-	Column  uint32             `json:"column,omitempty"`
-	File    string             `json:"file,omitempty"`
+	Level  types.ValidationLevel `json:"level"`
+	Line   uint32                `json:"line,omitempty"`
+	Column uint32                `json:"column,omitempty"`
+	File   string                `json:"file,omitempty"`
 }
 
 // NewValidationError creates a new validation error
@@ -125,16 +125,16 @@ func (te TemplateError) WithVariable(variable string) TemplateError {
 type GitHubError struct {
 	BaseError
 	Repository string `json:"repository"`
-	Endpoint  string `json:"endpoint"`
-	Status    int    `json:"status,omitempty"`
+	Endpoint   string `json:"endpoint"`
+	Status     int    `json:"status,omitempty"`
 }
 
 // NewGitHubError creates a new GitHub error
 func NewGitHubError(code, message, repository, endpoint string) GitHubError {
 	return GitHubError{
-		BaseError: NewBaseError(code, message, "github"),
+		BaseError:  NewBaseError(code, message, "github"),
 		Repository: repository,
-		Endpoint:  endpoint,
+		Endpoint:   endpoint,
 	}
 }
 
@@ -147,8 +147,8 @@ func (ghe GitHubError) WithStatus(status int) GitHubError {
 // FileOperationError represents file operation errors
 type FileOperationError struct {
 	BaseError
-	Operation string `json:"operation"`
-	FilePath string `json:"file_path"`
+	Operation  string `json:"operation"`
+	FilePath   string `json:"file_path"`
 	Permission bool   `json:"permission,omitempty"`
 }
 
@@ -157,7 +157,7 @@ func NewFileOperationError(code, message, operation, filePath string) FileOperat
 	return FileOperationError{
 		BaseError: NewBaseError(code, message, "file_ops"),
 		Operation: operation,
-		FilePath: filePath,
+		FilePath:  filePath,
 	}
 }
 
@@ -170,9 +170,9 @@ func (foe FileOperationError) WithPermission(permission bool) FileOperationError
 // RegistryError represents template variable registry errors
 type RegistryError struct {
 	BaseError
-	Variable   string               `json:"variable,omitempty"`
-	Registry   string               `json:"registry"`
-	Constraint RegistryConstraint    `json:"constraint"`
+	Variable   string             `json:"variable,omitempty"`
+	Registry   string             `json:"registry"`
+	Constraint RegistryConstraint `json:"constraint"`
 }
 
 // RegistryConstraint represents registry constraint types
@@ -180,17 +180,17 @@ type RegistryConstraint string
 
 const (
 	ConstraintPlaceholderInvalid RegistryConstraint = "placeholder_invalid"
-	ConstraintCategoryInvalid     RegistryConstraint = "category_invalid"
-	ConstraintPriorityInvalid     RegistryConstraint = "priority_invalid"
+	ConstraintCategoryInvalid    RegistryConstraint = "category_invalid"
+	ConstraintPriorityInvalid    RegistryConstraint = "priority_invalid"
 	ConstraintSourceInvalid      RegistryConstraint = "source_invalid"
-	ConstraintDuplicate         RegistryConstraint = "duplicate"
-	ConstraintRequired          RegistryConstraint = "required"
+	ConstraintDuplicate          RegistryConstraint = "duplicate"
+	ConstraintRequired           RegistryConstraint = "required"
 )
 
 // NewRegistryError creates a new registry error
 func NewRegistryError(code, message, registry string, constraint RegistryConstraint) RegistryError {
 	return RegistryError{
-		BaseError: NewBaseError(code, message, "registry"),
+		BaseError:  NewBaseError(code, message, "registry"),
 		Registry:   registry,
 		Constraint: constraint,
 	}
@@ -205,8 +205,8 @@ func (re RegistryError) WithVariable(variable string) RegistryError {
 // CompilationError represents compilation/build errors
 type CompilationError struct {
 	BaseError
-	Target    string `json:"target"`
-	Step      string `json:"step"`
+	Target     string `json:"target"`
+	Step       string `json:"step"`
 	Diagnostic string `json:"diagnostic"`
 }
 
@@ -233,40 +233,40 @@ const (
 	ErrCodeInvalidEmail        = "VAL003"
 	ErrCodeUnresolvedVariable  = "VAL004"
 	ErrCodeInsufficientContent = "VAL005"
-	
+
 	// Configuration error codes
 	ErrCodeInvalidPolicyType   = "CFG001"
 	ErrCodeMissingOrganization = "CFG002"
-	ErrCodeInvalidOutputFormat  = "CFG003"
-	
+	ErrCodeInvalidOutputFormat = "CFG003"
+
 	// Project detection error codes
-	ErrCodeGitConfigAccess    = "DET001"
-	ErrCodeFileReadAccess     = "DET002"
-	ErrCodeInvalidGitURL      = "DET003"
-	
+	ErrCodeGitConfigAccess = "DET001"
+	ErrCodeFileReadAccess  = "DET002"
+	ErrCodeInvalidGitURL   = "DET003"
+
 	// Template error codes
-	ErrCodeTemplateNotFound   = "TPL001"
-	ErrCodeTemplateCorrupted  = "TPL002"
-	ErrCodeVariableCycle      = "TPL003"
-	
+	ErrCodeTemplateNotFound  = "TPL001"
+	ErrCodeTemplateCorrupted = "TPL002"
+	ErrCodeVariableCycle     = "TPL003"
+
 	// GitHub error codes
 	ErrCodeGitHubAPIFailed    = "GH001"
-	ErrCodeRepositoryNotFound  = "GH002"
+	ErrCodeRepositoryNotFound = "GH002"
 	ErrCodeInvalidToken       = "GH003"
-	
+
 	// File operation error codes
-	ErrCodeFileNotFound       = "FILE001"
-	ErrCodePermissionDenied    = "FILE002"
-	ErrCodeDiskFull           = "FILE003"
-	
+	ErrCodeFileNotFound     = "FILE001"
+	ErrCodePermissionDenied = "FILE002"
+	ErrCodeDiskFull         = "FILE003"
+
 	// Registry error codes
-	ErrCodeInvalidPlaceholder  = "REG001"
-	ErrCodeDuplicateVariable   = "REG002"
+	ErrCodeInvalidPlaceholder = "REG001"
+	ErrCodeDuplicateVariable  = "REG002"
 	ErrCodeInvalidCategory    = "REG003"
-	
+
 	// Compilation error codes
 	ErrCodeBuildFailed       = "BUILD001"
-	ErrCodeDependencyMissing  = "BUILD002"
+	ErrCodeDependencyMissing = "BUILD002"
 	ErrCodeTestFailed        = "BUILD003"
 )
 
@@ -315,14 +315,14 @@ func (eh *ErrorHandler) RegisterChannel(component string, ch chan error) {
 }
 
 // Component method for typed errors
-func (ve ValidationError) Component() string { return ve.Component }
-func (ce ConfigurationError) Component() string { return ce.Component }
+func (ve ValidationError) Component() string        { return ve.Component }
+func (ce ConfigurationError) Component() string     { return ce.Component }
 func (pde ProjectDetectionError) Component() string { return pde.Component }
-func (te TemplateError) Component() string { return te.Component }
-func (ghe GitHubError) Component() string { return ghe.Component }
-func (foe FileOperationError) Component() string { return foe.Component }
-func (re RegistryError) Component() string { return re.Component }
-func (ce CompilationError) Component() string { return ce.Component }
+func (te TemplateError) Component() string          { return te.Component }
+func (ghe GitHubError) Component() string           { return ghe.Component }
+func (foe FileOperationError) Component() string    { return foe.Component }
+func (re RegistryError) Component() string          { return re.Component }
+func (ce CompilationError) Component() string       { return ce.Component }
 
 // ErrorCollection represents multiple errors
 type ErrorCollection struct {

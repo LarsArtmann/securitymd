@@ -7,7 +7,7 @@ type PolicyType string
 
 const (
 	PolicyTypeGitHub           PolicyType = "github"
-	PolicyTypeEnterprise       PolicyType = "enterprise" 
+	PolicyTypeEnterprise       PolicyType = "enterprise"
 	PolicyTypeBugBounty        PolicyType = "bug-bounty"
 	PolicyTypeIncidentResponse PolicyType = "incident-response"
 	PolicyTypePrivacyPolicy    PolicyType = "privacy-policy"
@@ -17,7 +17,7 @@ const (
 func (pt PolicyType) IsValid() bool {
 	switch pt {
 	case PolicyTypeGitHub, PolicyTypeEnterprise, PolicyTypeBugBounty,
-		 PolicyTypeIncidentResponse, PolicyTypePrivacyPolicy:
+		PolicyTypeIncidentResponse, PolicyTypePrivacyPolicy:
 		return true
 	default:
 		return false
@@ -33,8 +33,8 @@ func (pt PolicyType) String() string {
 type OutputFormat string
 
 const (
-	FormatText      OutputFormat = "text"
-	FormatJSON      OutputFormat = "json"
+	FormatText       OutputFormat = "text"
+	FormatJSON       OutputFormat = "json"
 	FormatPrometheus OutputFormat = "prometheus"
 )
 
@@ -116,7 +116,7 @@ const (
 func (vc VariableCategory) IsValid() bool {
 	switch vc {
 	case CategoryProject, CategoryOrganization, CategoryContact,
-		 CategorySecurity, CategoryLegal, CategoryTemporal:
+		CategorySecurity, CategoryLegal, CategoryTemporal:
 		return true
 	default:
 		return false
@@ -218,22 +218,22 @@ func (rs RepositoryStatus) String() string {
 type TechStack string
 
 const (
-	TechStackGo       TechStack = "go"
-	TechStackNode     TechStack = "node"
-	TechStackPython   TechStack = "python"
-	TechStackRust     TechStack = "rust"
-	TechStackDocker   TechStack = "docker"
-	TechStackK8s      TechStack = "kubernetes"
-	TechStackReact    TechStack = "react"
-	TechStackVue      TechStack = "vue"
-	TechStackAngular  TechStack = "angular"
+	TechStackGo      TechStack = "go"
+	TechStackNode    TechStack = "node"
+	TechStackPython  TechStack = "python"
+	TechStackRust    TechStack = "rust"
+	TechStackDocker  TechStack = "docker"
+	TechStackK8s     TechStack = "kubernetes"
+	TechStackReact   TechStack = "react"
+	TechStackVue     TechStack = "vue"
+	TechStackAngular TechStack = "angular"
 )
 
 // IsValid checks if tech stack is valid
 func (ts TechStack) IsValid() bool {
 	switch ts {
 	case TechStackGo, TechStackNode, TechStackPython, TechStackRust,
-		 TechStackDocker, TechStackK8s, TechStackReact, TechStackVue, TechStackAngular:
+		TechStackDocker, TechStackK8s, TechStackReact, TechStackVue, TechStackAngular:
 		return true
 	default:
 		return false
@@ -244,21 +244,21 @@ func (ts TechStack) IsValid() bool {
 type ProjectType string
 
 const (
-	TypeWeb      ProjectType = "web"
-	TypeAPI      ProjectType = "api"
-	TypeCLI      ProjectType = "cli"
-	TypeLibrary  ProjectType = "library"
-	TypeMobile   ProjectType = "mobile"
-	TypeDesktop  ProjectType = "desktop"
-	TypeIoT      ProjectType = "iot"
-	TypeSaaS     ProjectType = "saas"
+	TypeWeb     ProjectType = "web"
+	TypeAPI     ProjectType = "api"
+	TypeCLI     ProjectType = "cli"
+	TypeLibrary ProjectType = "library"
+	TypeMobile  ProjectType = "mobile"
+	TypeDesktop ProjectType = "desktop"
+	TypeIoT     ProjectType = "iot"
+	TypeSaaS    ProjectType = "saas"
 )
 
 // IsValid checks if project type is valid
 func (pt ProjectType) IsValid() bool {
 	switch pt {
 	case TypeWeb, TypeAPI, TypeCLI, TypeLibrary, TypeMobile,
-		 TypeDesktop, TypeIoT, TypeSaaS:
+		TypeDesktop, TypeIoT, TypeSaaS:
 		return true
 	default:
 		return false

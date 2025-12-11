@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/domain"
-	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/errors"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 )
 
 // validationService implements ValidationService interface
@@ -32,18 +32,18 @@ func (v *validationService) ValidateSecurityPolicy(ctx context.Context, filePath
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return domain.Validation{
-			Status:    types.StatusInvalid,
-			Score:     0,
-			Issues:    []domain.ValidationIssue{},
-			Warnings:  []domain.ValidationWarning{},
-			CheckedAt: time.Now(),
-			Quality: domain.QualityMetrics{},
-		}, errors.NewFileOperationError(
-			"FILE001",
-			"Failed to read security policy file",
-			"read",
-			filePath,
-		)
+				Status:    types.StatusInvalid,
+				Score:     0,
+				Issues:    []domain.ValidationIssue{},
+				Warnings:  []domain.ValidationWarning{},
+				CheckedAt: time.Now(),
+				Quality:   domain.QualityMetrics{},
+			}, errors.NewFileOperationError(
+				"FILE001",
+				"Failed to read security policy file",
+				"read",
+				filePath,
+			)
 	}
 
 	return v.validateContent(string(content), filePath)
@@ -67,21 +67,21 @@ func (v *validationService) ValidateAllPolicies(ctx context.Context) ([]domain.V
 				v.errorHandler.Handle(err)
 				// Add failed validation
 				validation = domain.Validation{
-					Status:    types.StatusInvalid,
-					Score:     0,
+					Status: types.StatusInvalid,
+					Score:  0,
 					Issues: []domain.ValidationIssue{
 						{
-							ID:          "VAL001",
-							Field:       file,
-							Category:    domain.CategoryStructure,
-							Level:       types.ValidationLevelError,
-							Message:     "Failed to read file",
-							Suggestion:  "Check file permissions",
+							ID:         "VAL001",
+							Field:      file,
+							Category:   domain.CategoryStructure,
+							Level:      types.ValidationLevelError,
+							Message:    "Failed to read file",
+							Suggestion: "Check file permissions",
 						},
 					},
 					Warnings:  []domain.ValidationWarning{},
 					CheckedAt: time.Now(),
-					Quality: domain.QualityMetrics{},
+					Quality:   domain.QualityMetrics{},
 				}
 			}
 			results = append(results, validation)
@@ -114,7 +114,7 @@ func (v *validationService) GenerateValidationReport(ctx context.Context, result
 		}
 
 		totalScore += int(result.Score)
-		
+
 		if result.Score > summary.HighestScore {
 			summary.HighestScore = result.Score
 		}
@@ -129,8 +129,8 @@ func (v *validationService) GenerateValidationReport(ctx context.Context, result
 
 	metrics := ValidationMetrics{
 		TotalPoliciesValidated: len(results),
-		ValidationScore: map[types.ValidationLevel]int{},
-		CommonIssues:          v.getCommonIssues(results),
+		ValidationScore:        map[types.ValidationLevel]int{},
+		CommonIssues:           v.getCommonIssues(results),
 		ImprovementSuggestions: v.getImprovementSuggestions(results),
 	}
 
@@ -154,12 +154,12 @@ func (v *validationService) validateContent(content, filePath string) domain.Val
 	// Basic content checks
 	if len(strings.TrimSpace(content)) < 100 {
 		issues = append(issues, domain.ValidationIssue{
-			ID:          "VAL002",
-			Field:       "content",
-			Category:    domain.CategoryContent,
-			Level:       types.ValidationLevelError,
-			Message:     "Content is too short",
-			Suggestion:  "Add comprehensive security policy content",
+			ID:         "VAL002",
+			Field:      "content",
+			Category:   domain.CategoryContent,
+			Level:      types.ValidationLevelError,
+			Message:    "Content is too short",
+			Suggestion: "Add comprehensive security policy content",
 		})
 		score -= 30
 	}
@@ -175,12 +175,12 @@ func (v *validationService) validateContent(content, filePath string) domain.Val
 	for _, section := range requiredSections {
 		if !strings.Contains(content, section) {
 			issues = append(issues, domain.ValidationIssue{
-				ID:          "VAL003",
-				Field:       "sections",
-				Category:    domain.CategoryStructure,
-				Level:       types.ValidationLevelError,
-				Message:     fmt.Sprintf("Missing required section: %s", section),
-				Suggestion:  fmt.Sprintf("Add the '%s' section", section),
+				ID:         "VAL003",
+				Field:      "sections",
+				Category:   domain.CategoryStructure,
+				Level:      types.ValidationLevelError,
+				Message:    fmt.Sprintf("Missing required section: %s", section),
+				Suggestion: fmt.Sprintf("Add the '%s' section", section),
 			})
 			score -= 20
 		}
@@ -190,12 +190,12 @@ func (v *validationService) validateContent(content, filePath string) domain.Val
 	emailRegex := regexp.MustCompile(`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`)
 	if !emailRegex.MatchString(content) {
 		issues = append(issues, domain.ValidationIssue{
-			ID:          "VAL004",
-			Field:       "contact",
-			Category:    domain.CategoryContact,
-			Level:       types.ValidationLevelError,
-			Message:     "No valid email address found",
-			Suggestion:  "Add a valid email address for security reports",
+			ID:         "VAL004",
+			Field:      "contact",
+			Category:   domain.CategoryContact,
+			Level:      types.ValidationLevelError,
+			Message:    "No valid email address found",
+			Suggestion: "Add a valid email address for security reports",
 		})
 		score -= 25
 	}
@@ -203,7 +203,7 @@ func (v *validationService) validateContent(content, filePath string) domain.Val
 	// Template variable checks
 	variableRegex := regexp.MustCompile(`\{\{[^}]+\}\}`)
 	variables := variableRegex.FindAllString(content, -1)
-	
+
 	unresolvedVariables := []string{}
 	for _, variable := range variables {
 		if v.isCommonUnresolvedVariable(variable) {
@@ -213,12 +213,12 @@ func (v *validationService) validateContent(content, filePath string) domain.Val
 
 	if len(unresolvedVariables) > 0 {
 		warnings = append(warnings, domain.ValidationWarning{
-			ID:          "VAL005",
-			Field:       "variables",
-			Category:    domain.CategoryContent,
-			Level:       types.ValidationLevelWarning,
-			Message:     fmt.Sprintf("Unresolved template variables: %s", strings.Join(unresolvedVariables, ", ")),
-			Suggestion:  "Replace template variables with actual values",
+			ID:         "VAL005",
+			Field:      "variables",
+			Category:   domain.CategoryContent,
+			Level:      types.ValidationLevelWarning,
+			Message:    fmt.Sprintf("Unresolved template variables: %s", strings.Join(unresolvedVariables, ", ")),
+			Suggestion: "Replace template variables with actual values",
 		})
 		score -= 10
 	}
@@ -227,12 +227,12 @@ func (v *validationService) validateContent(content, filePath string) domain.Val
 	lines := strings.Split(content, "\n")
 	if len(lines) < 20 {
 		warnings = append(warnings, domain.ValidationWarning{
-			ID:          "VAL006",
-			Field:       "content",
-			Category:    domain.CategoryContent,
-			Level:       types.ValidationLevelWarning,
-			Message:     "Content is shorter than recommended minimum",
-			Suggestion:  "Add more detail to your security policy",
+			ID:         "VAL006",
+			Field:      "content",
+			Category:   domain.CategoryContent,
+			Level:      types.ValidationLevelWarning,
+			Message:    "Content is shorter than recommended minimum",
+			Suggestion: "Add more detail to your security policy",
 		})
 		score -= 5
 	}
@@ -242,12 +242,12 @@ func (v *validationService) validateContent(content, filePath string) domain.Val
 	for _, placeholder := range placeholderTexts {
 		if strings.Contains(strings.ToLower(content), placeholder) {
 			warnings = append(warnings, domain.ValidationWarning{
-				ID:          "VAL007",
-				Field:       "content",
-				Category:    domain.CategoryContent,
-				Level:       types.ValidationLevelWarning,
-				Message:     fmt.Sprintf("Found placeholder text: %s", placeholder),
-				Suggestion:  "Replace placeholder text with actual values",
+				ID:         "VAL007",
+				Field:      "content",
+				Category:   domain.CategoryContent,
+				Level:      types.ValidationLevelWarning,
+				Message:    fmt.Sprintf("Found placeholder text: %s", placeholder),
+				Suggestion: "Replace placeholder text with actual values",
 			})
 			score -= 5
 		}
@@ -282,7 +282,7 @@ func (v *validationService) validateContent(content, filePath string) domain.Val
 		Issues:    issues,
 		Warnings:  warnings,
 		CheckedAt: time.Now(),
-		Quality:    quality,
+		Quality:   quality,
 	}
 }
 
@@ -359,12 +359,12 @@ func (v *validationService) calculateCompleteness(content string) uint8 {
 
 	// Check for various sections and content types
 	checks := map[string]bool{
-		"vulnerability reporting":  strings.Contains(content, "Reporting a Vulnerability"),
+		"vulnerability reporting": strings.Contains(content, "Reporting a Vulnerability"),
 		"supported versions":      strings.Contains(content, "Supported Versions"),
 		"contact information":     strings.Contains(content, "Contact"),
-		"security practices":     strings.Contains(content, "Security Practices"),
-		"email contact":          strings.Contains(content, "@"),
-		"response time":          strings.Contains(content, "response") || strings.Contains(content, "Response"),
+		"security practices":      strings.Contains(content, "Security Practices"),
+		"email contact":           strings.Contains(content, "@"),
+		"response time":           strings.Contains(content, "response") || strings.Contains(content, "Response"),
 		"supported versions":      strings.Contains(content, "v1.") || strings.Contains(content, "v2."),
 	}
 
@@ -387,7 +387,7 @@ func (v *validationService) calculateBestPractices(content string) uint8 {
 
 	// Check for best practices
 	bpChecks := map[string]bool{
-		"private disclosure":     strings.Contains(content, "private") && strings.Contains(content, "disclosure"),
+		"private disclosure":    strings.Contains(content, "private") && strings.Contains(content, "disclosure"),
 		"safe harbor":           strings.Contains(content, "Safe Harbor") || strings.Contains(content, "safe harbor"),
 		"timeline":              strings.Contains(content, "timeline") || strings.Contains(content, "Timeline"),
 		"severity":              strings.Contains(content, "severity") || strings.Contains(content, "Severity"),

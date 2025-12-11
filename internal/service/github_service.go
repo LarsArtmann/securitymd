@@ -19,7 +19,7 @@ type gitHubService struct {
 func NewGitHubService() GitHubService {
 	errorHandler := NewErrorHandler(true)
 	gitService := NewGitService()
-	
+
 	return &gitHubService{
 		gitService:   gitService,
 		errorHandler: errorHandler,
@@ -46,7 +46,7 @@ func (g *gitHubService) GetGitHubInfo(ctx context.Context) (domain.GitHubInfo, e
 	}
 
 	info := g.parseGitHubURL(remoteURL)
-	
+
 	// Get additional info
 	info.DefaultBranch = g.getDefaultBranch(ctx)
 	info.Status = domain.StatusPublic // Default assumption
@@ -63,19 +63,19 @@ func (g *gitHubService) GetGitHubURLs(info domain.GitHubInfo) map[string]string 
 	}
 
 	baseURL := "https://" + info.Host + "/" + info.FullName
-	
+
 	return map[string]string{
-		"repository":  baseURL,
-		"issues":      baseURL + "/issues",
-		"security":    baseURL + "/security",
-		"advisories":  baseURL + "/security/advisories",
-		"pulse":       baseURL + "/pulse",
-		"network":     baseURL + "/network",
-		"settings":    baseURL + "/settings",
-		"actions":     baseURL + "/actions",
-		"releases":    baseURL + "/releases",
-		"wiki":        baseURL + "/wiki",
-		"api":         "https://api." + info.Host + "/repos/" + info.FullName,
+		"repository": baseURL,
+		"issues":     baseURL + "/issues",
+		"security":   baseURL + "/security",
+		"advisories": baseURL + "/security/advisories",
+		"pulse":      baseURL + "/pulse",
+		"network":    baseURL + "/network",
+		"settings":   baseURL + "/settings",
+		"actions":    baseURL + "/actions",
+		"releases":   baseURL + "/releases",
+		"wiki":       baseURL + "/wiki",
+		"api":        "https://api." + info.Host + "/repos/" + info.FullName,
 	}
 }
 
@@ -93,9 +93,9 @@ func (g *gitHubService) IsGitHubRepository(ctx context.Context) bool {
 func (g *gitHubService) GetOwnerInfo(ctx context.Context, owner string) (domain.Organization, error) {
 	// For now, return minimal organization info
 	return domain.Organization{
-		Name:  owner,
-		Type:  domain.OrgTypeOpenSource,
-		Size:  domain.SizeSmall,
+		Name: owner,
+		Type: domain.OrgTypeOpenSource,
+		Size: domain.SizeSmall,
 		GitHub: domain.GitHubInfo{
 			Owner:    owner,
 			Host:     "github.com",
@@ -185,8 +185,8 @@ func (g *gitHubService) parseGitHubURL(url string) domain.GitHubInfo {
 
 func (g *gitHubService) isGitHubURL(url string) bool {
 	return strings.Contains(url, "github.com") ||
-		   strings.HasPrefix(url, "git@github.com:") ||
-		   strings.HasPrefix(url, "git://github.com/")
+		strings.HasPrefix(url, "git@github.com:") ||
+		strings.HasPrefix(url, "git://github.com/")
 }
 
 func (g *gitHubService) detectProtocol(url string) types.GitProtocol {

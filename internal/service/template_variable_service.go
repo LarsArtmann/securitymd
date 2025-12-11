@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/domain"
-	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/errors"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 )
 
 // TemplateVariableService handles template variable detection and management
@@ -336,7 +336,7 @@ func (tvs *TemplateVariableService) detectSecurityVariables(ctx context.Context)
 	githubInfo, err := tvs.githubService.GetGitHubInfo(ctx)
 	if err == nil && githubInfo.IsGitHub {
 		urls := tvs.githubService.GetGitHubURLs(githubInfo)
-		
+
 		variables = append(variables, domain.TemplateVariable{
 			Placeholder: "{{SECURITY_ADVISORIES_URL}}",
 			Name:        "Security Advisories URL",
@@ -570,6 +570,6 @@ func (tvs *TemplateVariableService) ValidateRegistry() domain.Validation {
 
 // Reward represents bounty reward information
 type Reward struct {
-	Amount uint32
+	Amount   uint32
 	Currency string
 }
