@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -69,10 +71,21 @@ type PolicyConfig struct {
 	Variables    map[string]string `json:"variables"`
 }
 
+// TemplateData represents data for template rendering
+type TemplateData struct {
+	Organization     string
+	ContactEmail     string
+	LatestVersion    string
+	SupportEndDate   string
+	LastUpdated      string
+	Versions         []Version
+	AdditionalFields map[string]interface{}
+}
+
 // GeneratePolicy generates a security policy
 func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig) error {
-	// Prepare template variables
-	variables := st.prepareVariables(config)
+	// Prepare template data
+	templateData := st.prepareTemplateData(config)
 
 	// Read template
 	templateContent, err := st.readTemplate(config.Type)
@@ -81,7 +94,10 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 	}
 
 	// Process template
-	content := st.processTemplate(templateContent, variables)
+	content, err := st.processTemplate(templateContent, templateData)
+	if err != nil {
+		return fmt.Errorf("failed to process template: %w", err)
+	}
 
 	// Save to SECURITY.md
 	outputFile := "SECURITY.md"
@@ -97,23 +113,25 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 	return nil
 }
 
-// prepareVariables prepares template variables with defaults
-func (st *SecurityTool) prepareVariables(config PolicyConfig) map[string]string {
-	variables := make(map[string]string)
+// prepareTemplateData prepares template data with defaults
+func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
+	// Start with required fields
+	data := TemplateData{
+		Organization:     config.Organization,
+		ContactEmail:     config.ContactEmail,
+		LatestVersion:    "1.0.0",
+		SupportEndDate:   time.Now().AddDate(1, 0, 0).Format("2006-01-02"),
+		LastUpdated:      time.Now().Format("2006-01-02"),
+		Versions:         st.buildVersions(),
+		AdditionalFields: make(map[string]interface{}),
+	}
 
 	// Add user-provided variables
 	for k, v := range config.Variables {
-		variables[k] = v
+		data.AdditionalFields[k] = v
 	}
 
-	// Set required variables with defaults
-	variables["ORGANIZATION"] = config.Organization
-	variables["CONTACT_EMAIL"] = config.ContactEmail
-	variables["LATEST_VERSION"] = "1.0.0"
-	variables["SUPPORT_END_DATE"] = time.Now().AddDate(1, 0, 0).Format("2006-01-02")
-	variables["LAST_UPDATED"] = time.Now().Format("2006-01-02")
-
-	return variables
+	return data
 }
 
 // readTemplate reads the appropriate template file
@@ -130,14 +148,33 @@ func (st *SecurityTool) readTemplate(policyType PolicyType) (string, error) {
 	return string(content), nil
 }
 
-// processTemplate replaces template variables with values
-func (st *SecurityTool) processTemplate(template string, variables map[string]string) string {
-	content := template
-	
-	for placeholder, value := range variables {
-		templateVar := fmt.Sprintf("{{%s}}", placeholder)
-		content = strings.ReplaceAll(content, templateVar, value)
+// processTemplate processes template using Go's text/template
+func (st *SecurityTool) processTemplate(templateContent string, data TemplateData) (string, error) {
+	// Create template
+	tmpl, err := template.New("security").Parse(templateContent)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
 
-	return content
+	// Execute template with data
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return buf.String(), nil
+}
+
+func (st *SecurityTool) buildVersions() []Version {
+	now := time.Now()
+
+	return []Version{
+		{
+			Name:            "v2.x",
+			SemanticVersion: "2.0.0",
+			SupportedUntil:  now.AddDate(1, 0, 0),
+			Status:          StatusSupported,
+			IsLatest:        true,
+		},
+	}
 }

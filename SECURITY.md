@@ -14,7 +14,7 @@
 
 **Please do NOT report security vulnerabilities through public issues.**
 
-1. **Email us**: security@testcorp.com
+1. **Email us**: security@test.org
 2. **Use subject line**: `Security Vulnerability Report - [Brief Description]`
 3. **Include details**:
    - Vulnerability type and severity
@@ -33,7 +33,7 @@
 
 ### 🔐 Safe Harbor
 
-TestCorp commits to:
+TestOrg commits to:
 - **Never pursue legal action** against security researchers who follow this policy
 - **Work with researchers** to understand and fix vulnerabilities
 - **Credit researchers** in our security advisories (with permission)
