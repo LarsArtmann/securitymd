@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -24,37 +25,32 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	color.White("📋 Security Policy Status")
 	color.White("========================")
 
-	// Check for existing policies
+	// Check for SECURITY.md
 	if _, err := os.Stat("SECURITY.md"); err == nil {
 		color.Green("✅ SECURITY.md exists")
 	} else {
 		color.Red("❌ SECURITY.md not found")
-	}
-
-	if _, err := os.Stat("incident-response.md"); err == nil {
-		color.Green("✅ Incident response plan exists")
-	} else {
-		color.Red("❌ Incident response plan not found")
+		fmt.Println()
+		color.Yellow("Run 'template-security setup' to create one")
 	}
 
 	// Count available templates
 	templatesDir := "templates"
-	if count := countTemplates(templatesDir); count > 0 {
-		color.Cyan("Available templates: %d", count)
+	if count := countSecurityTemplates(templatesDir); count > 0 {
+		color.Cyan("Available SECURITY.md templates: %d", count)
 	} else {
 		color.Yellow("No templates directory found")
 	}
 
 	fmt.Println()
 	color.Cyan("Next steps:")
-	fmt.Println("  1. Run 'template-security setup' to generate policies")
-	fmt.Println("  2. Run 'template-security validate' to check policies")
-	fmt.Println("  3. Run 'template-security compliance --framework gdpr' for compliance")
+	fmt.Println("  1. Run 'template-security setup --type github' to generate SECURITY.md")
+	fmt.Println("  2. Run 'template-security validate' to check SECURITY.md")
 
 	return nil
 }
 
-func countTemplates(dir string) int {
+func countSecurityTemplates(dir string) int {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return 0
@@ -63,7 +59,10 @@ func countTemplates(dir string) int {
 	count := 0
 	for _, entry := range entries {
 		if !entry.IsDir() && len(entry.Name()) > 3 && entry.Name()[len(entry.Name())-3:] == ".md" {
-			count++
+			// Count only SECURITY.md related templates
+			if strings.Contains(strings.ToLower(entry.Name()), "security") || strings.Contains(strings.ToLower(entry.Name()), "github") {
+				count++
+			}
 		}
 	}
 	return count

@@ -16,18 +16,16 @@ var (
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "template-security",
-		Short: "Enterprise-grade security policy generator",
-		Long: `Template-Security is a comprehensive security policy template collection 
-that provides enterprise-grade security documentation, vulnerability reporting 
-procedures, incident response plans, and compliance frameworks.`,
+		Short: "Validate and generate SECURITY.md files",
+		Long: `Template-Security validates and generates SECURITY.md files for completeness 
+and compliance. Ensures your security policy contains all essential sections 
+and follows industry best practices for vulnerability disclosure.`,
 		Version: fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date),
 	}
 
 	// Add subcommands
 	rootCmd.AddCommand(newSetupCmd())
 	rootCmd.AddCommand(newValidateCmd())
-	rootCmd.AddCommand(newComplianceCmd())
-	rootCmd.AddCommand(newMetricsCmd())
 	rootCmd.AddCommand(newStatusCmd())
 
 	if err := rootCmd.Execute(); err != nil {

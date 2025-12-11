@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/LarsArtmann/template-SECURITY/v2/internal"
+	"github.com/LarsArtmann/template-SECURITY/internal"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
