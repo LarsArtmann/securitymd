@@ -4,7 +4,7 @@
 
 | Version | Supported Until |
 |---------|-----------------|
-| 1.0.0 | 2026-12-11 |
+| 1.0.0 | 2026-12-12 |
 
 > **Note**: Only the latest major version receives security updates. Please upgrade to the latest version as soon as possible.
 
@@ -14,7 +14,7 @@
 
 **Please do NOT report security vulnerabilities through public issues.**
 
-1. **Email us**: security@test.org
+1. **Email us**: security@github.com
 2. **Use subject line**: `Security Vulnerability Report - [Brief Description]`
 3. **Include details**:
    - Vulnerability type and severity
@@ -33,7 +33,7 @@
 
 ### 🔐 Safe Harbor
 
-TestOrg commits to:
+MyCompany commits to:
 - **Never pursue legal action** against security researchers who follow this policy
 - **Work with researchers** to understand and fix vulnerabilities
 - **Credit researchers** in our security advisories (with permission)
@@ -54,4 +54,4 @@ TestOrg commits to:
 
 ---
 
-*This security policy is last updated: 2025-12-11*
+*This security policy is last updated: 2025-12-12*

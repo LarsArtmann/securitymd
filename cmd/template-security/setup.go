@@ -36,9 +36,27 @@ Supports basic GitHub and enterprise security policies.`,
 }
 
 func runSetup(cmd *cobra.Command, args []string) error {
+	// Check for config file first
+	securityTool := internal.NewSecurityTool()
+	configFile := securityTool.FindConfigFile()
+	
+	// Load config if found
+	var userConfig *internal.Config
+	var err error
+	if configFile != "" {
+		color.Cyan("📄 Loading configuration from: %s", configFile)
+		userConfig, err = securityTool.LoadConfig(configFile)
+		if err != nil {
+			color.Yellow("⚠️  Warning: Failed to load config file: %v", err)
+		}
+	}
+	
 	// Set defaults if not provided
 	if policyType == "" {
 		policyType = "github"
+		if userConfig != nil {
+			policyType = string(userConfig.Type)
+		}
 	}
 	
 	// Validate policy type
@@ -46,35 +64,54 @@ func runSetup(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid policy type: %s (supported: github, enterprise)", policyType)
 	}
 
-	// If no organization provided, try to detect it
+	// If no organization provided, try to detect it or use config
 	if orgName == "" {
-		detector := internal.NewProjectDetector()
-		orgName = detector.DetectProjectName()
-		if orgName == "" {
-			orgName = "YourOrganization"
+		if userConfig != nil && userConfig.Organization != "" {
+			orgName = userConfig.Organization
+		} else {
+			detector := internal.NewProjectDetector()
+			orgName = detector.DetectProjectName()
+			if orgName == "" {
+				orgName = "YourOrganization"
+			}
 		}
 	}
 
-	// If no email provided, try to detect domain
+	// If no email provided, try to detect domain or use config
 	if contactEmail == "" {
-		detector := internal.NewProjectDetector()
-		domain := detector.DetectDomain()
-		if domain == "" {
-			domain = "yourcompany.com"
+		if userConfig != nil && userConfig.ContactEmail != "" {
+			contactEmail = userConfig.ContactEmail
+		} else {
+			detector := internal.NewProjectDetector()
+			domain := detector.DetectDomain()
+			if domain == "" {
+				domain = "yourcompany.com"
+			}
+			contactEmail = "security@" + domain
 		}
-		contactEmail = "security@" + domain
+	}
+
+	outputDirToUse := outputDir
+	if outputDirToUse == "." && userConfig != nil && userConfig.OutputDir != "" {
+		outputDirToUse = userConfig.OutputDir
 	}
 
 	color.Cyan("🔒 Generating SECURITY.md for: %s", orgName)
 	
-	// Create security tool and generate policy
-	securityTool := internal.NewSecurityTool()
+	// Prepare variables from config
+	variables := make(map[string]string)
+	if userConfig != nil {
+		for k, v := range userConfig.Variables {
+			variables[k] = v
+		}
+	}
+	
 	config := internal.PolicyConfig{
 		Type:         internal.PolicyType(policyType),
 		Organization: orgName,
 		ContactEmail: contactEmail,
-		OutputDir:    outputDir,
-		Variables:    make(map[string]string),
+		OutputDir:    outputDirToUse,
+		Variables:    variables,
 	}
 
 	return securityTool.GeneratePolicy(cmd.Context(), config)

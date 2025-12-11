@@ -48,14 +48,14 @@ type Contact struct {
 
 // SecurityPolicy represents a complete security policy
 type SecurityPolicy struct {
-	ID           string      `json:"id"`
-	Project      Project     `json:"project"`
-	Versions     []Version   `json:"versions"`
-	Contacts     []Contact   `json:"contacts"`
-	Content      string      `json:"content"`
-	Type         PolicyType  `json:"type"`
-	ValidatedAt  *time.Time  `json:"validated_at,omitempty"`
-	LastModified time.Time   `json:"last_modified"`
+	ID           string     `json:"id"`
+	Project      Project    `json:"project"`
+	Versions     []Version  `json:"versions"`
+	Contacts     []Contact  `json:"contacts"`
+	Content      string     `json:"content"`
+	Type         PolicyType `json:"type"`
+	ValidatedAt  *time.Time `json:"validated_at,omitempty"`
+	LastModified time.Time  `json:"last_modified"`
 }
 
 // Project represents project information
@@ -97,14 +97,14 @@ type Warning struct {
 
 // Template represents a security policy template
 type Template struct {
-	ID          string            `json:"id"`
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Type        PolicyType        `json:"type"`
-	Content     string            `json:"content"`
+	ID          string             `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Type        PolicyType         `json:"type"`
+	Content     string             `json:"content"`
 	Variables   []TemplateVariable `json:"variables"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at"`
+	CreatedAt   time.Time          `json:"created_at"`
+	UpdatedAt   time.Time          `json:"updated_at"`
 }
 
 // TemplateVariable represents a variable in a template

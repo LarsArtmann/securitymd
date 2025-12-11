@@ -5,9 +5,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 // PolicyType represents different types of security policies
@@ -62,9 +65,97 @@ func NewSecurityTool() *SecurityTool {
 	return &SecurityTool{}
 }
 
+// LoadConfig loads configuration from file
+func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
+	v := viper.New()
+
+	// Set config file path
+	v.SetConfigFile(configPath)
+
+	// Enable environment variable support
+	v.AutomaticEnv()
+	v.SetEnvPrefix("TEMPLATE_SECURITY")
+
+	// Read config file
+	if err := v.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	// Unmarshal into config struct
+	var config Config
+	if err := v.Unmarshal(&config); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	// Set defaults
+	if config.Type == "" {
+		config.Type = PolicyTypeGitHub
+	}
+	if config.SupportYears == 0 {
+		config.SupportYears = 1
+	}
+	if config.DefaultVersion == "" {
+		config.DefaultVersion = "1.0.0"
+	}
+	if config.OutputDir == "" {
+		config.OutputDir = "."
+	}
+	if config.TemplateDir == "" {
+		config.TemplateDir = "templates"
+	}
+	if config.Variables == nil {
+		config.Variables = make(map[string]string)
+	}
+
+	return &config, nil
+}
+
+// FindConfigFile finds configuration file in current directory or parent directories
+func (st *SecurityTool) FindConfigFile() string {
+	// Check for config files in order of preference
+	configNames := []string{
+		".template-security.yaml",
+		".template-security.yml",
+		"template-security.yaml",
+		"template-security.yml",
+	}
+
+	// Start in current directory and go up
+	dir, _ := os.Getwd()
+	for {
+		for _, name := range configNames {
+			configPath := filepath.Join(dir, name)
+			if _, err := os.Stat(configPath); err == nil {
+				return configPath
+			}
+		}
+
+		// Go up one directory
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break // Reached root
+		}
+		dir = parent
+	}
+
+	return ""
+}
+
+// Config represents a configuration file structure
+type Config struct {
+	Organization   string            `yaml:"organization"`
+	ContactEmail   string            `yaml:"contact_email"`
+	Type           PolicyType        `yaml:"type" mapstructure:"type"`
+	OutputDir      string            `yaml:"output_dir"`
+	TemplateDir    string            `yaml:"template_dir"`
+	DefaultVersion string            `yaml:"default_version"`
+	SupportYears   int               `yaml:"support_years"`
+	Variables      map[string]string `yaml:"variables"`
+}
+
 // PolicyConfig represents security policy configuration
 type PolicyConfig struct {
-	Type         PolicyType       `json:"type"`
+	Type         PolicyType        `json:"type"`
 	Organization string            `json:"organization"`
 	ContactEmail string            `json:"email"`
 	OutputDir    string            `json:"output_dir"`
@@ -116,11 +207,18 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 // prepareTemplateData prepares template data with defaults
 func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 	// Start with required fields
+	supportYears := 1 // default
+	if years, exists := config.Variables["SUPPORT_YEARS"]; exists {
+		if parsed, err := time.ParseDuration(years + "y"); err == nil {
+			supportYears = int(parsed.Hours() / (24 * 365))
+		}
+	}
+
 	data := TemplateData{
 		Organization:     config.Organization,
 		ContactEmail:     config.ContactEmail,
 		LatestVersion:    "1.0.0",
-		SupportEndDate:   time.Now().AddDate(1, 0, 0).Format("2006-01-02"),
+		SupportEndDate:   time.Now().AddDate(supportYears, 0, 0).Format("2006-01-02"),
 		LastUpdated:      time.Now().Format("2006-01-02"),
 		Versions:         st.buildVersions(),
 		AdditionalFields: make(map[string]interface{}),
@@ -137,7 +235,7 @@ func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 // readTemplate reads the appropriate template file
 func (st *SecurityTool) readTemplate(policyType PolicyType) (string, error) {
 	templatePath := "templates/SECURITY.md"
-	
+
 	// For now, we use the same template for both types
 	// In the future, we could have different templates
 	content, err := os.ReadFile(templatePath)

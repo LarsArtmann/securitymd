@@ -20,7 +20,7 @@ func TestSecurityValidator_ValidateSECURITYMd(t *testing.T) {
 		expectedWarns  []string
 	}{
 		{
-			name:        "valid complete security policy",
+			name: "valid complete security policy",
 			content: `# Security Policy
 
 ## Supported Versions
@@ -43,13 +43,13 @@ We follow security best practices.
 			expectedWarns:  []string{"Should specify response time for vulnerability reports"},
 		},
 		{
-			name:        "missing required sections",
+			name: "missing required sections",
 			content: `# Some Other Document
 
 This is not a security policy.
 
 `,
-			expectValid:    false,
+			expectValid: false,
 			expectedErrors: []string{
 				"Missing 'Reporting a Vulnerability' section",
 				"Missing 'Supported Versions' section",
@@ -63,7 +63,7 @@ This is not a security policy.
 			},
 		},
 		{
-			name:        "content too short",
+			name: "content too short",
 			content: `# Security Policy
 
 ## Supported Versions
@@ -71,7 +71,7 @@ This is not a security policy.
 v1.0
 
 `,
-			expectValid:    false,
+			expectValid: false,
 			expectedErrors: []string{
 				"Missing 'Reporting a Vulnerability' section",
 				"Missing 'Security Practices' section",
@@ -84,7 +84,7 @@ v1.0
 			},
 		},
 		{
-			name:        "with template variables",
+			name: "with template variables",
 			content: `# Security Policy
 
 ## Supported Versions
@@ -102,7 +102,7 @@ Email us at {{CONTACT_EMAIL}}.
 We follow security best practices.
 
 `,
-			expectValid:    false,
+			expectValid: false,
 			expectedErrors: []string{
 				"Unresolved template variable: | {{LATEST_VERSION}} | {{SUPPORT_END_DATE}} |",
 				"Unresolved template variable: Email us at {{CONTACT_EMAIL}}.",
@@ -114,7 +114,7 @@ We follow security best practices.
 			},
 		},
 		{
-			name:        "no version information",
+			name: "no version information",
 			content: `# Security Policy
 
 ## Supported Versions
@@ -226,15 +226,15 @@ func TestSecurityValidator_PrintResults(t *testing.T) {
 
 	results := []*SecurityValidationResult{
 		{
-			File:    "SECURITY.md",
-			Valid:   true,
-			Errors:  []string{},
+			File:     "SECURITY.md",
+			Valid:    true,
+			Errors:   []string{},
 			Warnings: []string{"Minor warning"},
 		},
 		{
-			File:    "BAD_SECURITY.md",
-			Valid:   false,
-			Errors:  []string{"Missing section"},
+			File:     "BAD_SECURITY.md",
+			Valid:    false,
+			Errors:   []string{"Missing section"},
 			Warnings: []string{},
 		},
 	}
