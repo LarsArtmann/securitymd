@@ -39,7 +39,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	// Check for config file first
 	securityTool := internal.NewSecurityTool()
 	configFile := securityTool.FindConfigFile()
-	
+
 	// Load config if found
 	var userConfig *internal.Config
 	var err error
@@ -50,7 +50,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 			color.Yellow("⚠️  Warning: Failed to load config file: %v", err)
 		}
 	}
-	
+
 	// Set defaults if not provided
 	if policyType == "" {
 		policyType = "github"
@@ -58,7 +58,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 			policyType = string(userConfig.Type)
 		}
 	}
-	
+
 	// Validate policy type
 	if policyType != "github" && policyType != "enterprise" {
 		return fmt.Errorf("invalid policy type: %s (supported: github, enterprise)", policyType)
@@ -97,7 +97,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	}
 
 	color.Cyan("🔒 Generating SECURITY.md for: %s", orgName)
-	
+
 	// Prepare variables from config
 	variables := make(map[string]string)
 	if userConfig != nil {
@@ -105,7 +105,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 			variables[k] = v
 		}
 	}
-	
+
 	config := internal.PolicyConfig{
 		Type:         internal.PolicyType(policyType),
 		Organization: orgName,

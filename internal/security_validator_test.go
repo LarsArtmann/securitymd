@@ -144,7 +144,7 @@ We follow security best practices.
 			// Create temporary file
 			tmpDir := t.TempDir()
 			filename := tmpDir + "/SECURITY.md"
-			err := os.WriteFile(filename, []byte(tt.content), 0644)
+			err := os.WriteFile(filename, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			// Run validation

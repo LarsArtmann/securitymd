@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +13,46 @@ import (
 
 	"github.com/spf13/viper"
 )
+
+// Error types
+var (
+	ErrConfigNotFound    = errors.New("configuration file not found")
+	ErrInvalidConfig     = errors.New("invalid configuration")
+	ErrTemplateNotFound  = errors.New("template not found")
+	ErrTemplateParse     = errors.New("failed to parse template")
+	ErrFileWrite         = errors.New("failed to write file")
+	ErrInvalidPolicyType = errors.New("invalid policy type")
+	ErrMissingField      = errors.New("required field missing")
+)
+
+// SecurityError represents a structured error with code and context
+type SecurityError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Field   string `json:"field,omitempty"`
+	Cause   error  `json:"cause,omitempty"`
+}
+
+func (e *SecurityError) Error() string {
+	if e.Cause != nil {
+		return fmt.Sprintf("%s: %s (caused by: %v)", e.Code, e.Message, e.Cause)
+	}
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+}
+
+func (e *SecurityError) Unwrap() error {
+	return e.Cause
+}
+
+// NewSecurityError creates a new SecurityError
+func NewSecurityError(code, message, field string, cause error) *SecurityError {
+	return &SecurityError{
+		Code:    code,
+		Message: message,
+		Field:   field,
+		Cause:   cause,
+	}
+}
 
 // PolicyType represents different types of security policies
 type PolicyType string
@@ -78,13 +119,13 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 
 	// Read config file
 	if err := v.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		return nil, NewSecurityError("CONFIG_READ_FAILED", "failed to read config file", configPath, err)
 	}
 
 	// Unmarshal into config struct
 	var config Config
 	if err := v.Unmarshal(&config); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+		return nil, NewSecurityError("CONFIG_UNMARSHAL_FAILED", "failed to unmarshal config", "", err)
 	}
 
 	// Set defaults
@@ -181,13 +222,13 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 	// Read template
 	templateContent, err := st.readTemplate(config.Type)
 	if err != nil {
-		return fmt.Errorf("failed to read template: %w", err)
+		return NewSecurityError("TEMPLATE_READ_FAILED", "failed to read template", string(config.Type), err)
 	}
 
 	// Process template
 	content, err := st.processTemplate(templateContent, templateData)
 	if err != nil {
-		return fmt.Errorf("failed to process template: %w", err)
+		return NewSecurityError("TEMPLATE_PROCESS_FAILED", "failed to process template", "", err)
 	}
 
 	// Save to SECURITY.md
@@ -196,8 +237,8 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 		outputFile = fmt.Sprintf("%s/SECURITY.md", strings.TrimSuffix(config.OutputDir, "/"))
 	}
 
-	if err := os.WriteFile(outputFile, []byte(content), 0644); err != nil {
-		return fmt.Errorf("failed to write file: %w", err)
+	if err := os.WriteFile(outputFile, []byte(content), 0o644); err != nil {
+		return NewSecurityError("FILE_WRITE_FAILED", "failed to write file", outputFile, err)
 	}
 
 	fmt.Printf("✅ Generated %s for %s\n", outputFile, config.Organization)

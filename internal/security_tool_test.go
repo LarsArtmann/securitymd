@@ -34,7 +34,7 @@ We follow security best practices.
 `
 
 	templatePath := tmpDir + "/SECURITY.md"
-	err := os.WriteFile(templatePath, []byte(templateContent), 0644)
+	err := os.WriteFile(templatePath, []byte(templateContent), 0o644)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -59,11 +59,11 @@ We follow security best practices.
 		t.Run(tt.name, func(t *testing.T) {
 			// Create template in the expected location
 			templateDir := tt.config.OutputDir + "/../templates"
-			err := os.MkdirAll(templateDir, 0755)
+			err := os.MkdirAll(templateDir, 0o755)
 			require.NoError(t, err)
 
 			templateFile := templateDir + "/SECURITY.md"
-			err = os.WriteFile(templateFile, []byte(templateContent), 0644)
+			err = os.WriteFile(templateFile, []byte(templateContent), 0o644)
 			require.NoError(t, err)
 
 			// Change working directory temporarily
