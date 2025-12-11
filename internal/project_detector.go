@@ -2,6 +2,7 @@ package internal
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -16,6 +17,18 @@ func NewProjectDetector() *ProjectDetector {
 
 // DetectProjectName attempts to detect the project name from various sources
 func (pd *ProjectDetector) DetectProjectName() string {
+	// Try to detect from git remote first (more reliable)
+	if name := pd.detectFromGitRemote(); name != "" {
+		// Extract repo name from git URL
+		if parts := strings.Split(name, "/"); len(parts) > 0 {
+			repoName := parts[len(parts)-1]
+			repoName = strings.TrimSuffix(repoName, ".git")
+			if repoName != "" {
+				return repoName
+			}
+		}
+	}
+
 	// Try to detect from package.json
 	if name := pd.detectFromPackageJSON(); name != "" {
 		return name
@@ -44,22 +57,128 @@ func (pd *ProjectDetector) DetectProjectName() string {
 	return "MyProject"
 }
 
+// DetectOrganization attempts to detect the organization name
+func (pd *ProjectDetector) DetectOrganization() string {
+	// Try to detect from git remote first
+	if org := pd.detectOrgFromGitRemote(); org != "" {
+		return org
+	}
+
+	// Try to detect from package.json
+	if org := pd.detectOrgFromPackageJSON(); org != "" {
+		return org
+	}
+
+	// Fallback to project name
+	return pd.DetectProjectName()
+}
+
 // DetectDomain attempts to detect the organization domain
 func (pd *ProjectDetector) DetectDomain() string {
 	// Check git remote for domain
-	if domain := pd.detectFromGitRemote(); domain != "" {
+	if domain := pd.detectDomainFromGitRemote(); domain != "" {
 		return domain
 	}
 
-	// Fallback to common patterns
-	if strings.Contains(pd.DetectProjectName(), "-") {
-		parts := strings.Split(pd.DetectProjectName(), "-")
-		if len(parts) > 1 {
-			return parts[0] + ".com"
+	// Try to construct domain from organization name
+	org := pd.DetectOrganization()
+	if org != "" {
+		// Common domain patterns
+		if strings.Contains(org, "-") {
+			parts := strings.Split(org, "-")
+			if len(parts) > 1 {
+				return strings.ToLower(parts[0]) + "." + strings.ToLower(parts[1]) + ".com"
+			}
 		}
+
+		// Default pattern
+		return strings.ToLower(org) + ".com"
 	}
 
 	return "example.com"
+}
+
+// detectFromGitRemote tries to detect git remote URL
+func (pd *ProjectDetector) detectFromGitRemote() string {
+	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(string(output))
+}
+
+// detectOrgFromGitRemote tries to extract organization from git remote
+func (pd *ProjectDetector) detectOrgFromGitRemote() string {
+	gitURL := pd.detectFromGitRemote()
+	if gitURL == "" {
+		return ""
+	}
+
+	// Handle different URL formats
+	gitURL = strings.TrimSpace(gitURL)
+
+	// Remove .git suffix
+	gitURL = strings.TrimSuffix(gitURL, ".git")
+
+	// Parse HTTPS URLs
+	if strings.HasPrefix(gitURL, "https://") {
+		gitURL = strings.TrimPrefix(gitURL, "https://")
+		parts := strings.Split(gitURL, "/")
+		if len(parts) >= 2 {
+			return parts[1] // github.com/ORG/repo -> parts[1] is ORG
+		}
+	}
+
+	// Parse SSH URLs
+	if strings.Contains(gitURL, "@") {
+		parts := strings.Split(gitURL, ":")
+		if len(parts) >= 2 {
+			pathParts := strings.Split(parts[1], "/")
+			if len(pathParts) >= 2 {
+				return pathParts[0]
+			}
+		}
+	}
+
+	// Parse generic path
+	parts := strings.Split(gitURL, "/")
+	if len(parts) >= 2 {
+		return parts[len(parts)-2]
+	}
+
+	return ""
+}
+
+// detectDomainFromGitRemote tries to extract domain from git remote
+func (pd *ProjectDetector) detectDomainFromGitRemote() string {
+	gitURL := pd.detectFromGitRemote()
+	if gitURL == "" {
+		return ""
+	}
+
+	gitURL = strings.TrimSpace(gitURL)
+
+	// Extract domain from HTTPS URL
+	if strings.HasPrefix(gitURL, "https://") {
+		gitURL = strings.TrimPrefix(gitURL, "https://")
+		if parts := strings.Split(gitURL, "/"); len(parts) > 0 {
+			return parts[0] // github.com/ORG/repo -> parts[0] is github.com
+		}
+	}
+
+	// Extract domain from SSH URL
+	if strings.Contains(gitURL, "@") {
+		if parts := strings.Split(gitURL, "@"); len(parts) > 1 {
+			domainPart := parts[1]
+			if colonParts := strings.Split(domainPart, ":"); len(colonParts) > 0 {
+				return colonParts[0] // git@github.com:ORG/repo -> github.com
+			}
+		}
+	}
+
+	return ""
 }
 
 // detectFromPackageJSON tries to detect project name from package.json
@@ -100,6 +219,53 @@ func (pd *ProjectDetector) detectFromPackageJSON() string {
 
 	name := strings.TrimSpace(contentStr[nameStart : nameStart+nameEnd])
 	return strings.Trim(name, "\"")
+}
+
+// detectOrgFromPackageJSON tries to detect organization from package.json
+func (pd *ProjectDetector) detectOrgFromPackageJSON() string {
+	content, err := os.ReadFile("package.json")
+	if err != nil {
+		return ""
+	}
+
+	contentStr := string(content)
+
+	// Try to detect from author field
+	if strings.Contains(contentStr, "\"author\"") {
+		start := strings.Index(contentStr, "\"author\"")
+		if start != -1 {
+			// Look for organization in author field
+			if strings.Contains(contentStr[start:start+500], "\"organization\"") {
+				orgStart := strings.Index(contentStr[start:], "\"organization\"")
+				if orgStart != -1 {
+					// Extract organization value
+					remainder := contentStr[start+orgStart:]
+					colon := strings.Index(remainder, ":")
+					if colon != -1 {
+						quote := strings.Index(remainder[colon:], "\"")
+						if quote != -1 {
+							orgStart := colon + quote + 1
+							orgEnd := strings.Index(remainder[orgStart:], "\"")
+							if orgEnd != -1 {
+								org := strings.TrimSpace(remainder[orgStart : orgStart+orgEnd])
+								return strings.Trim(org, "\"")
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Try to detect from scope in package name (@org/package)
+	name := pd.detectFromPackageJSON()
+	if strings.HasPrefix(name, "@") {
+		if parts := strings.Split(strings.TrimPrefix(name, "@"), "/"); len(parts) > 0 {
+			return parts[0]
+		}
+	}
+
+	return ""
 }
 
 // detectFromGoMod tries to detect project name from go.mod
@@ -185,11 +351,4 @@ func (pd *ProjectDetector) detectFromDirectoryName() string {
 	}
 
 	return filepath.Base(dir)
-}
-
-// detectFromGitRemote tries to detect domain from git remote
-func (pd *ProjectDetector) detectFromGitRemote() string {
-	// This is a simplified implementation
-	// In a real implementation, parse git remote output
-	return ""
 }

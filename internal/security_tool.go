@@ -12,11 +12,14 @@ import (
 
 // SecurityTool represents the main security policy tool
 type SecurityTool struct {
-	templateManager *vfs.TemplateManager
-	fileSystem      vfs.FileSystem
-	fileOps         *fileops.Service
-	processor       *vfs.TemplateProcessor
-	security        *vfs.TemplateSecurity
+	templateManager   *vfs.TemplateManager
+	fileSystem        vfs.FileSystem
+	fileOps           *fileops.Service
+	processor         *vfs.TemplateProcessor
+	security          *vfs.TemplateSecurity
+	detector          *ProjectDetector
+	githubIntegration *GitHubIntegration
+	variableDetector  *TemplateVariableDetector
 }
 
 // NewSecurityTool creates a new security tool instance
@@ -28,11 +31,14 @@ func NewSecurityTool() *SecurityTool {
 	})
 
 	return &SecurityTool{
-		templateManager: vfs.NewTemplateManager(vfsImpl),
-		fileSystem:      vfsImpl,
-		fileOps:         fileOps,
-		processor:       vfs.NewTemplateProcessor(),
-		security:        vfs.NewTemplateSecurity(),
+		templateManager:   vfs.NewTemplateManager(vfsImpl),
+		fileSystem:        vfsImpl,
+		fileOps:           fileOps,
+		processor:         vfs.NewTemplateProcessor(),
+		security:          vfs.NewTemplateSecurity(),
+		detector:          NewProjectDetector(),
+		githubIntegration: NewGitHubIntegration(),
+		variableDetector:  NewTemplateVariableDetector(),
 	}
 }
 
@@ -130,21 +136,89 @@ func (st *SecurityTool) getOutputFilename(policyType PolicyType, outputDir strin
 
 // processTemplate substitutes variables in the template
 func (st *SecurityTool) processTemplate(template string, config PolicyConfig) string {
-	// Start with standard variables
+	// Start with GitHub-specific variables first (they should have priority)
 	variables := map[string]string{
-		"{{ORGANIZATION}}":  config.Organization,
-		"{{CONTACT_EMAIL}}": config.ContactEmail,
-		"{{DATE}}":          "2025-12-11", // TODO: Use current date
-		"{{YEAR}}":          "2025",       // TODO: Use current year
+		// GitHub variables will be added here
 	}
 
-	// Add custom variables
+	// Add GitHub-specific variables if it's a GitHub repository
+	githubInfo := st.githubIntegration.GetGitHubInfo()
+	if githubInfo.IsGitHub {
+		githubVariables := st.githubIntegration.GenerateGitHubTemplateVariables(githubInfo)
+
+		// Add GitHub variables
+		for key, value := range githubVariables {
+			variables[key] = value
+		}
+	}
+
+	// Add standard variables, but don't override GitHub-specific ones
+	standardVariables := map[string]string{
+		// Organization info (only if not already set by GitHub)
+		"{{ORGANIZATION}}":        config.Organization,
+		"{{CONTACT_EMAIL}}":       config.ContactEmail,
+		"{{SECURITY_TEAM_EMAIL}}": config.ContactEmail,
+
+		// Version info
+		"{{LATEST_VERSION}}":            "v2.x",
+		"{{PREVIOUS_VERSION}}":          "v1.x",
+		"{{SUPPORT_END_DATE}}":          "2026-12-31",
+		"{{PREVIOUS_SUPPORT_END_DATE}}": "2025-12-31",
+
+		// Policy info
+		"{{CURRENT_POLICY_VERSION}}":  "2.0",
+		"{{PREVIOUS_POLICY_VERSION}}": "1.0",
+		"{{LAST_UPDATED}}":            "2025-12-11",
+		"{{PREVIOUS_UPDATED}}":        "2025-06-11",
+
+		// Security resources
+		"{{PGP_KEY_URL}}":             "https://{{ORGANIZATION}}.com/security/pgp",
+		"{{BOUNTY_PROGRAM_URL}}":      "https://{{ORGANIZATION}}.com/security/bounty",
+		"{{SECURITY_ADVISORIES_URL}}": "https://github.com/{{ORGANIZATION}}/security/advisories",
+		"{{SECURITY_BLOG_URL}}":       "https://{{ORGANIZATION}}.com/blog/security",
+		"{{SECURITY_DOCS_URL}}":       "https://{{ORGANIZATION}}.com/docs/security",
+		"{{INCIDENT_RESPONSE_URL}}":   "https://{{ORGANIZATION}}.com/security/incident-response",
+
+		// Legal resources
+		"{{TERMS_URL}}":          "https://{{ORGANIZATION}}.com/terms",
+		"{{PRIVACY_POLICY_URL}}": "https://{{ORGANIZATION}}.com/privacy",
+		"{{LICENSE_URL}}":        "https://creativecommons.org/licenses/by-sa/4.0/",
+
+		// Bounty rewards
+		"{{CRITICAL_REWARD}}": "1000",
+		"{{HIGH_REWARD}}":     "500",
+		"{{MEDIUM_REWARD}}":   "200",
+		"{{LOW_REWARD}}":      "50",
+
+		// Default content
+		"{{RESEARCHERS_LIST}}": "- Thank you to all security researchers who have helped us secure our products",
+	}
+
+	// Merge standard variables, but don't override GitHub-specific ones
+	for key, value := range standardVariables {
+		if _, exists := variables[key]; !exists {
+			variables[key] = value
+		}
+	}
+
+	// Add custom variables (highest priority)
 	maps.Copy(variables, config.Variables)
 
-	// Replace variables
+	// Replace variables (multi-pass for nested variables)
 	result := template
-	for placeholder, value := range variables {
-		result = replaceAll(result, placeholder, value)
+	maxPasses := 3
+	for pass := 0; pass < maxPasses; pass++ {
+		changed := false
+		for placeholder, value := range variables {
+			oldResult := result
+			result = replaceAll(result, placeholder, value)
+			if oldResult != result {
+				changed = true
+			}
+		}
+		if !changed {
+			break // No more changes, exit early
+		}
 	}
 
 	return result

@@ -1,3 +1,30 @@
+# 🔥 Quick Commands (1% effort → 51% results)
+
+# 🚀 Quick GitHub security setup
+github:
+    @echo "🚀 Quick GitHub SECURITY.md setup..."
+    @just build && ./bin/template-security setup --type github --organization "$(git config --get remote.origin.url 2>/dev/null | xargs basename -s .git 2>/dev/null || echo 'MyProject')" --email "security@$(git config --get remote.origin.url 2>/dev/null | sed 's/.*\/\([^/]*\)\/.*/\1/' 2>/dev/null || echo 'example').com" --quick
+
+# 🏢 Quick enterprise security setup  
+enterprise:
+    @echo "🏢 Quick enterprise security setup..."
+    @just build && ./bin/template-security setup --type enterprise --organization "$(git config --get remote.origin.url 2>/dev/null | xargs basename -s .git 2>/dev/null || echo 'MyCompany')" --email "security@$(git config --get remote.origin.url 2>/dev/null | sed 's/.*\/\([^/]*\)\/.*/\1/' 2>/dev/null || echo 'example').com" --quick
+
+# ✅ Quick validate
+check:
+    @echo "✅ Quick security validation..."
+    @just build && ./bin/template-security validate
+
+# 🧪 Quick test
+test-quick:
+    @echo "🧪 Quick functionality test..."
+    @just build
+    @just clean-generated
+    @./bin/template-security setup --type github --organization "TestProject" --email "security@test.com" --quick
+    @test -f SECURITY.md && echo "✅ SECURITY.md generated successfully"
+    @./bin/template-security validate
+    @echo "✅ All tests passed!"
+
 # Template Security v2 - Go Implementation
 # Enterprise-grade security policy generation with template-CLI SDK
 
@@ -105,8 +132,8 @@ quick-start:
     @echo "✅ Template Security v2 is ready!"
     @echo "Next steps:"
     @echo "1. Run 'just setup' for interactive wizard"
-    @echo "2. Run 'just github-security' for quick GitHub setup"
-    @echo "3. Run 'just validate' to check policies"
+    @echo "2. Run 'just github' for quick GitHub setup"
+    @echo "3. Run 'just check' to validate policies"
 
 # 📦 Install dependencies
 deps:
@@ -132,22 +159,28 @@ help:
     @echo "🔒 Template Security v2 - Go Implementation"
     @echo "=========================================="
     @echo ""
-    @echo "Quick Commands:"
-    @echo "  just setup              - Interactive security policy wizard"
-    @echo "  just github-security    - Generate GitHub SECURITY.md"
-    @echo "  just enterprise-policy  - Generate enterprise policy"
-    @echo "  just validate           - Validate all policies"
-    @echo "  just status            - Show policy status"
+    @echo "🔥 Quick Commands (80/20 optimized):"
+    @echo "  just github           - Auto-detect repo & generate SECURITY.md"
+    @echo "  just enterprise       - Auto-detect org & generate enterprise policy"
+    @echo "  just check            - Quick validation of security policies"
+    @echo "  just test-quick       - Quick functionality test"
+    @echo ""
+    @echo "Standard Commands:"
+    @echo "  just setup            - Interactive security policy wizard"
+    @echo "  just github-security   - Generate GitHub SECURITY.md"
+    @echo "  just enterprise-policy - Generate enterprise policy"
+    @echo "  just validate         - Validate all policies"
+    @echo "  just status           - Show policy status"
     @echo ""
     @echo "Policy Generation:"
-    @echo "  just bug-bounty        - Generate bug bounty program"
+    @echo "  just bug-bounty       - Generate bug bounty program"
     @echo "  just incident-response - Generate incident response plan"
-    @echo "  just privacy-policy    - Generate privacy policy"
+    @echo "  just privacy-policy   - Generate privacy policy"
     @echo ""
     @echo "Development:"
-    @echo "  just build             - Build the application"
-    @echo "  just test              - Run integration tests"
-    @echo "  just dev               - Development mode"
-    @echo "  just clean             - Clean build artifacts"
+    @echo "  just build            - Build the application"
+    @echo "  just test             - Run integration tests"
+    @echo "  just dev              - Development mode"
+    @echo "  just clean            - Clean build artifacts"
     @echo ""
     @echo "For detailed help, run: ./bin/template-security --help"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/LarsArtmann/template-SECURITY/v2/internal"
 	"github.com/fatih/color"
@@ -14,84 +14,92 @@ func newValidateCmd() *cobra.Command {
 		Use:   "validate",
 		Short: "Validate security policies",
 		Long: `Validate security policies for completeness and compliance.
-Checks SECURITY.md files, policy documents, and compliance requirements.`,
+Checks SECURITY.md files for required sections and content quality.`,
 		RunE: runValidate,
 	}
 
 	cmd.Flags().String("file", "", "Validate specific policy file")
-	cmd.Flags().Bool("json", false, "Output validation results in JSON format")
 
 	return cmd
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {
 	file, _ := cmd.Flags().GetString("file")
-	jsonOutput, _ := cmd.Flags().GetBool("json")
+
+	validator := internal.NewSecurityValidator()
 
 	if file != "" {
-		return validateSpecificFile(file, jsonOutput)
+		return validateSpecificFile(file, validator)
 	} else {
-		return validateAllPolicies(jsonOutput)
+		return validateAllPolicies(validator)
 	}
 }
 
-func validateSpecificFile(filename string, jsonOutput bool) error {
+func validateSpecificFile(filename string, validator *internal.SecurityValidator) error {
 	color.Cyan("🔍 Validating security policy: %s", filename)
 
-	validator := internal.NewPolicyValidator()
-	result := validator.ValidateFile(filename)
-
-	if jsonOutput {
-		jsonData, _ := json.MarshalIndent(result, "", "  ")
-		fmt.Println(string(jsonData))
-		return nil
+	// Check if file exists
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		color.Red("❌ File not found: %s", filename)
+		return fmt.Errorf("file not found: %s", filename)
 	}
 
-	displayValidationResult(filename, result)
+	result, err := validator.ValidateSECURITYMd(filename)
+	if err != nil {
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	// Print result
+	validator.PrintResults([]*internal.SecurityValidationResult{result})
 
 	if !result.Valid {
-		return fmt.Errorf("policy validation failed with score: %.1f", result.Score)
+		return fmt.Errorf("policy validation failed")
 	}
 
 	return nil
 }
 
-func validateAllPolicies(jsonOutput bool) error {
+func validateAllPolicies(validator *internal.SecurityValidator) error {
 	color.Cyan("✅ Validating all security policies...")
 
-	validator := internal.NewPolicyValidator()
 	policyFiles := []string{
 		"SECURITY.md",
 		"security-policy.md",
-		"incident-response.md",
-		"privacy-policy.md",
-		"bug-bounty-policy.md",
 	}
 
-	var allResults map[string]internal.ValidationResult
-	allResults = make(map[string]internal.ValidationResult)
-
+	var results []*internal.SecurityValidationResult
 	overallValid := true
 
 	for _, filename := range policyFiles {
-		result := validator.ValidateFile(filename)
-		allResults[filename] = result
+		// Check if file exists
+		if _, err := os.Stat(filename); os.IsNotExist(err) {
+			color.Yellow("⚠️  File not found: %s (skipping)", filename)
+			continue
+		}
+
+		result, err := validator.ValidateSECURITYMd(filename)
+		if err != nil {
+			color.Red("❌ Failed to validate %s: %v", filename, err)
+			overallValid = false
+			continue
+		}
+
+		results = append(results, result)
 
 		if !result.Valid {
 			overallValid = false
 		}
-
-		if !jsonOutput {
-			displayValidationResult(filename, result)
-		}
 	}
 
-	if jsonOutput {
-		jsonData, _ := json.MarshalIndent(allResults, "", "  ")
-		fmt.Println(string(jsonData))
+	if len(results) == 0 {
+		color.Yellow("⚠️  No security policy files found to validate")
 		return nil
 	}
 
+	// Print all results
+	validator.PrintResults(results)
+
+	// Overall summary
 	color.White("\n📊 Validation Summary:")
 	if overallValid {
 		color.Green("✅ All policies passed validation")
@@ -104,40 +112,4 @@ func validateAllPolicies(jsonOutput bool) error {
 	}
 
 	return nil
-}
-
-func displayValidationResult(filename string, result internal.ValidationResult) {
-	fmt.Printf("\n📋 %s\n", filename)
-
-	if result.Valid {
-		color.Green("✅ VALID")
-	} else {
-		color.Red("❌ INVALID")
-	}
-
-	color.Cyan("📊 Score: %.1f/100", result.Score)
-
-	if len(result.Issues) > 0 {
-		color.Yellow("⚠️  Issues found:")
-		for _, issue := range result.Issues {
-			switch issue.Type {
-			case "error":
-				color.Red("   ❌ %s", issue.Description)
-				color.White("      💡 %s", issue.Suggestion)
-			case "warning":
-				color.Yellow("   ⚠️  %s", issue.Description)
-				color.White("      💡 %s", issue.Suggestion)
-			case "info":
-				color.Blue("   ℹ️  %s", issue.Description)
-				color.White("      💡 %s", issue.Suggestion)
-			}
-		}
-	}
-
-	if len(result.Recommendations) > 0 {
-		color.Cyan("💡 Recommendations:")
-		for _, rec := range result.Recommendations {
-			fmt.Printf("   • %s\n", rec)
-		}
-	}
 }
