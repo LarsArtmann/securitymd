@@ -8,6 +8,50 @@ import (
 	"time"
 )
 
+// PolicyType represents different types of security policies
+type PolicyType string
+
+const (
+	PolicyTypeGitHub     PolicyType = "github"
+	PolicyTypeEnterprise PolicyType = "enterprise"
+)
+
+// VersionStatus represents the status of a version
+type VersionStatus string
+
+const (
+	StatusSupported  VersionStatus = "supported"
+	StatusDeprecated VersionStatus = "deprecated"
+	StatusEOL        VersionStatus = "end-of-life"
+)
+
+// ContactType represents different types of contact methods
+type ContactType string
+
+const (
+	ContactTypeEmail ContactType = "email"
+	ContactTypeWeb   ContactType = "web"
+	ContactTypeAPI   ContactType = "api"
+)
+
+// Version represents a software version with support information
+type Version struct {
+	Name            string        `json:"name"`
+	SemanticVersion string        `json:"semantic_version"`
+	SupportedUntil  time.Time     `json:"supported_until"`
+	Status          VersionStatus `json:"status"`
+	IsLatest        bool          `json:"is_latest"`
+	IsPrevious      bool          `json:"is_previous"`
+}
+
+// Contact represents security contact information
+type Contact struct {
+	Type         ContactType `json:"type"`
+	Value        string      `json:"value"`
+	ResponseTime string      `json:"response_time"`
+	Description  string      `json:"description"`
+}
+
 // SecurityTool represents a simple security policy tool
 type SecurityTool struct{}
 
@@ -24,14 +68,6 @@ type PolicyConfig struct {
 	OutputDir    string            `json:"output_dir"`
 	Variables    map[string]string `json:"variables"`
 }
-
-// PolicyType represents different types of security policies
-type PolicyType string
-
-const (
-	PolicyTypeGitHub     PolicyType = "github"
-	PolicyTypeEnterprise PolicyType = "enterprise"
-)
 
 // GeneratePolicy generates a security policy
 func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig) error {
