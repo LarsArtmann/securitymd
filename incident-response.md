@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document outlines the incident response procedures for {{ORGANIZATION}} to ensure timely and effective handling of security incidents.
+This document outlines the incident response procedures for TestCompany to ensure timely and effective handling of security incidents.
 
 ## Incident Definition
 
@@ -43,7 +43,7 @@ A security incident is any unauthorized attempt, successful or not, to access, u
 - **Business Representative**: Business impact assessment
 
 ### Escalation Contacts
-- **CISO**: {{CONTACT_EMAIL}}
+- **CISO**: security@testcompany.com
 - **Executive Team**: Available for critical incidents
 - **External Experts**: Retained for specialized incidents
 
@@ -197,6 +197,6 @@ This incident response plan shall be:
 - Tested through regular exercises
 - Approved by senior management
 
-**Plan Last Updated**: {{DATE}}
-**Next Review Date**: {{YEAR}}-12-11
-**Emergency Contact**: {{CONTACT_EMAIL}}
+**Plan Last Updated**: 2025-12-11
+**Next Review Date**: 2025-12-11
+**Emergency Contact**: security@testcompany.com

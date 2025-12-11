@@ -1,156 +1,136 @@
-# Template Security Policy Management
-# Provides setup, validation, and maintenance for security policies and compliance
+# Template Security v2 - Go Implementation
+# Enterprise-grade security policy generation with template-CLI SDK
 
 default:
     @just --list
 
-# 🚀 Setup security policies - interactive wizard for policy generation
+# 🔧 Build the Go application
+build:
+    @echo "🔧 Building template-security..."
+    @./scripts/build.sh
+
+# 🧹 Clean build artifacts and cache
+clean:
+    @echo "🧹 Cleaning..."
+    @rm -rf bin/
+    @rm -f security-*.md
+    @rm -f *.tmp
+    @echo "✅ Clean complete"
+
+# 🚀 Setup security policies - interactive wizard
 setup:
     @echo "🚀 Setting up security policies..."
-    @if [ ! -f "./scripts/security-setup.sh" ]; then \
-        echo "❌ security-setup.sh not found. Please ensure you're in the template-SECURITY directory."; \
-        exit 1; \
-    fi
-    @./scripts/security-setup.sh --interactive
+    @./bin/template-security setup
 
-# ✅ Validate security policies - check completeness and compliance
-validate:
-    @echo "✅ Validating security policies..."
-    @if [ ! -d "./scripts" ]; then mkdir -p scripts; fi
-    @./scripts/validate-policies.sh
-
-# 🔍 Validate specific policy file
-validate-file FILE:
-    @echo "🔍 Validating security policy: {{FILE}}"
-    @if [ ! -f "{{FILE}}" ]; then \
-        echo "❌ File not found: {{FILE}}"; \
-        exit 1; \
-    fi
-    @./scripts/validate-single-policy.sh "{{FILE}}"
-
-# 📋 Generate GitHub SECURITY.md - quick setup for open source projects
+# 📋 Generate GitHub SECURITY.md - quick setup for open source
 github-security:
     @echo "📋 Generating GitHub SECURITY.md..."
-    @./scripts/security-setup.sh --type github --quick
+    @./bin/template-security setup --type github --organization "MyProject" --email "security@example.com" --quick
 
-# 🏢 Generate enterprise security policy - comprehensive organizational policies
+# 🏢 Generate enterprise security policy
 enterprise-policy:
     @echo "🏢 Generating enterprise security policy..."
-    @./scripts/security-setup.sh --type enterprise --interactive
+    @./bin/template-security setup --type enterprise --organization "MyProject" --email "security@example.com" --quick
 
-# 🐛 Generate bug bounty program - responsible disclosure setup
+# 🐛 Generate bug bounty program
 bug-bounty:
     @echo "🐛 Generating bug bounty program..."
-    @./scripts/security-setup.sh --type bug-bounty --interactive
+    @./bin/template-security setup --type bug-bounty --organization "MyProject" --email "security@example.com" --quick
 
-# 📋 Generate incident response plan - comprehensive incident management
+# 📋 Generate incident response plan
 incident-response:
     @echo "📋 Generating incident response plan..."
-    @./scripts/security-setup.sh --type incident-response --interactive
+    @./bin/template-security setup --type incident-response --organization "MyProject" --email "security@example.com" --quick
 
-# 🔒 Generate privacy policy - GDPR/CCPA compliance
+# 🔒 Generate privacy policy
 privacy-policy:
     @echo "🔒 Generating privacy policy..."
-    @./scripts/security-setup.sh --type privacy-policy --interactive
+    @./bin/template-security setup --type privacy-policy --organization "MyProject" --email "security@example.com" --quick
 
-# 📊 Generate compliance report - assess policy coverage
+# ✅ Validate security policies
+validate:
+    @echo "✅ Validating security policies..."
+    @./bin/template-security validate
+
+# 📊 Generate compliance report
 compliance-report FRAMEWORK:
     @echo "📊 Generating compliance report for: {{FRAMEWORK}}"
-    @./scripts/compliance-check.sh --framework {{FRAMEWORK}}
+    @./bin/template-security compliance --framework {{FRAMEWORK}}
 
-# 📊 Generate full compliance dashboard - all frameworks
+# 📊 Generate comprehensive compliance dashboard
 compliance-dashboard:
     @echo "📊 Generating comprehensive compliance dashboard..."
-    @./scripts/compliance-check.sh --report
+    @./bin/template-security compliance --report
 
-# 🧪 Test security contact channels - verify contact information works
-test-contacts:
-    @echo "🧪 Testing security contact channels..."
-    @./scripts/test-security-contacts.sh
-
-# 🚨 Simulate vulnerability report - test disclosure process
-test-vulnerability-report:
-    @echo "🚨 Simulating vulnerability report process..."
-    @./scripts/simulate-vuln-report.sh
-
-# 🔄 Update policies - refresh with latest standards and requirements
-update:
-    @echo "🔄 Updating security policies..."
-    @./scripts/security-setup.sh --update --policies all
-
-# 🔄 Update specific compliance framework
-update-compliance FRAMEWORK:
-    @echo "🔄 Updating compliance framework: {{FRAMEWORK}}"
-    @./scripts/update-compliance.sh --framework {{FRAMEWORK}}
-
-# 📈 Generate security metrics - analyze policy effectiveness
+# 📈 Generate security metrics
 metrics:
     @echo "📈 Generating security metrics..."
-    @./scripts/generate-metrics.sh
+    @./bin/template-security metrics
 
 # 📊 Generate executive security report
 executive-report:
     @echo "📊 Generating executive security report..."
-    @./scripts/executive-report.sh --format pdf
+    @./bin/template-security metrics --executive
 
-# 🧹 Clean temporary files - remove generated reports and temporary data
-clean:
-    @echo "🧹 Cleaning temporary files..."
-    @rm -rf tmp/ reports/temp/ *.tmp
-    @rm -f security-report-*.pdf compliance-*.json
-    @echo "✅ Cleanup complete"
-
-# 📋 Show security policy status - overview of current policies
+# 📋 Show security policy status
 status:
     @echo "📋 Security Policy Status"
-    @echo "========================"
-    @echo "Policies directory: $(pwd)/templates"
-    @echo "Available templates: $(ls templates/ 2>/dev/null | wc -l | tr -d ' ')"
-    @echo "Generated policies: $(find . -name 'SECURITY.md' -o -name '*security*.md' | wc -l | tr -d ' ')"
-    @echo ""
-    @if [ -f "SECURITY.md" ]; then \
-        echo "✅ SECURITY.md exists"; \
-    else \
-        echo "❌ SECURITY.md not found"; \
-    fi
-    @if [ -f "incident-response.md" ]; then \
-        echo "✅ Incident response plan exists"; \
-    else \
-        echo "❌ Incident response plan not found"; \
-    fi
+    @./bin/template-security status
 
-# 🔍 List available templates - show all security policy templates
+# 🛠 Development mode - build and watch
+dev:
+    @echo "🛠 Development mode - building and testing..."
+    @just build
+    @echo "📝 Running quick tests..."
+    @./bin/template-security --version
+    @./bin/template-security status
+    @echo "✅ Development ready!"
+
+# 🧪 Run integration tests
+test:
+    @echo "🧪 Running integration tests..."
+    @./bin/template-security setup --type github --organization "TestCorp" --email "security@testcorp.com" --quick
+    @test -f SECURITY.md || (echo "❌ SECURITY.md not generated" && exit 1)
+    @./bin/template-security setup --type enterprise --organization "TestCorp" --email "security@testcorp.com" --quick
+    @test -f security-policy.md || (echo "❌ security-policy.md not generated" && exit 1)
+    @echo "✅ All tests passed!"
+
+# 🚀 Quick start - build and setup
+quick-start:
+    @echo "🚀 Template Security Quick Start"
+    @echo "=============================="
+    @just build
+    @just status
+    @echo ""
+    @echo "✅ Template Security v2 is ready!"
+    @echo "Next steps:"
+    @echo "1. Run 'just setup' for interactive wizard"
+    @echo "2. Run 'just github-security' for quick GitHub setup"
+    @echo "3. Run 'just validate' to check policies"
+
+# 📦 Install dependencies
+deps:
+    @echo "📦 Installing dependencies..."
+    @go mod download
+    @go mod tidy
+    @echo "✅ Dependencies ready"
+
+# 🔍 List available templates
 list-templates:
     @echo "🔍 Available Security Policy Templates:"
     @echo "======================================"
     @ls -la templates/ 2>/dev/null || echo "No templates directory found"
 
-# 📝 Generate custom template - create new security policy template
-create-template NAME:
-    @echo "📝 Creating custom security policy template: {{NAME}}"
-    @if [ ! -d "templates" ]; then mkdir -p templates; fi
-    @cp templates/base-template.md "templates/{{NAME}}.md" 2>/dev/null || \
-        echo "# {{NAME}} Security Policy\n\nCustom security policy template.\n" > "templates/{{NAME}}.md"
-    @echo "✅ Template created: templates/{{NAME}}.md"
-    @echo "📝 Edit the template and then run: just validate-template {{NAME}}"
+# 🧪 Clean generated policies and test
+clean-generated:
+    @echo "🧹 Cleaning generated policies..."
+    @rm -f SECURITY.md security-policy.md bug-bounty-policy.md incident-response.md privacy-policy.md
+    @echo "✅ Clean complete"
 
-# ✅ Validate custom template
-validate-template NAME:
-    @echo "✅ Validating template: {{NAME}}"
-    @./scripts/validate-template.sh "templates/{{NAME}}.md"
-
-# 🔧 Install dependencies - setup required tools
-install-deps:
-    @echo "🔧 Installing dependencies..."
-    @echo "Checking for required tools..."
-    @command -v curl >/dev/null 2>&1 || { echo "❌ curl is required but not installed"; exit 1; }
-    @command -v git >/dev/null 2>&1 || { echo "❌ git is required but not installed"; exit 1; }
-    @echo "✅ All dependencies available"
-
-# 📖 Show help - comprehensive usage information
+# 🔍 Help - show available commands
 help:
-    @echo "🔒 Template Security - Security Policy Management"
-    @echo "================================================"
+    @echo "🔒 Template Security v2 - Go Implementation"
+    @echo "=========================================="
     @echo ""
     @echo "Quick Commands:"
     @echo "  just setup              - Interactive security policy wizard"
@@ -159,47 +139,15 @@ help:
     @echo "  just validate           - Validate all policies"
     @echo "  just status            - Show policy status"
     @echo ""
-    @echo "Compliance:"
-    @echo "  just compliance-report gdpr     - GDPR compliance report"
-    @echo "  just compliance-report soc2     - SOC 2 compliance report"
-    @echo "  just compliance-report iso27001 - ISO 27001 compliance report"
+    @echo "Policy Generation:"
+    @echo "  just bug-bounty        - Generate bug bounty program"
+    @echo "  just incident-response - Generate incident response plan"
+    @echo "  just privacy-policy    - Generate privacy policy"
     @echo ""
-    @echo "Testing:"
-    @echo "  just test-contacts              - Test security contact channels"
-    @echo "  just test-vulnerability-report  - Test vulnerability disclosure"
+    @echo "Development:"
+    @echo "  just build             - Build the application"
+    @echo "  just test              - Run integration tests"
+    @echo "  just dev               - Development mode"
+    @echo "  just clean             - Clean build artifacts"
     @echo ""
-    @echo "Maintenance:"
-    @echo "  just update             - Update all policies"
-    @echo "  just metrics            - Generate security metrics"
-    @echo "  just clean              - Clean temporary files"
-    @echo ""
-    @echo "For detailed help, see: README.md"
-
-# 🚀 Quick start - complete setup wizard with validation
-quick-start:
-    @echo "🚀 Security Policy Quick Start"
-    @echo "=============================="
-    @just install-deps
-    @just setup
-    @just validate
-    @just status
-    @echo ""
-    @echo "✅ Security policies are ready!"
-    @echo "Next steps:"
-    @echo "1. Review generated policies"
-    @echo "2. Customize for your organization"
-    @echo "3. Set up security contact channels"
-    @echo "4. Test vulnerability reporting process"
-
-# 🛠 Development mode - watch for policy changes and auto-validate
-dev:
-    @echo "🛠 Development mode - watching for policy changes..."
-    @echo "Press Ctrl+C to stop"
-    @while true; do \
-        if find . -name "*.md" -newer .last-validation 2>/dev/null | grep -q .; then \
-            echo "📝 Policy changes detected, validating..."; \
-            just validate; \
-            touch .last-validation; \
-        fi; \
-        sleep 2; \
-    done
+    @echo "For detailed help, run: ./bin/template-security --help"

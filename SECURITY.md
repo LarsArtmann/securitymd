@@ -13,7 +13,7 @@ If you discover a security vulnerability, please report it to us privately befor
 
 ### How to Report
 
-- Email: {{CONTACT_EMAIL}}
+- Email: security@testcompany.com
 - Response time: Within 48 hours
 
 ### Security Policy

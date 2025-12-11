@@ -2,7 +2,7 @@
 
 ## Introduction
 
-{{ORGANIZATION}} ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information.
+TestCompany ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information.
 
 ## Information We Collect
 
@@ -163,7 +163,7 @@ We may update this Privacy Policy from time to time. We will:
 
 For privacy-related questions, concerns, or requests:
 
-- **Email**: {{CONTACT_EMAIL}}
+- **Email**: security@testcompany.com
 - **Website**: [Privacy Contact Form]
 - **Phone**: [Privacy Hotline Number]
 - **Mail**: [Privacy Officer Address]
@@ -178,6 +178,6 @@ For privacy-related questions, concerns, or requests:
 - **US**: [State Attorney General Contact]
 - **Other**: [Relevant Local Authorities]
 
-**Policy Last Updated**: {{DATE}}
-**Effective Date**: {{DATE}}
+**Policy Last Updated**: 2025-12-11
+**Effective Date**: 2025-12-11
 **Version**: 2.0
