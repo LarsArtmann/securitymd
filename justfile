@@ -7,11 +7,11 @@ default:
 # 🚀 Setup security policies - interactive wizard for policy generation
 setup:
     @echo "🚀 Setting up security policies..."
-    @if [ ! -f "./security-setup.sh" ]; then \
+    @if [ ! -f "./scripts/security-setup.sh" ]; then \
         echo "❌ security-setup.sh not found. Please ensure you're in the template-SECURITY directory."; \
         exit 1; \
     fi
-    @./security-setup.sh --interactive
+    @./scripts/security-setup.sh --interactive
 
 # ✅ Validate security policies - check completeness and compliance
 validate:
@@ -31,27 +31,27 @@ validate-file FILE:
 # 📋 Generate GitHub SECURITY.md - quick setup for open source projects
 github-security:
     @echo "📋 Generating GitHub SECURITY.md..."
-    @./security-setup.sh --type github --quick
+    @./scripts/security-setup.sh --type github --quick
 
 # 🏢 Generate enterprise security policy - comprehensive organizational policies
 enterprise-policy:
     @echo "🏢 Generating enterprise security policy..."
-    @./security-setup.sh --type enterprise --interactive
+    @./scripts/security-setup.sh --type enterprise --interactive
 
 # 🐛 Generate bug bounty program - responsible disclosure setup
 bug-bounty:
     @echo "🐛 Generating bug bounty program..."
-    @./security-setup.sh --type bug-bounty --interactive
+    @./scripts/security-setup.sh --type bug-bounty --interactive
 
 # 📋 Generate incident response plan - comprehensive incident management
 incident-response:
     @echo "📋 Generating incident response plan..."
-    @./security-setup.sh --type incident-response --interactive
+    @./scripts/security-setup.sh --type incident-response --interactive
 
 # 🔒 Generate privacy policy - GDPR/CCPA compliance
 privacy-policy:
     @echo "🔒 Generating privacy policy..."
-    @./security-setup.sh --type privacy-policy --interactive
+    @./scripts/security-setup.sh --type privacy-policy --interactive
 
 # 📊 Generate compliance report - assess policy coverage
 compliance-report FRAMEWORK:
@@ -76,7 +76,7 @@ test-vulnerability-report:
 # 🔄 Update policies - refresh with latest standards and requirements
 update:
     @echo "🔄 Updating security policies..."
-    @./security-setup.sh --update --policies all
+    @./scripts/security-setup.sh --update --policies all
 
 # 🔄 Update specific compliance framework
 update-compliance FRAMEWORK:

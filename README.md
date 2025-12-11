@@ -57,7 +57,7 @@ A comprehensive security policy template collection that provides enterprise-gra
 # Clone and run the security policy wizard
 git clone https://github.com/LarsArtmann/template-SECURITY.git
 cd template-SECURITY
-./security-setup.sh
+./scripts/security-setup.sh
 
 # Follow the interactive prompts to customize policies
 # Generated policies will be placed in your project directory
@@ -79,7 +79,7 @@ curl -o incident-response.md https://raw.githubusercontent.com/LarsArtmann/templ
 ```bash
 # Add to existing project
 cd your-existing-project
-curl -s https://raw.githubusercontent.com/LarsArtmann/template-SECURITY/main/setup.sh | bash
+curl -s https://raw.githubusercontent.com/LarsArtmann/template-SECURITY/main/scripts/setup.sh | bash
 
 # This adds appropriate security files based on project type detection
 ```
@@ -88,7 +88,7 @@ curl -s https://raw.githubusercontent.com/LarsArtmann/template-SECURITY/main/set
 
 ### GitHub Open Source Project
 ```bash
-$ ./security-setup.sh --type github --project "my-open-source-app"
+$ ./scripts/security-setup.sh --type github --project "my-open-source-app"
 
 🔒 Security Policy Setup Wizard
 Setting up security policies for: my-open-source-app
@@ -115,7 +115,7 @@ Next steps:
 
 ### Enterprise Organization
 ```bash
-$ ./security-setup.sh --type enterprise --compliance gdpr,soc2
+$ ./scripts/security-setup.sh --type enterprise --compliance gdpr,soc2
 
 🏢 Enterprise Security Policy Setup
 
@@ -142,7 +142,7 @@ $ ./security-setup.sh --type enterprise --compliance gdpr,soc2
 
 ### Bug Bounty Program
 ```bash
-$ ./security-setup.sh --type bug-bounty --scope web,api
+$ ./scripts/security-setup.sh --type bug-bounty --scope web,api
 
 🐛 Bug Bounty Program Setup
 
@@ -203,13 +203,13 @@ reporting:
 ### Template Customization
 ```bash
 # Generate custom templates
-./security-setup.sh --config .security-config.yaml
+./scripts/security-setup.sh --config .security-config.yaml
 
 # Validate generated policies
-./security-setup.sh --validate
+./scripts/security-setup.sh --validate
 
 # Update existing policies
-./security-setup.sh --update --policies SECURITY.md,incident-response.md
+./scripts/security-setup.sh --update --policies SECURITY.md,incident-response.md
 ```
 
 ## 🔧 Advanced Features
@@ -217,34 +217,34 @@ reporting:
 ### Compliance Automation
 ```bash
 # Generate compliance reports
-./security-setup.sh --compliance-report --framework soc2
+./scripts/security-setup.sh --compliance-report --framework soc2
 
 # Create audit preparation documents
-./security-setup.sh --audit-prep --framework iso27001
+./scripts/security-setup.sh --audit-prep --framework iso27001
 
 # Generate security metrics dashboard
-./security-setup.sh --metrics --output json
+./scripts/security-setup.sh --metrics --output json
 ```
 
 ### Integration with Security Tools
 ```bash
 # GitHub Security Integration
-./security-setup.sh --github-integration --repo owner/repo
+./scripts/security-setup.sh --github-integration --repo owner/repo
 
 # Slack incident response integration
-./security-setup.sh --slack-integration --webhook-url <webhook>
+./scripts/security-setup.sh --slack-integration --webhook-url <webhook>
 
 # JIRA security issue tracking
-./security-setup.sh --jira-integration --project SEC
+./scripts/security-setup.sh --jira-integration --project SEC
 ```
 
 ### Multi-Language Support
 ```bash
 # Generate policies in multiple languages
-./security-setup.sh --languages en,es,de,fr
+./scripts/security-setup.sh --languages en,es,de,fr
 
 # Localize compliance requirements
-./security-setup.sh --localize --regions US,EU,APAC
+./scripts/security-setup.sh --localize --regions US,EU,APAC
 ```
 
 ## 🧪 Policy Validation
@@ -278,13 +278,13 @@ just test-security-contacts
 ### Policy Updates
 ```bash
 # Update to latest security standards
-./security-setup.sh --update-standards
+./scripts/security-setup.sh --update-standards
 
 # Refresh compliance requirements
-./security-setup.sh --refresh-compliance --frameworks gdpr,soc2
+./scripts/security-setup.sh --refresh-compliance --frameworks gdpr,soc2
 
 # Update contact information
-./security-setup.sh --update-contacts --email new-security@company.com
+./scripts/security-setup.sh --update-contacts --email new-security@company.com
 ```
 
 ### Version Control Integration
@@ -373,7 +373,7 @@ cp templates/base-template.md templates/my-custom-policy.md
 # Edit templates/my-custom-policy.md
 
 # Test custom template
-./security-setup.sh --template my-custom-policy --test
+./scripts/security-setup.sh --template my-custom-policy --test
 
 # Validate template completeness
 just validate-template templates/my-custom-policy.md
