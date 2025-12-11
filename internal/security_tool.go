@@ -3,9 +3,10 @@ package internal
 import (
 	"context"
 	"fmt"
+	"maps"
 
-	"github.com/LarsArtmann/template-CLI/pkg/sdk/vfs"
 	"github.com/LarsArtmann/template-CLI/pkg/sdk/fileops"
+	"github.com/LarsArtmann/template-CLI/pkg/sdk/vfs"
 	"github.com/spf13/afero"
 )
 
@@ -13,7 +14,7 @@ import (
 type SecurityTool struct {
 	templateManager *vfs.TemplateManager
 	fileSystem      vfs.FileSystem
-	fileOps        *fileops.Service
+	fileOps         *fileops.Service
 	processor       *vfs.TemplateProcessor
 	security        *vfs.TemplateSecurity
 }
@@ -25,11 +26,11 @@ func NewSecurityTool() *SecurityTool {
 		BaseDirectory: ".",
 		ValidatePaths: true,
 	})
-	
+
 	return &SecurityTool{
 		templateManager: vfs.NewTemplateManager(vfsImpl),
 		fileSystem:      vfsImpl,
-		fileOps:        fileOps,
+		fileOps:         fileOps,
 		processor:       vfs.NewTemplateProcessor(),
 		security:        vfs.NewTemplateSecurity(),
 	}
@@ -138,9 +139,7 @@ func (st *SecurityTool) processTemplate(template string, config PolicyConfig) st
 	}
 
 	// Add custom variables
-	for k, v := range config.Variables {
-		variables[k] = v
-	}
+	maps.Copy(variables, config.Variables)
 
 	// Replace variables
 	result := template

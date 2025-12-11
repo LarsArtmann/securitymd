@@ -110,12 +110,12 @@ func (pd *ProjectDetector) detectFromGoMod() string {
 	}
 
 	contentStr := string(content)
-	lines := strings.Split(contentStr, "\n")
+	lines := strings.SplitSeq(contentStr, "\n")
 
-	for _, line := range lines {
+	for line := range lines {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "module ") {
-			module := strings.TrimPrefix(line, "module ")
+		if after, ok := strings.CutPrefix(line, "module "); ok {
+			module := after
 			module = strings.TrimSpace(module)
 
 			// Extract last part of module path
@@ -137,12 +137,12 @@ func (pd *ProjectDetector) detectFromCargoToml() string {
 	}
 
 	contentStr := string(content)
-	lines := strings.Split(contentStr, "\n")
+	lines := strings.SplitSeq(contentStr, "\n")
 
-	for _, line := range lines {
+	for line := range lines {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "name = ") {
-			name := strings.TrimPrefix(line, "name = ")
+		if after, ok := strings.CutPrefix(line, "name = "); ok {
+			name := after
 			name = strings.TrimSpace(name)
 
 			// Remove quotes
@@ -161,12 +161,12 @@ func (pd *ProjectDetector) detectFromPyProjectToml() string {
 	}
 
 	contentStr := string(content)
-	lines := strings.Split(contentStr, "\n")
+	lines := strings.SplitSeq(contentStr, "\n")
 
-	for _, line := range lines {
+	for line := range lines {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "name = ") {
-			name := strings.TrimPrefix(line, "name = ")
+		if after, ok := strings.CutPrefix(line, "name = "); ok {
+			name := after
 			name = strings.TrimSpace(name)
 
 			// Remove quotes

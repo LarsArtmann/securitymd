@@ -13,7 +13,7 @@ If you discover a security vulnerability, please report it to us privately befor
 
 ### How to Report
 
-- Email: security@testcompany.com
+- Email: security@lars.software
 - Response time: Within 48 hours
 
 ### Security Policy

@@ -121,7 +121,7 @@ func promptPolicyType() {
 	}
 	var selection string
 	survey.AskOne(prompt, &selection)
-	
+
 	// Extract policy type from selection (get text before " - ")
 	parts := strings.Split(selection, " - ")
 	if len(parts) > 0 {
