@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
-	"github.com/LarsArtmann/template-SECURITY/v2/internal/domain"
 )
 
 // BaseError represents the base error structure

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/errors"
 )
 
 // TemplateVariable represents a template variable with type safety

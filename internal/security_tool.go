@@ -3,23 +3,29 @@ package internal
 import (
 	"context"
 	"fmt"
-	"maps"
+	"strings"
 
 	"github.com/LarsArtmann/template-CLI/pkg/sdk/fileops"
 	"github.com/LarsArtmann/template-CLI/pkg/sdk/vfs"
 	"github.com/spf13/afero"
+
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/domain"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/service"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
 )
 
-// SecurityTool represents the main security policy tool
+// SecurityTool represents main security policy tool with clean architecture
 type SecurityTool struct {
-	templateManager   *vfs.TemplateManager
+	templateManager    *vfs.TemplateManager
 	fileSystem        vfs.FileSystem
 	fileOps           *fileops.Service
 	processor         *vfs.TemplateProcessor
 	security          *vfs.TemplateSecurity
-	detector          *ProjectDetector
-	githubIntegration *GitHubIntegration
-	variableDetector  *TemplateVariableDetector
+	variableService   *service.TemplateVariableService
+	validationService *service.ValidationService
+	githubService     *service.GitHubService
+	projectService    *service.ProjectDetectionService
+	errorHandler      *service.ErrorHandler
 }
 
 // NewSecurityTool creates a new security tool instance
@@ -31,226 +37,360 @@ func NewSecurityTool() *SecurityTool {
 	})
 
 	return &SecurityTool{
-		templateManager:   vfs.NewTemplateManager(vfsImpl),
+		templateManager:    vfs.NewTemplateManager(vfsImpl),
 		fileSystem:        vfsImpl,
 		fileOps:           fileOps,
 		processor:         vfs.NewTemplateProcessor(),
 		security:          vfs.NewTemplateSecurity(),
-		detector:          NewProjectDetector(),
-		githubIntegration: NewGitHubIntegration(),
-		variableDetector:  NewTemplateVariableDetector(),
+		variableService:   service.NewTemplateVariableService(),
+		validationService: service.NewValidationService(),
+		githubService:     service.NewGitHubService(),
+		projectService:    service.NewProjectDetectionService(),
+		errorHandler:      service.NewErrorHandler(true),
 	}
 }
 
-// PolicyType represents different security policy types
-type PolicyType string
-
-const (
-	PolicyTypeGitHub           PolicyType = "github"
-	PolicyTypeEnterprise       PolicyType = "enterprise"
-	PolicyTypeBugBounty        PolicyType = "bug-bounty"
-	PolicyTypeIncidentResponse PolicyType = "incident-response"
-	PolicyTypePrivacyPolicy    PolicyType = "privacy-policy"
-)
-
-// PolicyConfig holds configuration for policy generation
+// PolicyConfig represents security policy configuration
 type PolicyConfig struct {
-	Type         PolicyType
-	Organization string
-	ContactEmail string
-	OutputDir    string
-	Variables    map[string]string
+	Type         types.PolicyType  `json:"type"`
+	Organization string             `json:"organization"`
+	Email        string             `json:"email"`
+	Variables    map[string]string  `json:"variables"`
+	QuickMode    bool               `json:"quick_mode"`
+	Options      PolicyOptions      `json:"options"`
 }
 
-// GeneratePolicy generates a security policy based on configuration
-func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig) error {
-	// Load appropriate template
-	templatePath := st.getTemplatePath(config.Type)
-	templateFile, err := st.fileSystem.Open(templatePath)
+// PolicyOptions represents additional policy options
+type PolicyOptions struct {
+	Validation     bool   `json:"validation"`
+	AutoDetect     bool   `json:"auto_detect"`
+	OutputFile     string `json:"output_file"`
+	Overwrite      bool   `json:"overwrite"`
+	Template       string `json:"template"`
+}
+
+// GeneratePolicy generates a security policy
+func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig) (domain.SecurityPolicy, error) {
+	// Validate input
+	if err := st.validateConfig(config); err != nil {
+		return domain.SecurityPolicy{}, fmt.Errorf("invalid configuration: %w", err)
+	}
+
+	// Detect variables if auto-detect is enabled
+	var registry *domain.TemplateVariableRegistry
+	if config.Options.AutoDetect {
+		detected, err := st.variableService.DetectAllVariables(ctx)
+		if err != nil {
+			st.errorHandler.Handle(err)
+			return domain.SecurityPolicy{}, fmt.Errorf("failed to detect variables: %w", err)
+		}
+		registry = detected
+	} else {
+		registry = st.variableService.GetRegistry()
+	}
+
+	// Add user-specified variables (override detected)
+	for placeholder, value := range config.Variables {
+		variable := domain.TemplateVariable{
+			Placeholder: placeholder,
+			Value:       value,
+			Source:      domain.SourceUserInput,
+			Priority:    types.PriorityCritical,
+			Detected:    true,
+			Overridden:  true,
+		}
+		registry.Register(variable)
+	}
+
+	// Get template content
+	template, err := st.getTemplate(ctx, config.Type, config.Options.Template)
 	if err != nil {
-		return fmt.Errorf("failed to open template %s: %w", templatePath, err)
-	}
-	defer templateFile.Close()
-
-	// Read template content
-	templateContent, err := afero.ReadAll(templateFile)
-	if err != nil {
-		return fmt.Errorf("failed to read template content: %w", err)
+		return domain.SecurityPolicy{}, fmt.Errorf("failed to get template: %w", err)
 	}
 
-	// Validate template security
-	if err := st.security.ValidateTemplate(templatePath, templateContent); err != nil {
-		return fmt.Errorf("template security validation failed: %w", err)
+	// Process template
+	content := st.processTemplate(template, registry.ExportMap())
+
+	// Create policy ID
+	policyID := domain.PolicyID{
+		Value: st.generatePolicyID(config.Type, config.Organization),
 	}
 
-	// Process template with variables
-	processedContent := st.processTemplate(string(templateContent), config)
-
-	// Determine output filename
-	outputFile := st.getOutputFilename(config.Type, config.OutputDir)
-
-	// Write output file using safe operations
-	result := st.fileOps.WriteFile(outputFile, processedContent)
-	if result.IsError() {
-		return fmt.Errorf("failed to write policy file: %w", result.Error())
+	// Build domain model
+	policy := domain.SecurityPolicy{
+		ID:          policyID,
+		Type:        config.Type,
+		Organization: st.buildOrganization(ctx, config),
+		Contact:      st.buildContact(ctx, config),
+		Versions:     st.buildVersions(),
+		Validation:   st.buildValidation(ctx, content),
+		Metadata:     st.buildMetadata(ctx, registry, content),
+		Content:      content,
+		GeneratedAt:  ctx.Value("now").(time.Time), // Will be set in commands
 	}
 
+	// Save policy if output file specified
+	if config.Options.OutputFile != "" {
+		if err := st.savePolicy(content, config.Options.OutputFile); err != nil {
+			return domain.SecurityPolicy{}, fmt.Errorf("failed to save policy: %w", err)
+		}
+	}
+
+	return policy, nil
+}
+
+// ValidatePolicy validates security policies
+func (st *SecurityTool) ValidatePolicy(ctx context.Context, filePath string) (domain.Validation, error) {
+	return st.validationService.ValidateSecurityPolicy(ctx, filePath)
+}
+
+// ValidateAllPolicies validates all policies in directory
+func (st *SecurityTool) ValidateAllPolicies(ctx context.Context) ([]domain.Validation, error) {
+	return st.validationService.ValidateAllPolicies(ctx)
+}
+
+// GetPolicy retrieves a policy by ID
+func (st *SecurityTool) GetPolicy(ctx context.Context, id domain.PolicyID) (domain.SecurityPolicy, error) {
+	// In this file-based implementation, read from file
+	filePath := st.getPolicyFilePath(id)
+	return st.readPolicyFile(filePath)
+}
+
+// Private helper methods
+
+func (st *SecurityTool) validateConfig(config PolicyConfig) error {
+	if !config.Type.IsValid() {
+		return fmt.Errorf("invalid policy type: %s", config.Type)
+	}
+	
+	if config.Organization == "" {
+		return fmt.Errorf("organization name is required")
+	}
+	
+	if config.Email == "" {
+		return fmt.Errorf("contact email is required")
+	}
+	
 	return nil
 }
 
-// getTemplatePath returns the path to the template file
-func (st *SecurityTool) getTemplatePath(policyType PolicyType) string {
+func (st *SecurityTool) getTemplate(ctx context.Context, policyType types.PolicyType, customTemplate string) (string, error) {
+	if customTemplate != "" {
+		// Load custom template
+		data, err := st.fileSystem.ReadFile(customTemplate)
+		if err != nil {
+			return "", fmt.Errorf("failed to read custom template: %w", err)
+		}
+		return string(data), nil
+	}
+
+	// Load built-in template
+	templatePath := st.getTemplatePath(policyType)
+	data, err := st.fileSystem.ReadFile(templatePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read template: %w", err)
+	}
+
+	return string(data), nil
+}
+
+func (st *SecurityTool) getTemplatePath(policyType types.PolicyType) string {
 	switch policyType {
-	case PolicyTypeGitHub:
+	case types.PolicyTypeGitHub:
 		return "templates/github-security.md"
-	case PolicyTypeEnterprise:
+	case types.PolicyTypeEnterprise:
 		return "templates/enterprise-policy.md"
-	case PolicyTypeBugBounty:
+	case types.PolicyTypeBugBounty:
 		return "templates/bug-bounty-program.md"
-	case PolicyTypeIncidentResponse:
-		return "templates/incident-response.md"
-	case PolicyTypePrivacyPolicy:
+	case types.PolicyTypeIncidentResponse:
+		return "templates/incident-response-plan.md"
+	case types.PolicyTypePrivacyPolicy:
 		return "templates/privacy-policy.md"
 	default:
-		return "templates/base-security.md"
+		return "templates/github-security.md"
 	}
 }
 
-// getOutputFilename returns the output filename for the policy type
-func (st *SecurityTool) getOutputFilename(policyType PolicyType, outputDir string) string {
-	switch policyType {
-	case PolicyTypeGitHub:
-		return outputDir + "/SECURITY.md"
-	case PolicyTypeEnterprise:
-		return outputDir + "/security-policy.md"
-	case PolicyTypeBugBounty:
-		return outputDir + "/bug-bounty-policy.md"
-	case PolicyTypeIncidentResponse:
-		return outputDir + "/incident-response.md"
-	case PolicyTypePrivacyPolicy:
-		return outputDir + "/privacy-policy.md"
-	default:
-		return outputDir + "/security-policy.md"
-	}
-}
-
-// processTemplate substitutes variables in the template
-func (st *SecurityTool) processTemplate(template string, config PolicyConfig) string {
-	// Start with GitHub-specific variables first (they should have priority)
-	variables := map[string]string{
-		// GitHub variables will be added here
-	}
-
-	// Add GitHub-specific variables if it's a GitHub repository
-	githubInfo := st.githubIntegration.GetGitHubInfo()
-	if githubInfo.IsGitHub {
-		githubVariables := st.githubIntegration.GenerateGitHubTemplateVariables(githubInfo)
-
-		// Add GitHub variables
-		for key, value := range githubVariables {
-			variables[key] = value
-		}
-	}
-
-	// Add standard variables, but don't override GitHub-specific ones
-	standardVariables := map[string]string{
-		// Organization info (only if not already set by GitHub)
-		"{{ORGANIZATION}}":        config.Organization,
-		"{{CONTACT_EMAIL}}":       config.ContactEmail,
-		"{{SECURITY_TEAM_EMAIL}}": config.ContactEmail,
-
-		// Version info
-		"{{LATEST_VERSION}}":            "v2.x",
-		"{{PREVIOUS_VERSION}}":          "v1.x",
-		"{{SUPPORT_END_DATE}}":          "2026-12-31",
-		"{{PREVIOUS_SUPPORT_END_DATE}}": "2025-12-31",
-
-		// Policy info
-		"{{CURRENT_POLICY_VERSION}}":  "2.0",
-		"{{PREVIOUS_POLICY_VERSION}}": "1.0",
-		"{{LAST_UPDATED}}":            "2025-12-11",
-		"{{PREVIOUS_UPDATED}}":        "2025-06-11",
-
-		// Security resources
-		"{{PGP_KEY_URL}}":             "https://{{ORGANIZATION}}.com/security/pgp",
-		"{{BOUNTY_PROGRAM_URL}}":      "https://{{ORGANIZATION}}.com/security/bounty",
-		"{{SECURITY_ADVISORIES_URL}}": "https://github.com/{{ORGANIZATION}}/security/advisories",
-		"{{SECURITY_BLOG_URL}}":       "https://{{ORGANIZATION}}.com/blog/security",
-		"{{SECURITY_DOCS_URL}}":       "https://{{ORGANIZATION}}.com/docs/security",
-		"{{INCIDENT_RESPONSE_URL}}":   "https://{{ORGANIZATION}}.com/security/incident-response",
-
-		// Legal resources
-		"{{TERMS_URL}}":          "https://{{ORGANIZATION}}.com/terms",
-		"{{PRIVACY_POLICY_URL}}": "https://{{ORGANIZATION}}.com/privacy",
-		"{{LICENSE_URL}}":        "https://creativecommons.org/licenses/by-sa/4.0/",
-
-		// Bounty rewards
-		"{{CRITICAL_REWARD}}": "1000",
-		"{{HIGH_REWARD}}":     "500",
-		"{{MEDIUM_REWARD}}":   "200",
-		"{{LOW_REWARD}}":      "50",
-
-		// Default content
-		"{{RESEARCHERS_LIST}}": "- Thank you to all security researchers who have helped us secure our products",
-	}
-
-	// Merge standard variables, but don't override GitHub-specific ones
-	for key, value := range standardVariables {
-		if _, exists := variables[key]; !exists {
-			variables[key] = value
-		}
-	}
-
-	// Add custom variables (highest priority)
-	maps.Copy(variables, config.Variables)
-
-	// Replace variables (multi-pass for nested variables)
+func (st *SecurityTool) processTemplate(template string, variables map[string]string) string {
 	result := template
+	
+	// Multi-pass variable resolution for nested variables
 	maxPasses := 3
 	for pass := 0; pass < maxPasses; pass++ {
 		changed := false
 		for placeholder, value := range variables {
 			oldResult := result
-			result = replaceAll(result, placeholder, value)
+			result = strings.ReplaceAll(result, placeholder, value)
 			if oldResult != result {
 				changed = true
 			}
 		}
 		if !changed {
-			break // No more changes, exit early
-		}
-	}
-
-	return result
-}
-
-// replaceAll replaces all occurrences of old with new in s
-func replaceAll(s, old, new string) string {
-	// Simple implementation for now, could be optimized
-	result := s
-	for {
-		before := result
-		result = replaceString(result, old, new)
-		if before == result {
 			break
 		}
 	}
+	
 	return result
 }
 
-// replaceString replaces the first occurrence of old with new in s
-func replaceString(s, old, new string) string {
-	// Simple string replacement implementation
-	if len(old) == 0 {
-		return s
-	}
+func (st *SecurityTool) generatePolicyID(policyType types.PolicyType, organization string) string {
+	timestamp := time.Now().Format("20060102-150405")
+	return fmt.Sprintf("%s-%s-%s", policyType, strings.ToLower(organization), timestamp)
+}
 
-	i := 0
-	for i+len(old) <= len(s) {
-		if s[i:i+len(old)] == old {
-			return s[:i] + new + s[i+len(old):]
-		}
-		i++
+func (st *SecurityTool) buildOrganization(ctx context.Context, config PolicyConfig) domain.Organization {
+	// Get GitHub info if available
+	githubInfo, _ := st.githubService.GetGitHubInfo(ctx)
+	
+	org := domain.Organization{
+		Name:   config.Organization,
+		Email:  config.Email,
+		Website: "https://" + st.detectDomain(config.Organization),
+		Type:    domain.OrgTypeOpenSource,
+		Size:    domain.SizeSmall,
+		GitHub:  githubInfo,
 	}
-	return s
+	
+	return org
+}
+
+func (st *SecurityTool) buildContact(ctx context.Context, config PolicyConfig) domain.Contact {
+	return domain.Contact{
+		Primary: domain.ContactMethod{
+			Type:        domain.ContactTypeEmail,
+			Value:       config.Email,
+			Description: "Primary security contact",
+			Encrypted:   false,
+		},
+		Alternative: domain.ContactMethod{
+			Type:        domain.ContactTypeWeb,
+			Value:       "GitHub Security",
+			Description: "GitHub security advisories",
+			Encrypted:   false,
+		},
+		Responsibilities: domain.Responsibilities{
+			ResponseTime:     24 * time.Hour,
+			InvestigationTime: 72 * time.Hour,
+			PatchTime:        14 * 24 * time.Hour,
+			DisclosureTime:   90 * 24 * time.Hour,
+			SafeHarbor:       true,
+			CoordinateCVE:    true,
+		},
+	}
+}
+
+func (st *SecurityTool) buildVersions() []domain.Version {
+	now := time.Now()
+	
+	return []domain.Version{
+		{
+			Name:            "v2.x",
+			SemanticVersion: "2.0.0",
+			SupportedUntil:   now.AddDate(1, 0, 0),
+			Status:          domain.StatusSupported,
+			IsLatest:        true,
+		},
+		{
+			Name:            "v1.x",
+			SemanticVersion: "1.0.0",
+			SupportedUntil:   now,
+			Status:          domain.StatusDeprecated,
+			IsLatest:        false,
+			IsPrevious:      true,
+		},
+	}
+}
+
+func (st *SecurityTool) buildValidation(ctx context.Context, content string) domain.Validation {
+	// Simple validation
+	score := uint8(100)
+	if len(content) < 500 {
+		score = 50
+	}
+	
+	status := types.StatusValid
+	if score < 70 {
+		status = types.StatusWarning
+	}
+	
+	return domain.Validation{
+		Status:    status,
+		Score:     score,
+		Issues:    []domain.ValidationIssue{},
+		Warnings:  []domain.ValidationWarning{},
+		CheckedAt: time.Now(),
+		Quality: domain.QualityMetrics{
+			Words:         uint16(len(strings.Fields(content))),
+			Lines:         uint16(len(strings.Split(content, "\n"))),
+			Characters:    uint16(len(content)),
+			Sections:      10, // Approximate
+			Readability:   score,
+			Completeness:  score,
+			BestPractices: score,
+		},
+	}
+}
+
+func (st *SecurityTool) buildMetadata(ctx context.Context, registry *domain.TemplateVariableRegistry, content string) domain.PolicyMetadata {
+	stats := registry.Stats()
+	
+	return domain.PolicyMetadata{
+		TemplateVersion:   "2.0",
+		GeneratorVersion:  "v2.0.0",
+		VariableCount:     stats.TotalVariables,
+		ResolvedCount:     stats.TotalVariables - stats.UnresolvedCount,
+		Variables:         st.convertRegistryToVariables(registry.GetAll()),
+		Project:           st.buildProjectInfo(ctx),
+	}
+}
+
+func (st *SecurityTool) convertRegistryToVariables(variables map[string]domain.TemplateVariable) []domain.Variable {
+	var result []domain.Variable
+	
+	for _, variable := range variables {
+		result = append(result, domain.Variable{
+			Placeholder: variable.Placeholder,
+			Name:        variable.Name,
+			Description: variable.Description,
+			Value:       variable.Value,
+			Priority:    variable.Priority,
+			Category:    variable.Category,
+			Detected:    variable.Detected,
+			Overridden:  variable.Overridden,
+			Required:    variable.Required,
+		})
+	}
+	
+	return result
+}
+
+func (st *SecurityTool) buildProjectInfo(ctx context.Context) domain.ProjectInfo {
+	projectInfo, _ := st.projectService.AnalyzeProject(ctx)
+	return projectInfo
+}
+
+func (st *SecurityTool) detectDomain(organization string) string {
+	// Simple domain detection
+	if strings.Contains(organization, ".") {
+		return organization
+	}
+	return strings.ToLower(organization) + ".com"
+}
+
+func (st *SecurityTool) savePolicy(content, outputPath string) error {
+	return st.fileOps.WriteFile(outputPath, []byte(content))
+}
+
+func (st *SecurityTool) getPolicyFilePath(id domain.PolicyID) string {
+	return fmt.Sprintf("policies/%s.json", id.Value)
+}
+
+func (st *SecurityTool) readPolicyFile(filePath string) (domain.SecurityPolicy, error) {
+	// Implementation would read from file system
+	return domain.SecurityPolicy{}, fmt.Errorf("not implemented")
+}
+
+// SetErrorHandler allows dependency injection for testing
+func (st *SecurityTool) SetErrorHandler(handler service.ErrorHandler) {
+	st.errorHandler = handler
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/template-SECURITY/v2/internal/types"
+	"github.com/LarsArtmann/template-SECURITY/v2/internal/errors"
 )
 
 // SecurityPolicy represents a complete security policy domain model
