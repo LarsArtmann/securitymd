@@ -69,14 +69,14 @@ type Project struct {
 
 // ValidationResult represents the result of validating a security policy
 type ValidationResult struct {
-	ID          string      `json:"id"`
-	PolicyID    string      `json:"policy_id"`
-	Valid       bool        `json:"valid"`
-	Errors      []Error     `json:"errors"`
-	Warnings    []Warning   `json:"warnings"`
-	Score       int         `json:"score"` // 0-100
-	ValidatedAt time.Time   `json:"validated_at"`
-	Metadata    interface{} `json:"metadata,omitempty"`
+	ID          string    `json:"id"`
+	PolicyID    string    `json:"policy_id"`
+	Valid       bool      `json:"valid"`
+	Errors      []Error   `json:"errors"`
+	Warnings    []Warning `json:"warnings"`
+	Score       int       `json:"score"` // 0-100
+	ValidatedAt time.Time `json:"validated_at"`
+	Metadata    any       `json:"metadata,omitempty"`
 }
 
 // Error represents a validation error

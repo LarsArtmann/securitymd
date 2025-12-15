@@ -5,13 +5,15 @@ This GitHub Action automatically validates your security policy files to ensure 
 ## What it Checks
 
 ### Security Policy Requirements ✅
+
 - **SECURITY.md** file exists and contains required sections
-- **Contact Information** with valid email addresses  
+- **Contact Information** with valid email addresses
 - **Version Support** information
 - **Vulnerability Reporting** process
 - **Security Practices** documentation
 
 ### Quality Checks 🔍
+
 - Unresolved template variables (`{{variable}}`)
 - Placeholder text (`example.com`)
 - Minimum content length (20+ lines)
@@ -20,12 +22,15 @@ This GitHub Action automatically validates your security policy files to ensure 
 ## Usage
 
 ### Automatic Trigger
+
 The workflow runs automatically on:
+
 - **Push** to main/master/develop branches
 - **Pull Requests** to main/master branches
 - When security policy files change
 
 ### Manual Run
+
 ```bash
 # Local validation
 ./bin/template-security validate --file SECURITY.md
@@ -35,6 +40,7 @@ The workflow runs automatically on:
 ```
 
 ## Files Monitored
+
 - `SECURITY.md` - Main security policy
 - `security-policy.md` - Enterprise security policy
 - `templates/` - Template files
@@ -43,6 +49,7 @@ The workflow runs automatically on:
 ## Error Handling
 
 If validation fails:
+
 1. **PR Comment**: Automated comment with fix suggestions
 2. **Status Check**: Failed status on PR
 3. **GitHub Summary**: Detailed validation report
@@ -51,6 +58,7 @@ If validation fails:
 ## Required Sections
 
 ### SECURITY.md must include:
+
 - ✅ **Security Policy** header
 - ✅ **Reporting a Vulnerability** section
 - ✅ **Supported Versions** information
@@ -58,6 +66,7 @@ If validation fails:
 - ✅ **Contact Information** with email
 
 ### Optional but Recommended:
+
 - 📋 **What to Expect** timeline
 - 🔐 **Safe Harbor** statement
 - 🏆 **Security Acknowledgments**
@@ -66,18 +75,21 @@ If validation fails:
 ## Fixing Common Issues
 
 ### Template Variables
+
 ```diff
 - {{CONTACT_EMAIL}}
 + security@yourcompany.com
 ```
 
 ### Missing Sections
+
 ```diff
 + ## Reporting a Vulnerability
 + If you discover a security vulnerability, please report it to us privately...
 ```
 
 ### Placeholder Text
+
 ```diff
 - example.com
 + yourcompany.com
@@ -86,13 +98,15 @@ If validation fails:
 ## Examples
 
 ### Good Security Policy
+
 - ✅ Clear contact information
-- ✅ Detailed reporting process  
+- ✅ Detailed reporting process
 - ✅ Version support information
 - ✅ Security practices
 - ✅ Response time expectations
 
 ### Needs Improvement
+
 - ❌ Missing email contact
 - ❌ No version information
 - ❌ Incomplete reporting process
@@ -101,6 +115,7 @@ If validation fails:
 ## Integration with Other Tools
 
 This validation works well with:
+
 - **Dependabot**: Automated dependency updates
 - **CodeQL**: Code security scanning
 - **Secret Scanning**: Credential detection
@@ -109,6 +124,7 @@ This validation works well with:
 ## Configuration
 
 You can customize validation by modifying:
+
 - `.github/workflows/security-validation.yml`
 - Required sections list
 - Validation rules
@@ -122,4 +138,4 @@ You can customize validation by modifying:
 
 ---
 
-*This action is part of the template-SECURITY project for automated security policy management.*
+_This action is part of the template-SECURITY project for automated security policy management._

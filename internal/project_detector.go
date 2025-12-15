@@ -123,8 +123,8 @@ func (pd *ProjectDetector) detectOrgFromGitRemote() string {
 	gitURL = strings.TrimSuffix(gitURL, ".git")
 
 	// Parse HTTPS URLs
-	if strings.HasPrefix(gitURL, "https://") {
-		gitURL = strings.TrimPrefix(gitURL, "https://")
+	if after, ok := strings.CutPrefix(gitURL, "https://"); ok {
+		gitURL = after
 		parts := strings.Split(gitURL, "/")
 		if len(parts) >= 2 {
 			return parts[1] // github.com/ORG/repo -> parts[1] is ORG
@@ -161,8 +161,8 @@ func (pd *ProjectDetector) detectDomainFromGitRemote() string {
 	gitURL = strings.TrimSpace(gitURL)
 
 	// Extract domain from HTTPS URL
-	if strings.HasPrefix(gitURL, "https://") {
-		gitURL = strings.TrimPrefix(gitURL, "https://")
+	if after, ok := strings.CutPrefix(gitURL, "https://"); ok {
+		gitURL = after
 		if parts := strings.Split(gitURL, "/"); len(parts) > 0 {
 			return parts[0] // github.com/ORG/repo -> parts[0] is github.com
 		}
@@ -259,8 +259,8 @@ func (pd *ProjectDetector) detectOrgFromPackageJSON() string {
 
 	// Try to detect from scope in package name (@org/package)
 	name := pd.detectFromPackageJSON()
-	if strings.HasPrefix(name, "@") {
-		if parts := strings.Split(strings.TrimPrefix(name, "@"), "/"); len(parts) > 0 {
+	if after, ok := strings.CutPrefix(name, "@"); ok {
+		if parts := strings.Split(after, "/"); len(parts) > 0 {
 			return parts[0]
 		}
 	}

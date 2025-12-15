@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/LarsArtmann/template-SECURITY/internal"
 	"github.com/fatih/color"
@@ -101,9 +102,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	// Prepare variables from config
 	variables := make(map[string]string)
 	if userConfig != nil {
-		for k, v := range userConfig.Variables {
-			variables[k] = v
-		}
+		maps.Copy(variables, userConfig.Variables)
 	}
 
 	config := internal.PolicyConfig{

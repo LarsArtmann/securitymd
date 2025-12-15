@@ -7,6 +7,7 @@ A specialized tool that validates SECURITY.md files for completeness and complia
 ## 🎯 Purpose
 
 This tool does ONE thing well:
+
 1. **Validates** that SECURITY.md exists and meets standards
 2. **Generates** compliant SECURITY.md files when needed
 3. **Upserts** improvements to existing SECURITY.md files
@@ -30,6 +31,7 @@ template-security validate --file SECURITY.md
 ## ✅ What We Validate
 
 ### Required Sections
+
 - ✅ Security Policy header
 - ✅ Reporting a Vulnerability section
 - ✅ Supported Versions information
@@ -38,6 +40,7 @@ template-security validate --file SECURITY.md
 - ✅ Response time commitments
 
 ### Quality Checks
+
 - ✅ Minimum content length (>20 lines)
 - ✅ No unresolved template variables
 - ✅ Substantive content (not just placeholders)
@@ -66,7 +69,9 @@ $ template-security validate
 ## 🔧 Commands
 
 ### `validate`
+
 Check if SECURITY.md exists and meets standards
+
 ```bash
 # Validate all security files
 template-security validate
@@ -76,7 +81,9 @@ template-security validate --file SECURITY.md
 ```
 
 ### `setup`
+
 Generate new SECURITY.md if missing
+
 ```bash
 # Generate GitHub-style SECURITY.md
 template-security setup --type github
@@ -86,7 +93,9 @@ template-security setup --type enterprise
 ```
 
 ### `status`
+
 Show current security file status
+
 ```bash
 template-security status
 ```

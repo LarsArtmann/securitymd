@@ -211,7 +211,7 @@ type TemplateData struct {
 	SupportEndDate   string
 	LastUpdated      string
 	Versions         []Version
-	AdditionalFields map[string]interface{}
+	AdditionalFields map[string]any
 }
 
 // GeneratePolicy generates a security policy
@@ -262,7 +262,7 @@ func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 		SupportEndDate:   time.Now().AddDate(supportYears, 0, 0).Format("2006-01-02"),
 		LastUpdated:      time.Now().Format("2006-01-02"),
 		Versions:         st.buildVersions(),
-		AdditionalFields: make(map[string]interface{}),
+		AdditionalFields: make(map[string]any),
 	}
 
 	// Add user-provided variables
