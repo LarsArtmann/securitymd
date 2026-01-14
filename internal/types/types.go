@@ -2,7 +2,7 @@ package internal
 
 import "time"
 
-// PolicyType represents different types of security policies
+// PolicyType represents different types of security policies.
 type PolicyType string
 
 const (
@@ -10,7 +10,7 @@ const (
 	PolicyTypeEnterprise PolicyType = "enterprise"
 )
 
-// VersionStatus represents the status of a version
+// VersionStatus represents the status of a version.
 type VersionStatus string
 
 const (
@@ -19,7 +19,7 @@ const (
 	StatusEOL        VersionStatus = "end-of-life"
 )
 
-// ContactType represents different types of contact methods
+// ContactType represents different types of contact methods.
 type ContactType string
 
 const (
@@ -28,7 +28,7 @@ const (
 	ContactTypeAPI   ContactType = "api"
 )
 
-// Version represents a software version with support information
+// Version represents a software version with support information.
 type Version struct {
 	Name            string        `json:"name"`
 	SemanticVersion string        `json:"semantic_version"`
@@ -38,7 +38,7 @@ type Version struct {
 	IsPrevious      bool          `json:"is_previous"`
 }
 
-// Contact represents security contact information
+// Contact represents security contact information.
 type Contact struct {
 	Type         ContactType `json:"type"`
 	Value        string      `json:"value"`
@@ -46,7 +46,7 @@ type Contact struct {
 	Description  string      `json:"description"`
 }
 
-// SecurityPolicy represents a complete security policy
+// SecurityPolicy represents a complete security policy.
 type SecurityPolicy struct {
 	ID           string     `json:"id"`
 	Project      Project    `json:"project"`
@@ -58,7 +58,7 @@ type SecurityPolicy struct {
 	LastModified time.Time  `json:"last_modified"`
 }
 
-// Project represents project information
+// Project represents project information.
 type Project struct {
 	Name         string `json:"name"`
 	Organization string `json:"organization"`
@@ -67,7 +67,7 @@ type Project struct {
 	Description  string `json:"description"`
 }
 
-// ValidationResult represents the result of validating a security policy
+// ValidationResult represents the result of validating a security policy.
 type ValidationResult struct {
 	ID          string    `json:"id"`
 	PolicyID    string    `json:"policy_id"`
@@ -79,7 +79,7 @@ type ValidationResult struct {
 	Metadata    any       `json:"metadata,omitempty"`
 }
 
-// Error represents a validation error
+// Error represents a validation error.
 type Error struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
@@ -87,7 +87,7 @@ type Error struct {
 	Line    int    `json:"line,omitempty"`
 }
 
-// Warning represents a validation warning
+// Warning represents a validation warning.
 type Warning struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
@@ -95,7 +95,7 @@ type Warning struct {
 	Line    int    `json:"line,omitempty"`
 }
 
-// Template represents a security policy template
+// Template represents a security policy template.
 type Template struct {
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
@@ -107,7 +107,7 @@ type Template struct {
 	UpdatedAt   time.Time          `json:"updated_at"`
 }
 
-// TemplateVariable represents a variable in a template
+// TemplateVariable represents a variable in a template.
 type TemplateVariable struct {
 	Name         string `json:"name"`
 	Description  string `json:"description"`

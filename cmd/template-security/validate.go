@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -53,7 +54,7 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 	validator.PrintResults([]*internal.SecurityValidationResult{result})
 
 	if !result.Valid {
-		return fmt.Errorf("policy validation failed")
+		return errors.New("policy validation failed")
 	}
 
 	return nil
@@ -108,7 +109,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	}
 
 	if !overallValid {
-		return fmt.Errorf("one or more policies failed validation")
+		return errors.New("one or more policies failed validation")
 	}
 
 	return nil

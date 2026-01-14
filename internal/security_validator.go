@@ -6,15 +6,15 @@ import (
 	"strings"
 )
 
-// SecurityValidator validates security policy files
+// SecurityValidator validates security policy files.
 type SecurityValidator struct{}
 
-// NewSecurityValidator creates a new security validator
+// NewSecurityValidator creates a new security validator.
 func NewSecurityValidator() *SecurityValidator {
 	return &SecurityValidator{}
 }
 
-// SecurityValidationResult represents the result of security validation
+// SecurityValidationResult represents the result of security validation.
 type SecurityValidationResult struct {
 	Valid    bool
 	Errors   []string
@@ -22,7 +22,7 @@ type SecurityValidationResult struct {
 	File     string
 }
 
-// ValidateSECURITYMd validates a SECURITY.md file
+// ValidateSECURITYMd validates a SECURITY.md file.
 func (sv *SecurityValidator) ValidateSECURITYMd(filePath string) (*SecurityValidationResult, error) {
 	result := &SecurityValidationResult{
 		File: filePath,
@@ -110,7 +110,7 @@ func (sv *SecurityValidator) ValidateSECURITYMd(filePath string) (*SecurityValid
 	return result, nil
 }
 
-// validateContentQuality checks the quality of the content
+// validateContentQuality checks the quality of the content.
 func (sv *SecurityValidator) validateContentQuality(content string, result *SecurityValidationResult) {
 	lines := strings.Split(content, "\n")
 
@@ -122,7 +122,7 @@ func (sv *SecurityValidator) validateContentQuality(content string, result *Secu
 	// Check for template variables that weren't replaced
 	for _, line := range lines {
 		if strings.Contains(line, "{{") && strings.Contains(line, "}}") {
-			result.Errors = append(result.Errors, fmt.Sprintf("Unresolved template variable: %s", strings.TrimSpace(line)))
+			result.Errors = append(result.Errors, "Unresolved template variable: "+strings.TrimSpace(line))
 		}
 	}
 
@@ -155,7 +155,7 @@ func (sv *SecurityValidator) validateContentQuality(content string, result *Secu
 	}
 }
 
-// PrintResults prints validation results in a user-friendly format
+// PrintResults prints validation results in a user-friendly format.
 func (sv *SecurityValidator) PrintResults(results []*SecurityValidationResult) {
 	totalFiles := len(results)
 	validFiles := 0

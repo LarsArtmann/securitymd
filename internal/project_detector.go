@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-// ProjectDetector detects project information from various sources
+// ProjectDetector detects project information from various sources.
 type ProjectDetector struct{}
 
-// NewProjectDetector creates a new project detector
+// NewProjectDetector creates a new project detector.
 func NewProjectDetector() *ProjectDetector {
 	return &ProjectDetector{}
 }
 
-// DetectProjectName attempts to detect the project name from various sources
+// DetectProjectName attempts to detect the project name from various sources.
 func (pd *ProjectDetector) DetectProjectName() string {
 	// Try to detect from git remote first (more reliable)
 	if name := pd.detectFromGitRemote(); name != "" {
@@ -57,7 +57,7 @@ func (pd *ProjectDetector) DetectProjectName() string {
 	return "MyProject"
 }
 
-// DetectOrganization attempts to detect the organization name
+// DetectOrganization attempts to detect the organization name.
 func (pd *ProjectDetector) DetectOrganization() string {
 	// Try to detect from git remote first
 	if org := pd.detectOrgFromGitRemote(); org != "" {
@@ -73,7 +73,7 @@ func (pd *ProjectDetector) DetectOrganization() string {
 	return pd.DetectProjectName()
 }
 
-// DetectDomain attempts to detect the organization domain
+// DetectDomain attempts to detect the organization domain.
 func (pd *ProjectDetector) DetectDomain() string {
 	// Check git remote for domain
 	if domain := pd.detectDomainFromGitRemote(); domain != "" {
@@ -98,7 +98,7 @@ func (pd *ProjectDetector) DetectDomain() string {
 	return "example.com"
 }
 
-// detectFromGitRemote tries to detect git remote URL
+// detectFromGitRemote tries to detect git remote URL.
 func (pd *ProjectDetector) detectFromGitRemote() string {
 	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
 	output, err := cmd.Output()
@@ -109,7 +109,7 @@ func (pd *ProjectDetector) detectFromGitRemote() string {
 	return strings.TrimSpace(string(output))
 }
 
-// detectOrgFromGitRemote tries to extract organization from git remote
+// detectOrgFromGitRemote tries to extract organization from git remote.
 func (pd *ProjectDetector) detectOrgFromGitRemote() string {
 	gitURL := pd.detectFromGitRemote()
 	if gitURL == "" {
@@ -151,7 +151,7 @@ func (pd *ProjectDetector) detectOrgFromGitRemote() string {
 	return ""
 }
 
-// detectDomainFromGitRemote tries to extract domain from git remote
+// detectDomainFromGitRemote tries to extract domain from git remote.
 func (pd *ProjectDetector) detectDomainFromGitRemote() string {
 	gitURL := pd.detectFromGitRemote()
 	if gitURL == "" {
@@ -181,7 +181,7 @@ func (pd *ProjectDetector) detectDomainFromGitRemote() string {
 	return ""
 }
 
-// detectFromPackageJSON tries to detect project name from package.json
+// detectFromPackageJSON tries to detect project name from package.json.
 func (pd *ProjectDetector) detectFromPackageJSON() string {
 	content, err := os.ReadFile("package.json")
 	if err != nil {
@@ -221,7 +221,7 @@ func (pd *ProjectDetector) detectFromPackageJSON() string {
 	return strings.Trim(name, "\"")
 }
 
-// detectOrgFromPackageJSON tries to detect organization from package.json
+// detectOrgFromPackageJSON tries to detect organization from package.json.
 func (pd *ProjectDetector) detectOrgFromPackageJSON() string {
 	content, err := os.ReadFile("package.json")
 	if err != nil {
@@ -268,7 +268,7 @@ func (pd *ProjectDetector) detectOrgFromPackageJSON() string {
 	return ""
 }
 
-// detectFromGoMod tries to detect project name from go.mod
+// detectFromGoMod tries to detect project name from go.mod.
 func (pd *ProjectDetector) detectFromGoMod() string {
 	content, err := os.ReadFile("go.mod")
 	if err != nil {
@@ -295,7 +295,7 @@ func (pd *ProjectDetector) detectFromGoMod() string {
 	return ""
 }
 
-// detectFromCargoToml tries to detect project name from Cargo.toml
+// detectFromCargoToml tries to detect project name from Cargo.toml.
 func (pd *ProjectDetector) detectFromCargoToml() string {
 	content, err := os.ReadFile("Cargo.toml")
 	if err != nil {
@@ -319,7 +319,7 @@ func (pd *ProjectDetector) detectFromCargoToml() string {
 	return ""
 }
 
-// detectFromPyProjectToml tries to detect project name from pyproject.toml
+// detectFromPyProjectToml tries to detect project name from pyproject.toml.
 func (pd *ProjectDetector) detectFromPyProjectToml() string {
 	content, err := os.ReadFile("pyproject.toml")
 	if err != nil {
@@ -343,7 +343,7 @@ func (pd *ProjectDetector) detectFromPyProjectToml() string {
 	return ""
 }
 
-// detectFromDirectoryName uses the current directory name
+// detectFromDirectoryName uses the current directory name.
 func (pd *ProjectDetector) detectFromDirectoryName() string {
 	dir, err := os.Getwd()
 	if err != nil {

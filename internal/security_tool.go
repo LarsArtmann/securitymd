@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Error types
+// Error types.
 var (
 	ErrConfigNotFound    = errors.New("configuration file not found")
 	ErrInvalidConfig     = errors.New("invalid configuration")
@@ -25,7 +25,7 @@ var (
 	ErrMissingField      = errors.New("required field missing")
 )
 
-// SecurityError represents a structured error with code and context
+// SecurityError represents a structured error with code and context.
 type SecurityError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
@@ -44,7 +44,7 @@ func (e *SecurityError) Unwrap() error {
 	return e.Cause
 }
 
-// NewSecurityError creates a new SecurityError
+// NewSecurityError creates a new SecurityError.
 func NewSecurityError(code, message, field string, cause error) *SecurityError {
 	return &SecurityError{
 		Code:    code,
@@ -54,7 +54,7 @@ func NewSecurityError(code, message, field string, cause error) *SecurityError {
 	}
 }
 
-// PolicyType represents different types of security policies
+// PolicyType represents different types of security policies.
 type PolicyType string
 
 const (
@@ -62,7 +62,7 @@ const (
 	PolicyTypeEnterprise PolicyType = "enterprise"
 )
 
-// VersionStatus represents the status of a version
+// VersionStatus represents the status of a version.
 type VersionStatus string
 
 const (
@@ -71,7 +71,7 @@ const (
 	StatusEOL        VersionStatus = "end-of-life"
 )
 
-// ContactType represents different types of contact methods
+// ContactType represents different types of contact methods.
 type ContactType string
 
 const (
@@ -80,7 +80,7 @@ const (
 	ContactTypeAPI   ContactType = "api"
 )
 
-// Version represents a software version with support information
+// Version represents a software version with support information.
 type Version struct {
 	Name            string        `json:"name"`
 	SemanticVersion string        `json:"semantic_version"`
@@ -90,7 +90,7 @@ type Version struct {
 	IsPrevious      bool          `json:"is_previous"`
 }
 
-// Contact represents security contact information
+// Contact represents security contact information.
 type Contact struct {
 	Type         ContactType `json:"type"`
 	Value        string      `json:"value"`
@@ -98,15 +98,15 @@ type Contact struct {
 	Description  string      `json:"description"`
 }
 
-// SecurityTool represents a simple security policy tool
+// SecurityTool represents a simple security policy tool.
 type SecurityTool struct{}
 
-// NewSecurityTool creates a new security tool instance
+// NewSecurityTool creates a new security tool instance.
 func NewSecurityTool() *SecurityTool {
 	return &SecurityTool{}
 }
 
-// LoadConfig loads configuration from file
+// LoadConfig loads configuration from file.
 func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 	v := viper.New()
 
@@ -151,7 +151,7 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 	return &config, nil
 }
 
-// FindConfigFile finds configuration file in current directory or parent directories
+// FindConfigFile finds configuration file in current directory or parent directories.
 func (st *SecurityTool) FindConfigFile() string {
 	// Check for config files in order of preference
 	configNames := []string{
@@ -182,11 +182,11 @@ func (st *SecurityTool) FindConfigFile() string {
 	return ""
 }
 
-// Config represents a configuration file structure
+// Config represents a configuration file structure.
 type Config struct {
 	Organization   string            `yaml:"organization"`
 	ContactEmail   string            `yaml:"contact_email"`
-	Type           PolicyType        `yaml:"type" mapstructure:"type"`
+	Type           PolicyType        `mapstructure:"type"    yaml:"type"`
 	OutputDir      string            `yaml:"output_dir"`
 	TemplateDir    string            `yaml:"template_dir"`
 	DefaultVersion string            `yaml:"default_version"`
@@ -194,7 +194,7 @@ type Config struct {
 	Variables      map[string]string `yaml:"variables"`
 }
 
-// PolicyConfig represents security policy configuration
+// PolicyConfig represents security policy configuration.
 type PolicyConfig struct {
 	Type         PolicyType        `json:"type"`
 	Organization string            `json:"organization"`
@@ -203,7 +203,7 @@ type PolicyConfig struct {
 	Variables    map[string]string `json:"variables"`
 }
 
-// TemplateData represents data for template rendering
+// TemplateData represents data for template rendering.
 type TemplateData struct {
 	Organization     string
 	ContactEmail     string
@@ -214,7 +214,7 @@ type TemplateData struct {
 	AdditionalFields map[string]any
 }
 
-// GeneratePolicy generates a security policy
+// GeneratePolicy generates a security policy.
 func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig) error {
 	// Prepare template data
 	templateData := st.prepareTemplateData(config)
@@ -234,7 +234,7 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 	// Save to SECURITY.md
 	outputFile := "SECURITY.md"
 	if config.OutputDir != "." {
-		outputFile = fmt.Sprintf("%s/SECURITY.md", strings.TrimSuffix(config.OutputDir, "/"))
+		outputFile = strings.TrimSuffix(config.OutputDir, "/") + "/SECURITY.md"
 	}
 
 	if err := os.WriteFile(outputFile, []byte(content), 0o644); err != nil {
@@ -245,7 +245,7 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 	return nil
 }
 
-// prepareTemplateData prepares template data with defaults
+// prepareTemplateData prepares template data with defaults.
 func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 	// Start with required fields
 	supportYears := 1 // default
@@ -273,7 +273,7 @@ func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 	return data
 }
 
-// readTemplate reads the appropriate template file
+// readTemplate reads the appropriate template file.
 func (st *SecurityTool) readTemplate(policyType PolicyType) (string, error) {
 	templatePath := "templates/SECURITY.md"
 
@@ -287,7 +287,7 @@ func (st *SecurityTool) readTemplate(policyType PolicyType) (string, error) {
 	return string(content), nil
 }
 
-// processTemplate processes template using Go's text/template
+// processTemplate processes template using Go's text/template.
 func (st *SecurityTool) processTemplate(templateContent string, data TemplateData) (string, error) {
 	// Create template
 	tmpl, err := template.New("security").Parse(templateContent)
