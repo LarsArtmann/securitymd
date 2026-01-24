@@ -121,7 +121,7 @@ name: Security Policy Validation
 on:
   pull_request:
     paths:
-      - 'SECURITY.md'
+      - "SECURITY.md"
 
 jobs:
   validate:
