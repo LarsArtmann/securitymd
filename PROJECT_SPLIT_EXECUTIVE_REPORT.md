@@ -9,42 +9,46 @@ The `template-SECURITY` project currently encompasses a Go-based command-line in
 To achieve a higher degree of focus, reusability, and independent development, the `template-SECURITY` project is proposed to be split into the following very focused projects:
 
 ### 1. `go-security-lib` (Core Library)
-*   **Purpose**: To provide a highly reusable and modular Go library encapsulating core security analysis, project detection, and common security utility functions. This library will serve as the foundational backend for other security tools.
-*   **Key Components**:
-    *   `internal/project_detector.go`
-    *   `internal/security_tool.go`
-    *   `internal/security_validator.go`
-    *   `internal/types/types.go`
-    *   All associated unit tests.
-*   **Benefits**: Promotes reusability across multiple projects, enables independent testing and versioning of the core logic, and reduces cognitive load by separating concerns.
+
+- **Purpose**: To provide a highly reusable and modular Go library encapsulating core security analysis, project detection, and common security utility functions. This library will serve as the foundational backend for other security tools.
+- **Key Components**:
+  - `internal/project_detector.go`
+  - `internal/security_tool.go`
+  - `internal/security_validator.go`
+  - `internal/types/types.go`
+  - All associated unit tests.
+- **Benefits**: Promotes reusability across multiple projects, enables independent testing and versioning of the core logic, and reduces cognitive load by separating concerns.
 
 ### 2. `template-security-cli` (CLI Application)
-*   **Purpose**: To serve as the primary command-line interface for users to interact with the security tooling. It will consume the `go-security-lib` to perform its functions.
-*   **Key Components**:
-    *   `cmd/template-security/main.go`
-    *   `cmd/template-security/setup.go`
-    *   `cmd/template-security/status.go`
-    *   `cmd/template-security/validate.go`
-*   **Dependencies**: Will depend on `go-security-lib`.
-*   **Benefits**: Decouples the user interface from the core logic, allowing for independent development cycles and potentially alternative interfaces in the future (e.g., a web UI).
+
+- **Purpose**: To serve as the primary command-line interface for users to interact with the security tooling. It will consume the `go-security-lib` to perform its functions.
+- **Key Components**:
+  - `cmd/template-security/main.go`
+  - `cmd/template-security/setup.go`
+  - `cmd/template-security/status.go`
+  - `cmd/template-security/validate.go`
+- **Dependencies**: Will depend on `go-security-lib`.
+- **Benefits**: Decouples the user interface from the core logic, allowing for independent development cycles and potentially alternative interfaces in the future (e.g., a web UI).
 
 ### 3. `security-automation-scripts` (Automation Scripts)
-*   **Purpose**: A dedicated repository for operational scripts related to security, compliance, build processes, and metrics generation. These scripts are often platform-specific or context-dependent.
-*   **Key Components**:
-    *   `scripts/build.sh`
-    *   `scripts/compliance-check.sh`
-    *   `scripts/generate-metrics.sh`
-    *   `scripts/security-setup.sh`
-    *   `scripts/validate-policies.sh`
-*   **Benefits**: Centralizes operational scripts, making them easier to manage, update, and audit. Reduces clutter in the main code repositories.
+
+- **Purpose**: A dedicated repository for operational scripts related to security, compliance, build processes, and metrics generation. These scripts are often platform-specific or context-dependent.
+- **Key Components**:
+  - `scripts/build.sh`
+  - `scripts/compliance-check.sh`
+  - `scripts/generate-metrics.sh`
+  - `scripts/security-setup.sh`
+  - `scripts/validate-policies.sh`
+- **Benefits**: Centralizes operational scripts, making them easier to manage, update, and audit. Reduces clutter in the main code repositories.
 
 ### 4. `security-docs` (Documentation & Reporting)
-*   **Purpose**: A centralized, dedicated repository for all documentation, status updates, planning documents, and executive reports related to the security initiative.
-*   **Key Components**:
-    *   `docs/status/`
-    *   `docs/planning/`
-    *   `IMPROVEMENT_PLAN.md`
-*   **Benefits**: Provides a single source of truth for all security-related documentation, enhances discoverability, and allows for specialized tooling (e.g., static site generators) for documentation.
+
+- **Purpose**: A centralized, dedicated repository for all documentation, status updates, planning documents, and executive reports related to the security initiative.
+- **Key Components**:
+  - `docs/status/`
+  - `docs/planning/`
+  - `IMPROVEMENT_PLAN.md`
+- **Benefits**: Provides a single source of truth for all security-related documentation, enhances discoverability, and allows for specialized tooling (e.g., static site generators) for documentation.
 
 ## Configuration and Workflows
 
