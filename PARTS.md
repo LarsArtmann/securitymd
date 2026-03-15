@@ -13,12 +13,12 @@ This document analyzes the `template-SECURITY` project to identify components su
 
 **Key Findings:**
 
-| Component | Extraction Value | Recommendation |
-|-----------|------------------|----------------|
-| ProjectDetector | **High** | Extract as `projectmeta` |
-| SecurityValidator | **Medium** | Keep internal, consider open-sourcing |
-| SecurityTool | **Low** | Keep internal (thin wrapper) |
-| Domain Types | **Medium** | Extract with ProjectDetector |
+| Component         | Extraction Value | Recommendation                        |
+| ----------------- | ---------------- | ------------------------------------- |
+| ProjectDetector   | **High**         | Extract as `projectmeta`              |
+| SecurityValidator | **Medium**       | Keep internal, consider open-sourcing |
+| SecurityTool      | **Low**          | Keep internal (thin wrapper)          |
+| Domain Types      | **Medium**       | Extract with ProjectDetector          |
 
 ---
 
@@ -49,11 +49,11 @@ func (pd *ProjectDetector) DetectDomain() string
 
 **Alternatives:**
 
-| Library | Stars | Focus | Gap |
-|---------|-------|-------|-----|
-| [go-git/go-git](https://github.com/go-git/go-git) | 6k+ | Pure Go git implementation | Only git, no multi-language |
-| [boostsecurityio/poutine](https://github.com/boostsecurityio/poutine) | - | Security analysis | Has `ParseRepoAndOrg` but specialized |
-| [dbinky/Pommel](https://github.com/dbinky/Pommel) | - | Subproject detection | Different scope (monorepos) |
+| Library                                                               | Stars | Focus                      | Gap                                   |
+| --------------------------------------------------------------------- | ----- | -------------------------- | ------------------------------------- |
+| [go-git/go-git](https://github.com/go-git/go-git)                     | 6k+   | Pure Go git implementation | Only git, no multi-language           |
+| [boostsecurityio/poutine](https://github.com/boostsecurityio/poutine) | -     | Security analysis          | Has `ParseRepoAndOrg` but specialized |
+| [dbinky/Pommel](https://github.com/dbinky/Pommel)                     | -     | Subproject detection       | Different scope (monorepos)           |
 
 **Unique Value Proposition:**
 
@@ -140,11 +140,12 @@ func (sv *SecurityValidator) PrintResults(results []*SecurityValidationResult)
 
 **Alternatives:**
 
-| Library | Focus | Gap |
-|---------|-------|-----|
-| None found | - | No dedicated SECURITY.md validator exists |
+| Library    | Focus | Gap                                       |
+| ---------- | ----- | ----------------------------------------- |
+| None found | -     | No dedicated SECURITY.md validator exists |
 
 Related but different:
+
 - Markdown linters (mdl, remark-lint) — Generic, not security-policy aware
 - GitHub's security policy guidance — Documentation only, no tooling
 
@@ -218,6 +219,7 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 **Assessment:**
 
 This is a **thin orchestration layer** combining:
+
 1. Config loading (viper — per HOW_TO_GOLANG.md, should use koanf)
 2. Template processing (text/template stdlib)
 3. File I/O
@@ -233,6 +235,7 @@ This is a **thin orchestration layer** combining:
 **Refactoring Needed:**
 
 Per HOW_TO_GOLANG.md, replace:
+
 - `spf13/viper` → `knadh/koanf/v2`
 
 ---
@@ -305,12 +308,12 @@ Only if there's demand from the community or internal use cases.
 
 The existing executive report proposes:
 
-| Their Proposal | My Assessment |
-|----------------|---------------|
+| Their Proposal                        | My Assessment                                     |
+| ------------------------------------- | ------------------------------------------------- |
 | `go-security-lib` (all internal code) | **Too broad**. Extract ProjectDetector separately |
-| `template-security-cli` | **Correct**. CLI consumes libraries |
-| `security-automation-scripts` | **Correct**. Scripts are operational |
-| `security-docs` | **Questionable**. Docs should live with code |
+| `template-security-cli`               | **Correct**. CLI consumes libraries               |
+| `security-automation-scripts`         | **Correct**. Scripts are operational              |
+| `security-docs`                       | **Questionable**. Docs should live with code      |
 
 **Key Difference:**
 

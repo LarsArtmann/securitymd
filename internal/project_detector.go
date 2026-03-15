@@ -295,9 +295,9 @@ func (pd *ProjectDetector) detectFromGoMod() string {
 	return ""
 }
 
-// detectFromCargoToml tries to detect project name from Cargo.toml.
-func (pd *ProjectDetector) detectFromCargoToml() string {
-	content, err := os.ReadFile("Cargo.toml")
+// detectNameFromTomlFile extracts the project name from a TOML file.
+func (pd *ProjectDetector) detectNameFromTomlFile(filename string) string {
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return ""
 	}
@@ -319,28 +319,14 @@ func (pd *ProjectDetector) detectFromCargoToml() string {
 	return ""
 }
 
+// detectFromCargoToml tries to detect project name from Cargo.toml.
+func (pd *ProjectDetector) detectFromCargoToml() string {
+	return pd.detectNameFromTomlFile("Cargo.toml")
+}
+
 // detectFromPyProjectToml tries to detect project name from pyproject.toml.
 func (pd *ProjectDetector) detectFromPyProjectToml() string {
-	content, err := os.ReadFile("pyproject.toml")
-	if err != nil {
-		return ""
-	}
-
-	contentStr := string(content)
-	lines := strings.SplitSeq(contentStr, "\n")
-
-	for line := range lines {
-		line = strings.TrimSpace(line)
-		if after, ok := strings.CutPrefix(line, "name = "); ok {
-			name := after
-			name = strings.TrimSpace(name)
-
-			// Remove quotes
-			return strings.Trim(name, "\"")
-		}
-	}
-
-	return ""
+	return pd.detectNameFromTomlFile("pyproject.toml")
 }
 
 // detectFromDirectoryName uses the current directory name.
