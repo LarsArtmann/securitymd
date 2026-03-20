@@ -119,13 +119,23 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 
 	// Read config file
 	if err := v.ReadInConfig(); err != nil {
-		return nil, NewSecurityError("CONFIG_READ_FAILED", "failed to read config file", configPath, err)
+		return nil, NewSecurityError(
+			"CONFIG_READ_FAILED",
+			"failed to read config file",
+			configPath,
+			err,
+		)
 	}
 
 	// Unmarshal into config struct
 	var config Config
 	if err := v.Unmarshal(&config); err != nil {
-		return nil, NewSecurityError("CONFIG_UNMARSHAL_FAILED", "failed to unmarshal config", "", err)
+		return nil, NewSecurityError(
+			"CONFIG_UNMARSHAL_FAILED",
+			"failed to unmarshal config",
+			"",
+			err,
+		)
 	}
 
 	// Set defaults
@@ -186,7 +196,7 @@ func (st *SecurityTool) FindConfigFile() string {
 type Config struct {
 	Organization   string            `yaml:"organization"`
 	ContactEmail   string            `yaml:"contact_email"`
-	Type           PolicyType        `mapstructure:"type"    yaml:"type"`
+	Type           PolicyType        `yaml:"type"            mapstructure:"type"`
 	OutputDir      string            `yaml:"output_dir"`
 	TemplateDir    string            `yaml:"template_dir"`
 	DefaultVersion string            `yaml:"default_version"`
@@ -222,7 +232,12 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 	// Read template
 	templateContent, err := st.readTemplate(config.Type)
 	if err != nil {
-		return NewSecurityError("TEMPLATE_READ_FAILED", "failed to read template", string(config.Type), err)
+		return NewSecurityError(
+			"TEMPLATE_READ_FAILED",
+			"failed to read template",
+			string(config.Type),
+			err,
+		)
 	}
 
 	// Process template

@@ -23,7 +23,9 @@ type SecurityValidationResult struct {
 }
 
 // ValidateSECURITYMd validates a SECURITY.md file.
-func (sv *SecurityValidator) ValidateSECURITYMd(filePath string) (*SecurityValidationResult, error) {
+func (sv *SecurityValidator) ValidateSECURITYMd(
+	filePath string,
+) (*SecurityValidationResult, error) {
 	result := &SecurityValidationResult{
 		File: filePath,
 	}
@@ -111,7 +113,10 @@ func (sv *SecurityValidator) ValidateSECURITYMd(filePath string) (*SecurityValid
 }
 
 // validateContentQuality checks the quality of the content.
-func (sv *SecurityValidator) validateContentQuality(content string, result *SecurityValidationResult) {
+func (sv *SecurityValidator) validateContentQuality(
+	content string,
+	result *SecurityValidationResult,
+) {
 	lines := strings.Split(content, "\n")
 
 	// Minimum content check
@@ -122,7 +127,10 @@ func (sv *SecurityValidator) validateContentQuality(content string, result *Secu
 	// Check for template variables that weren't replaced
 	for _, line := range lines {
 		if strings.Contains(line, "{{") && strings.Contains(line, "}}") {
-			result.Errors = append(result.Errors, "Unresolved template variable: "+strings.TrimSpace(line))
+			result.Errors = append(
+				result.Errors,
+				"Unresolved template variable: "+strings.TrimSpace(line),
+			)
 		}
 	}
 

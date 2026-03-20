@@ -163,7 +163,13 @@ We follow security best practices.
 						break
 					}
 				}
-				assert.True(t, found, "Expected error '%s' not found in %v", expectedError, result.Errors)
+				assert.True(
+					t,
+					found,
+					"Expected error '%s' not found in %v",
+					expectedError,
+					result.Errors,
+				)
 			}
 
 			// Check warnings
@@ -175,7 +181,13 @@ We follow security best practices.
 						break
 					}
 				}
-				assert.True(t, found, "Expected warning '%s' not found in %v", expectedWarning, result.Warnings)
+				assert.True(
+					t,
+					found,
+					"Expected warning '%s' not found in %v",
+					expectedWarning,
+					result.Warnings,
+				)
 			}
 		})
 	}
@@ -190,13 +202,18 @@ func TestSecurityValidator_ValidateContentQuality(t *testing.T) {
 		expectedErrors []string
 	}{
 		{
-			name:    "good quality content",
-			content: strings.Repeat("This is substantive content with meaningful information. ", 10),
+			name: "good quality content",
+			content: strings.Repeat(
+				"This is substantive content with meaningful information. ",
+				10,
+			),
 		},
 		{
-			name:           "template variables unresolved",
-			content:        "This has {{TEMPLATE_VARIABLE}} that should be resolved.",
-			expectedErrors: []string{"Unresolved template variable: This has {{TEMPLATE_VARIABLE}} that should be resolved."},
+			name:    "template variables unresolved",
+			content: "This has {{TEMPLATE_VARIABLE}} that should be resolved.",
+			expectedErrors: []string{
+				"Unresolved template variable: This has {{TEMPLATE_VARIABLE}} that should be resolved.",
+			},
 		},
 		{
 			name:           "no actual content",

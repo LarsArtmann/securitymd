@@ -60,7 +60,8 @@ func countSecurityTemplates(dir string) int {
 	for _, entry := range entries {
 		if !entry.IsDir() && len(entry.Name()) > 3 && entry.Name()[len(entry.Name())-3:] == ".md" {
 			// Count only SECURITY.md related templates
-			if strings.Contains(strings.ToLower(entry.Name()), "security") || strings.Contains(strings.ToLower(entry.Name()), "github") {
+			if strings.Contains(strings.ToLower(entry.Name()), "security") ||
+				strings.Contains(strings.ToLower(entry.Name()), "github") {
 				count++
 			}
 		}
