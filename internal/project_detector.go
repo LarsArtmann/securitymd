@@ -22,6 +22,7 @@ func (pd *ProjectDetector) DetectProjectName() string {
 		// Extract repo name from git URL
 		if parts := strings.Split(name, "/"); len(parts) > 0 {
 			repoName := parts[len(parts)-1]
+
 			repoName = strings.TrimSuffix(repoName, ".git")
 			if repoName != "" {
 				return repoName
@@ -101,6 +102,7 @@ func (pd *ProjectDetector) DetectDomain() string {
 // detectFromGitRemote tries to detect git remote URL.
 func (pd *ProjectDetector) detectFromGitRemote() string {
 	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+
 	output, err := cmd.Output()
 	if err != nil {
 		return ""
@@ -125,6 +127,7 @@ func (pd *ProjectDetector) detectOrgFromGitRemote() string {
 	// Parse HTTPS URLs
 	if after, ok := strings.CutPrefix(gitURL, "https://"); ok {
 		gitURL = after
+
 		parts := strings.Split(gitURL, "/")
 		if len(parts) >= 2 {
 			return parts[1] // github.com/ORG/repo -> parts[1] is ORG
@@ -212,12 +215,14 @@ func (pd *ProjectDetector) detectFromPackageJSON() string {
 
 	// Find the closing quote
 	nameStart := start + colon + firstQuote + 1
+
 	nameEnd := strings.Index(contentStr[nameStart:], "\"")
 	if nameEnd == -1 {
 		return ""
 	}
 
 	name := strings.TrimSpace(contentStr[nameStart : nameStart+nameEnd])
+
 	return strings.Trim(name, "\"")
 }
 
@@ -240,14 +245,17 @@ func (pd *ProjectDetector) detectOrgFromPackageJSON() string {
 				if orgStart != -1 {
 					// Extract organization value
 					remainder := contentStr[start+orgStart:]
+
 					colon := strings.Index(remainder, ":")
 					if colon != -1 {
 						quote := strings.Index(remainder[colon:], "\"")
 						if quote != -1 {
 							orgStart := colon + quote + 1
+
 							orgEnd := strings.Index(remainder[orgStart:], "\"")
 							if orgEnd != -1 {
 								org := strings.TrimSpace(remainder[orgStart : orgStart+orgEnd])
+
 								return strings.Trim(org, "\"")
 							}
 						}

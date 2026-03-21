@@ -42,6 +42,7 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 	// Check if file exists
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		color.Red("❌ File not found: %s", filename)
+
 		return fmt.Errorf("file not found: %s", filename)
 	}
 
@@ -69,19 +70,23 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	}
 
 	var results []*internal.SecurityValidationResult
+
 	overallValid := true
 
 	for _, filename := range policyFiles {
 		// Check if file exists
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
 			color.Yellow("⚠️  File not found: %s (skipping)", filename)
+
 			continue
 		}
 
 		result, err := validator.ValidateSECURITYMd(filename)
 		if err != nil {
 			color.Red("❌ Failed to validate %s: %v", filename, err)
+
 			overallValid = false
+
 			continue
 		}
 
@@ -94,6 +99,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 
 	if len(results) == 0 {
 		color.Yellow("⚠️  No security policy files found to validate")
+
 		return nil
 	}
 
@@ -102,6 +108,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 
 	// Overall summary
 	color.White("\n📊 Validation Summary:")
+
 	if overallValid {
 		color.Green("✅ All policies passed validation")
 	} else {

@@ -28,7 +28,8 @@ and follows industry best practices for vulnerability disclosure.`,
 	rootCmd.AddCommand(newValidateCmd())
 	rootCmd.AddCommand(newStatusCmd())
 
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

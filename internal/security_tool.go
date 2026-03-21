@@ -37,6 +37,7 @@ func (e *SecurityError) Error() string {
 	if e.Cause != nil {
 		return fmt.Sprintf("%s: %s (caused by: %v)", e.Code, e.Message, e.Cause)
 	}
+
 	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
@@ -118,7 +119,8 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 	v.SetEnvPrefix("TEMPLATE_SECURITY")
 
 	// Read config file
-	if err := v.ReadInConfig(); err != nil {
+	err := v.ReadInConfig()
+	if err != nil {
 		return nil, NewSecurityError(
 			"CONFIG_READ_FAILED",
 			"failed to read config file",
@@ -129,7 +131,8 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 
 	// Unmarshal into config struct
 	var config Config
-	if err := v.Unmarshal(&config); err != nil {
+	err := v.Unmarshal(&config)
+	if err != nil {
 		return nil, NewSecurityError(
 			"CONFIG_UNMARSHAL_FAILED",
 			"failed to unmarshal config",
@@ -142,18 +145,23 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 	if config.Type == "" {
 		config.Type = PolicyTypeGitHub
 	}
+
 	if config.SupportYears == 0 {
 		config.SupportYears = 1
 	}
+
 	if config.DefaultVersion == "" {
 		config.DefaultVersion = "1.0.0"
 	}
+
 	if config.OutputDir == "" {
 		config.OutputDir = "."
 	}
+
 	if config.TemplateDir == "" {
 		config.TemplateDir = "templates"
 	}
+
 	if config.Variables == nil {
 		config.Variables = make(map[string]string)
 	}
@@ -173,6 +181,7 @@ func (st *SecurityTool) FindConfigFile() string {
 
 	// Start in current directory and go up
 	dir, _ := os.Getwd()
+
 	for {
 		for _, name := range configNames {
 			configPath := filepath.Join(dir, name)
@@ -186,6 +195,7 @@ func (st *SecurityTool) FindConfigFile() string {
 		if parent == dir {
 			break // Reached root
 		}
+
 		dir = parent
 	}
 
@@ -257,6 +267,7 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 	}
 
 	fmt.Printf("✅ Generated %s for %s\n", outputFile, config.Organization)
+
 	return nil
 }
 
@@ -264,6 +275,7 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 	// Start with required fields
 	supportYears := 1 // default
+
 	if years, exists := config.Variables["SUPPORT_YEARS"]; exists {
 		if parsed, err := time.ParseDuration(years + "y"); err == nil {
 			supportYears = int(parsed.Hours() / (24 * 365))

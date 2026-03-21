@@ -42,10 +42,14 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	configFile := securityTool.FindConfigFile()
 
 	// Load config if found
-	var userConfig *internal.Config
-	var err error
+	var (
+		userConfig *internal.Config
+		err        error
+	)
+
 	if configFile != "" {
 		color.Cyan("📄 Loading configuration from: %s", configFile)
+
 		userConfig, err = securityTool.LoadConfig(configFile)
 		if err != nil {
 			color.Yellow("⚠️  Warning: Failed to load config file: %v", err)
@@ -71,6 +75,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 			orgName = userConfig.Organization
 		} else {
 			detector := internal.NewProjectDetector()
+
 			orgName = detector.DetectProjectName()
 			if orgName == "" {
 				orgName = "YourOrganization"
@@ -84,10 +89,12 @@ func runSetup(cmd *cobra.Command, args []string) error {
 			contactEmail = userConfig.ContactEmail
 		} else {
 			detector := internal.NewProjectDetector()
+
 			domain := detector.DetectDomain()
 			if domain == "" {
 				domain = "yourcompany.com"
 			}
+
 			contactEmail = "security@" + domain
 		}
 	}

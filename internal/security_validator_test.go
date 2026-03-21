@@ -157,12 +157,15 @@ We follow security best practices.
 			// Check errors
 			for _, expectedError := range tt.expectedErrors {
 				found := false
+
 				for _, actualError := range result.Errors {
 					if strings.Contains(actualError, expectedError) {
 						found = true
+
 						break
 					}
 				}
+
 				assert.True(
 					t,
 					found,
@@ -175,12 +178,15 @@ We follow security best practices.
 			// Check warnings
 			for _, expectedWarning := range tt.expectedWarns {
 				found := false
+
 				for _, actualWarning := range result.Warnings {
 					if strings.Contains(actualWarning, expectedWarning) {
 						found = true
+
 						break
 					}
 				}
+
 				assert.True(
 					t,
 					found,

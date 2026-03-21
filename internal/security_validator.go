@@ -87,9 +87,11 @@ func (sv *SecurityValidator) ValidateSECURITYMd(
 	// Check each section
 	for _, section := range requiredSections {
 		found := false
+
 		for _, line := range lines {
 			if strings.Contains(strings.ToLower(line), strings.ToLower(section.pattern)) {
 				found = true
+
 				break
 			}
 		}
@@ -136,10 +138,12 @@ func (sv *SecurityValidator) validateContentQuality(
 
 	// Check for actual content (not just placeholders)
 	hasActualContent := false
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if len(line) > 20 && !strings.HasPrefix(line, "#") && !strings.Contains(line, "example") {
 			hasActualContent = true
+
 			break
 		}
 	}
@@ -150,10 +154,12 @@ func (sv *SecurityValidator) validateContentQuality(
 
 	// Check for version information
 	hasVersion := false
+
 	for _, line := range lines {
 		if strings.Contains(strings.ToLower(line), "version") &&
 			(strings.Contains(line, "v") || strings.Contains(line, ".")) {
 			hasVersion = true
+
 			break
 		}
 	}
