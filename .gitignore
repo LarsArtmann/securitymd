@@ -45,3 +45,5 @@ logs/
 *.zip
 *.tar.gz
 *.rar
+# Dependencies
+node_modules/

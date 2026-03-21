@@ -12,115 +12,116 @@ output:
   formats: {}
 linters:
   enable:
-    - misspell
     - maintidx
-    - gosmopolitan
-    - contextcheck
-    - inamedparam
-    - interfacebloat
-    - godox
-    - unqueryvet
-    - nonamedreturns
-    - nilerr
-    - unconvert
-    - goprintffuncname
-    - decorder
-    - embeddedstructfieldcheck
-    - dupword
-    - revive
     - gocritic
-    - makezero
-    - mnd
-    - staticcheck
-    - godoclint
-    - depguard
-    - funcorder
-    - nosprintfhostport
-    - govet
-    - unused
-    - gochecknoinits
-    - exhaustive
-    - thelper
-    - rowserrcheck
-    - funlen
-    - forcetypeassert
-    - dogsled
-    - noinlineerr
-    - testableexamples
-    - intrange
-    - zerologlint
-    - tparallel
-    - exhaustruct
     - unparam
-    - iotamixing
-    - ginkgolinter
-    - nakedret
-    - usetesting
-    - whitespace
-    - wastedassign
-    - nilnil
-    - lll
-    - testpackage
-    - gomoddirectives
-    - mirror
     - spancheck
+    - nestif
+    - iface
+    - paralleltest
+    - gocognit
+    - exhaustive
+    - interfacebloat
+    - unconvert
+    - gochecknoglobals
+    - err113
+    - wrapcheck
+    - nilerr
+    - mnd
+    - zerologlint
+    - bodyclose
+    - tagalign
+    - importas
+    - goprintffuncname
+    - nosprintfhostport
+    - noinlineerr
+    - mirror
     - modernize
-    - canonicalheader
     - ineffassign
     - errorlint
-    - gosec
-    - cyclop
-    - ireturn
-    - arangolint
-    - asasalint
-    - gochecknoglobals
-    - prealloc
     - fatcontext
-    - copyloopvar
-    - err113
-    - gochecksumtype
-    - nestif
-    - bidichk
-    - sloglint
-    - asciicheck
-    - usestdlibvars
-    - nlreturn
+    - unqueryvet
+    - embeddedstructfieldcheck
+    - intrange
+    - ireturn
     - forbidigo
-    - iface
-    - predeclared
-    - loggercheck
-    - nilnesserr
-    - promlinter
-    - nolintlint
-    - testifylint
-    - reassign
-    - sqlclosecheck
-    - gocheckcompilerdirectives
-    - protogetter
-    - perfsprint
-    - paralleltest
-    - bodyclose
-    - gocyclo
-    - varnamelen
-    - tagalign
     - errname
-    - exptostd
-    - containedctx
-    - gomodguard
     - noctx
+    - recvcheck
+    - inamedparam
+    - funcorder
+    - gochecknoinits
+    - funlen
+    - tparallel
+    - wastedassign
+    - nlreturn
     - goconst
-    - importas
-    - dupl
+    - cyclop
+    - copyloopvar
+    - testifylint
+    - sqlclosecheck
+    - varnamelen
+    - goheader
+    - wsl_v5
+    - staticcheck
+    - forcetypeassert
+    - gosec
+    - usestdlibvars
+    - loggercheck
+    - errchkjson
+    - gosmopolitan
+    - godoclint
+    - govet
+    - asasalint
+    - promlinter
+    - protogetter
+    - exptostd
+    - canonicalheader
+    - revive
+    - depguard
+    - unused
+    - dogsled
+    - nilnil
+    - bidichk
+    - asciicheck
+    - decorder
+    - dupword
+    - testableexamples
+    - iotamixing
+    - nakedret
+    - gocheckcompilerdirectives
+    - contextcheck
+    - godox
+    - nonamedreturns
+    - ginkgolinter
     - tagliatelle
+    - musttag
+    - testpackage
+    - prealloc
+    - predeclared
+    - nilnesserr
+    - nolintlint
+    - reassign
+    - containedctx
+    - rowserrcheck
+    - exhaustruct
+    - whitespace
+    - gochecksumtype
+    - sloglint
+    - dupl
     - grouper
     - godot
-    - errcheck
-    - recvcheck
-    - goheader
+    - makezero
+    - thelper
+    - usetesting
+    - gomoddirectives
+    - arangolint
+    - gocyclo
+    - gomodguard
     - durationcheck
-    - gocognit
-    - wsl_v5
-    - wrapcheck
+    - misspell
+    - perfsprint
+    - errcheck
 formatters:
   enable:
     - golines
