@@ -1,16 +1,14 @@
 # Template Security 🔒
 
-> **Validate and generate SECURITY.md files with confidence**
+> **Ensure your GitHub repository has a compliant SECURITY.md**
 
-A specialized tool that validates SECURITY.md files for completeness and compliance. Ensures your security policy contains all essential sections and follows industry best practices for vulnerability disclosure.
+A CLI tool that validates and generates `SECURITY.md` files. Checks for required sections (vulnerability reporting, supported versions, security practices, contact info), ensures content quality, and generates compliant templates for GitHub repositories.
 
-## 🎯 Purpose
+## Features
 
-This tool does ONE thing well:
-
-1. **Validates** that SECURITY.md exists and meets standards
-2. **Generates** compliant SECURITY.md files when needed
-3. **Upserts** improvements to existing SECURITY.md files
+- **Validate** existing SECURITY.md files against GitHub standards
+- **Generate** new SECURITY.md files from templates
+- **Upsert** improvements to existing policies
 
 ## 🚀 Quick Start
 

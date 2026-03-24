@@ -48,7 +48,7 @@ type Contact struct {
 
 // SecurityPolicy represents a complete security policy.
 type SecurityPolicy struct {
-	ID           string     `json:"id"`
+	ID           IDID      `json:"id"`
 	Project      Project    `json:"project"`
 	Versions     []Version  `json:"versions"`
 	Contacts     []Contact  `json:"contacts"`
@@ -69,8 +69,8 @@ type Project struct {
 
 // ValidationResult represents the result of validating a security policy.
 type ValidationResult struct {
-	ID          string    `json:"id"`
-	PolicyID    string    `json:"policy_id"`
+	ID          IDID      `json:"id"`
+	PolicyID    PolicyID  `json:"policy_id"`
 	Valid       bool      `json:"valid"`
 	Errors      []Error   `json:"errors"`
 	Warnings    []Warning `json:"warnings"`
@@ -97,7 +97,7 @@ type Warning struct {
 
 // Template represents a security policy template.
 type Template struct {
-	ID          string             `json:"id"`
+	ID          IDID             `json:"id"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
 	Type        PolicyType         `json:"type"`
