@@ -131,6 +131,7 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 
 	// Unmarshal into config struct
 	var config Config
+
 	err = v.Unmarshal(&config)
 	if err != nil {
 		return nil, NewSecurityError(
