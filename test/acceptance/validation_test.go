@@ -10,9 +10,7 @@ import (
 )
 
 var _ = ginkgo.Describe("Security Policy Validation", ginkgo.Label("acceptance"), func() {
-	var (
-		validator *internal.SecurityValidator
-	)
+	var validator *internal.SecurityValidator
 
 	ginkgo.BeforeEach(func() {
 		validator = internal.NewSecurityValidator()

@@ -116,9 +116,7 @@ _Last updated: {{.LastUpdated}}_
 })
 
 var _ = ginkgo.Describe("Configuration Loading", ginkgo.Label("acceptance"), func() {
-	var (
-		tool *internal.SecurityTool
-	)
+	var tool *internal.SecurityTool
 
 	ginkgo.BeforeEach(func() {
 		tool = internal.NewSecurityTool()

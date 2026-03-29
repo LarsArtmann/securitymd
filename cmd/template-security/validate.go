@@ -11,9 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	outputFormat string
-)
+var outputFormat string
 
 func newValidateCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -141,8 +139,8 @@ func printValidationResult(result *internal.SecurityValidationResult, validator 
 
 func printJSONResults(results []*internal.SecurityValidationResult) error {
 	data, err := json.MarshalIndent(map[string]interface{}{
-		"valid":  allResultsValid(results),
-		"files":  results,
+		"valid": allResultsValid(results),
+		"files": results,
 		"summary": map[string]int{
 			"total": len(results),
 			"valid": countValid(results),
