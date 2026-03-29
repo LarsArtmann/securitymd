@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+
+	"github.com/LarsArtmann/template-SECURITY/internal/types"
 )
 
 // Error types.
@@ -55,50 +57,6 @@ func NewSecurityError(code, message, field string, cause error) *SecurityError {
 	}
 }
 
-// PolicyType represents different types of security policies.
-type PolicyType string
-
-const (
-	PolicyTypeGitHub     PolicyType = "github"
-	PolicyTypeEnterprise PolicyType = "enterprise"
-)
-
-// VersionStatus represents the status of a version.
-type VersionStatus string
-
-const (
-	StatusSupported  VersionStatus = "supported"
-	StatusDeprecated VersionStatus = "deprecated"
-	StatusEOL        VersionStatus = "end-of-life"
-)
-
-// ContactType represents different types of contact methods.
-type ContactType string
-
-const (
-	ContactTypeEmail ContactType = "email"
-	ContactTypeWeb   ContactType = "web"
-	ContactTypeAPI   ContactType = "api"
-)
-
-// Version represents a software version with support information.
-type Version struct {
-	Name            string        `json:"name"`
-	SemanticVersion string        `json:"semantic_version"`
-	SupportedUntil  time.Time     `json:"supported_until"`
-	Status          VersionStatus `json:"status"`
-	IsLatest        bool          `json:"is_latest"`
-	IsPrevious      bool          `json:"is_previous"`
-}
-
-// Contact represents security contact information.
-type Contact struct {
-	Type         ContactType `json:"type"`
-	Value        string      `json:"value"`
-	ResponseTime string      `json:"response_time"`
-	Description  string      `json:"description"`
-}
-
 // SecurityTool represents a simple security policy tool.
 type SecurityTool struct{}
 
@@ -109,17 +67,17 @@ func NewSecurityTool() *SecurityTool {
 
 // LoadConfig loads configuration from file.
 func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
-	v := viper.New()
+	configViper := viper.New()
 
 	// Set config file path
-	v.SetConfigFile(configPath)
+	configViper.SetConfigFile(configPath)
 
 	// Enable environment variable support
-	v.AutomaticEnv()
-	v.SetEnvPrefix("TEMPLATE_SECURITY")
+	configViper.AutomaticEnv()
+	configViper.SetEnvPrefix("TEMPLATE_SECURITY")
 
 	// Read config file
-	err := v.ReadInConfig()
+	err := configViper.ReadInConfig()
 	if err != nil {
 		return nil, NewSecurityError(
 			"CONFIG_READ_FAILED",
@@ -132,7 +90,7 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 	// Unmarshal into config struct
 	var config Config
 
-	err = v.Unmarshal(&config)
+	err = configViper.Unmarshal(&config)
 	if err != nil {
 		return nil, NewSecurityError(
 			"CONFIG_UNMARSHAL_FAILED",
@@ -144,7 +102,7 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 
 	// Set defaults
 	if config.Type == "" {
-		config.Type = PolicyTypeGitHub
+		config.Type = types.PolicyTypeGitHub
 	}
 
 	if config.SupportYears == 0 {
@@ -205,22 +163,22 @@ func (st *SecurityTool) FindConfigFile() string {
 
 // Config represents a configuration file structure.
 type Config struct {
-	Organization   string            `yaml:"organization"`
-	ContactEmail   string            `yaml:"contact_email"`
-	Type           PolicyType        `yaml:"type"            mapstructure:"type"`
-	OutputDir      string            `yaml:"output_dir"`
-	TemplateDir    string            `yaml:"template_dir"`
-	DefaultVersion string            `yaml:"default_version"`
-	SupportYears   int               `yaml:"support_years"`
-	Variables      map[string]string `yaml:"variables"`
+	Organization   string            `yaml:"organization" mapstructure:"organization"`
+	ContactEmail   string            `yaml:"contactEmail" mapstructure:"contactEmail"`
+	Type           types.PolicyType  `yaml:"type" mapstructure:"type"`
+	OutputDir      string            `yaml:"outputDir" mapstructure:"outputDir"`
+	TemplateDir    string            `yaml:"templateDir" mapstructure:"templateDir"`
+	DefaultVersion string            `yaml:"defaultVersion" mapstructure:"defaultVersion"`
+	SupportYears   int               `yaml:"supportYears" mapstructure:"supportYears"`
+	Variables      map[string]string `yaml:"variables" mapstructure:"variables"`
 }
 
 // PolicyConfig represents security policy configuration.
 type PolicyConfig struct {
-	Type         PolicyType        `json:"type"`
+	Type         types.PolicyType  `json:"type"`
 	Organization string            `json:"organization"`
-	ContactEmail string            `json:"email"`
-	OutputDir    string            `json:"output_dir"`
+	ContactEmail string            `json:"contactEmail"`
+	OutputDir    string            `json:"outputDir"`
 	Variables    map[string]string `json:"variables"`
 }
 
@@ -231,7 +189,7 @@ type TemplateData struct {
 	LatestVersion    string
 	SupportEndDate   string
 	LastUpdated      string
-	Versions         []Version
+	Versions         []types.Version
 	AdditionalFields map[string]any
 }
 
@@ -302,7 +260,7 @@ func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 }
 
 // readTemplate reads the appropriate template file.
-func (st *SecurityTool) readTemplate(policyType PolicyType) (string, error) {
+func (st *SecurityTool) readTemplate(_ types.PolicyType) (string, error) {
 	templatePath := "templates/SECURITY.md"
 
 	// For now, we use the same template for both types
@@ -332,15 +290,15 @@ func (st *SecurityTool) processTemplate(templateContent string, data TemplateDat
 	return buf.String(), nil
 }
 
-func (st *SecurityTool) buildVersions() []Version {
+func (st *SecurityTool) buildVersions() []types.Version {
 	now := time.Now()
 
-	return []Version{
+	return []types.Version{
 		{
 			Name:            "v2.x",
 			SemanticVersion: "2.0.0",
 			SupportedUntil:  now.AddDate(1, 0, 0),
-			Status:          StatusSupported,
+			Status:          types.StatusSupported,
 			IsLatest:        true,
 		},
 	}

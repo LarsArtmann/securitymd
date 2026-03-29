@@ -1,4 +1,4 @@
-package internal
+package types
 
 import "time"
 
@@ -10,14 +10,17 @@ const (
 	PolicyTypeEnterprise PolicyType = "enterprise"
 )
 
+// StatusSupported indicates a version is actively maintained.
+const StatusSupported VersionStatus = "supported"
+
+// StatusDeprecated indicates a version is deprecated but still gets security updates.
+const StatusDeprecated VersionStatus = "deprecated"
+
+// StatusEOL indicates a version has reached end of life.
+const StatusEOL VersionStatus = "end-of-life"
+
 // VersionStatus represents the status of a version.
 type VersionStatus string
-
-const (
-	StatusSupported  VersionStatus = "supported"
-	StatusDeprecated VersionStatus = "deprecated"
-	StatusEOL        VersionStatus = "end-of-life"
-)
 
 // ContactType represents different types of contact methods.
 type ContactType string

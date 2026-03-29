@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -8,6 +9,10 @@ import (
 	"github.com/LarsArtmann/template-SECURITY/internal"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+)
+
+var (
+	outputFormat string
 )
 
 func newValidateCmd() *cobra.Command {
@@ -20,6 +25,7 @@ Checks SECURITY.md files for required sections and content quality.`,
 	}
 
 	cmd.Flags().String("file", "", "Validate specific policy file")
+	cmd.Flags().StringVar(&outputFormat, "format", "text", "Output format (text, json)")
 
 	return cmd
 }
@@ -31,18 +37,20 @@ func runValidate(cmd *cobra.Command, args []string) error {
 
 	if file != "" {
 		return validateSpecificFile(file, validator)
-	} else {
-		return validateAllPolicies(validator)
 	}
+	return validateAllPolicies(validator)
 }
 
 func validateSpecificFile(filename string, validator *internal.SecurityValidator) error {
-	color.Cyan("🔍 Validating security policy: %s", filename)
+	if outputFormat != "json" {
+		color.Cyan("🔍 Validating security policy: %s", filename)
+	}
 
-	// Check if file exists
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		if outputFormat == "json" {
+			return outputJSONError(filename, err)
+		}
 		color.Red("❌ File not found: %s", filename)
-
 		return fmt.Errorf("file not found: %s", filename)
 	}
 
@@ -51,18 +59,13 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	// Print result
-	validator.PrintResults([]*internal.SecurityValidationResult{result})
-
-	if !result.Valid {
-		return errors.New("policy validation failed")
-	}
-
-	return nil
+	return printValidationResult(result, validator)
 }
 
 func validateAllPolicies(validator *internal.SecurityValidator) error {
-	color.Cyan("✅ Validating all security policies...")
+	if outputFormat != "json" {
+		color.Cyan("✅ Validating all security policies...")
+	}
 
 	policyFiles := []string{
 		"SECURITY.md",
@@ -74,19 +77,16 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	overallValid := true
 
 	for _, filename := range policyFiles {
-		// Check if file exists
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
-			color.Yellow("⚠️  File not found: %s (skipping)", filename)
-
 			continue
 		}
 
 		result, err := validator.ValidateSECURITYMd(filename)
 		if err != nil {
-			color.Red("❌ Failed to validate %s: %v", filename, err)
-
+			if outputFormat != "json" {
+				color.Red("❌ Failed to validate %s: %v", filename, err)
+			}
 			overallValid = false
-
 			continue
 		}
 
@@ -98,15 +98,18 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	}
 
 	if len(results) == 0 {
-		color.Yellow("⚠️  No security policy files found to validate")
-
+		if outputFormat != "json" {
+			color.Yellow("⚠️  No security policy files found to validate")
+		}
 		return nil
 	}
 
-	// Print all results
+	if outputFormat == "json" {
+		return printJSONResults(results)
+	}
+
 	validator.PrintResults(results)
 
-	// Overall summary
 	color.White("\n📊 Validation Summary:")
 
 	if overallValid {
@@ -120,4 +123,72 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	}
 
 	return nil
+}
+
+func printValidationResult(result *internal.SecurityValidationResult, validator *internal.SecurityValidator) error {
+	if outputFormat == "json" {
+		return printJSONResults([]*internal.SecurityValidationResult{result})
+	}
+
+	validator.PrintResults([]*internal.SecurityValidationResult{result})
+
+	if !result.Valid {
+		return errors.New("policy validation failed")
+	}
+
+	return nil
+}
+
+func printJSONResults(results []*internal.SecurityValidationResult) error {
+	data, err := json.MarshalIndent(map[string]interface{}{
+		"valid":  allResultsValid(results),
+		"files":  results,
+		"summary": map[string]int{
+			"total": len(results),
+			"valid": countValid(results),
+		},
+	}, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal JSON: %w", err)
+	}
+
+	fmt.Println(string(data))
+
+	if !allResultsValid(results) {
+		return errors.New("validation failed")
+	}
+
+	return nil
+}
+
+func allResultsValid(results []*internal.SecurityValidationResult) bool {
+	for _, r := range results {
+		if !r.Valid {
+			return false
+		}
+	}
+	return true
+}
+
+func countValid(results []*internal.SecurityValidationResult) int {
+	count := 0
+	for _, r := range results {
+		if r.Valid {
+			count++
+		}
+	}
+	return count
+}
+
+func outputJSONError(filename string, err error) error {
+	data, jErr := json.MarshalIndent(map[string]interface{}{
+		"error":   "file not found",
+		"file":    filename,
+		"details": err.Error(),
+	}, "", "  ")
+	if jErr != nil {
+		return jErr
+	}
+	fmt.Println(string(data))
+	return err
 }

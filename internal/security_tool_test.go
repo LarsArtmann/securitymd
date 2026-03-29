@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LarsArtmann/template-SECURITY/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +46,7 @@ We follow security best practices.
 		{
 			name: "basic github policy",
 			config: PolicyConfig{
-				Type:         PolicyTypeGitHub,
+				Type:         types.PolicyTypeGitHub,
 				Organization: "TestOrg",
 				ContactEmail: "security@test.org",
 				OutputDir:    t.TempDir(),
@@ -102,7 +103,7 @@ func TestSecurityTool_PrepareTemplateData(t *testing.T) {
 	tool := NewSecurityTool()
 
 	config := PolicyConfig{
-		Type:         PolicyTypeGitHub,
+		Type:         types.PolicyTypeGitHub,
 		Organization: "TestOrg",
 		ContactEmail: "security@test.org",
 		Variables: map[string]string{
@@ -118,6 +119,7 @@ func TestSecurityTool_PrepareTemplateData(t *testing.T) {
 	assert.Equal(t, "custom_value", data.AdditionalFields["CUSTOM_FIELD"])
 	assert.Len(t, data.Versions, 1)
 	assert.True(t, data.Versions[0].IsLatest)
+	assert.Equal(t, types.StatusSupported, data.Versions[0].Status)
 }
 
 func TestSecurityTool_BuildVersions(t *testing.T) {
@@ -130,7 +132,7 @@ func TestSecurityTool_BuildVersions(t *testing.T) {
 	latest := versions[0]
 	assert.Equal(t, "v2.x", latest.Name)
 	assert.Equal(t, "2.0.0", latest.SemanticVersion)
-	assert.Equal(t, StatusSupported, latest.Status)
+	assert.Equal(t, types.StatusSupported, latest.Status)
 	assert.True(t, latest.IsLatest)
 	assert.False(t, latest.IsPrevious)
 

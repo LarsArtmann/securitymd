@@ -31,6 +31,20 @@ test:
     @./bin/template-security validate
     @echo "✅ Validation test complete"
 
+# 🧪 Run all unit tests
+test-unit:
+    @echo "🧪 Running unit tests..."
+    @go test ./internal/... -v
+
+# 🧪 Run BDD acceptance tests
+test-bdd:
+    @echo "🧪 Running BDD acceptance tests..."
+    @go test ./test/acceptance/... -v
+
+# 🧪 Run all tests (unit + BDD)
+test-all: test-unit test-bdd
+    @echo "✅ All tests complete"
+
 # 🧹 Clean build artifacts
 clean:
     @echo "🧹 Cleaning..."

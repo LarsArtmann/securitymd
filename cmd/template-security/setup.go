@@ -5,6 +5,7 @@ import (
 	"maps"
 
 	"github.com/LarsArtmann/template-SECURITY/internal"
+	"github.com/LarsArtmann/template-SECURITY/internal/types"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -113,7 +114,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	}
 
 	config := internal.PolicyConfig{
-		Type:         internal.PolicyType(policyType),
+		Type:         types.PolicyType(policyType),
 		Organization: orgName,
 		ContactEmail: contactEmail,
 		OutputDir:    outputDirToUse,

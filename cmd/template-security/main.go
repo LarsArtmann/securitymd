@@ -13,6 +13,7 @@ var (
 	date    = "unknown"
 )
 
+//nolint:gochecknoglobals // Version info from build flags
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "template-security",
@@ -20,10 +21,20 @@ func main() {
 		Long: `Template-Security validates and generates SECURITY.md files for completeness 
 and compliance. Ensures your security policy contains all essential sections 
 and follows industry best practices for vulnerability disclosure.`,
+		Example: `  # Validate existing SECURITY.md
+  template-security validate
+
+  # Validate with JSON output (CI/CD friendly)
+  template-security validate --format json
+
+  # Generate a new SECURITY.md
+  template-security setup --type github --organization MyOrg --email security@example.com
+
+  # Check current status
+  template-security status`,
 		Version: fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date),
 	}
 
-	// Add subcommands
 	rootCmd.AddCommand(newSetupCmd())
 	rootCmd.AddCommand(newValidateCmd())
 	rootCmd.AddCommand(newStatusCmd())
