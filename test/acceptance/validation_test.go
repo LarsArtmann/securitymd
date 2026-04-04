@@ -16,6 +16,29 @@ var _ = ginkgo.Describe("Security Policy Validation", ginkgo.Label("acceptance")
 		validator = internal.NewSecurityValidator()
 	})
 
+	expectValidationFailsWithError := func(content, expectedErrorSubstring string) {
+		tmpFile, err := os.CreateTemp("", "SECURITY.md")
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		defer os.Remove(tmpFile.Name())
+
+		_, err = tmpFile.WriteString(content)
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		tmpFile.Close()
+
+		result, err := validator.ValidateSECURITYMd(tmpFile.Name())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		gomega.Expect(result.Valid).To(gomega.BeFalse())
+
+		hasError := false
+		for _, errMsg := range result.Errors {
+			if strings.Contains(errMsg, expectedErrorSubstring) {
+				hasError = true
+				break
+			}
+		}
+		gomega.Expect(hasError).To(gomega.BeTrue())
+	}
+
 	ginkgo.Describe("Validating SECURITY.md completeness", func() {
 		ginkgo.It("validates a complete security policy", func() {
 			content := `# Security Policy
@@ -125,26 +148,7 @@ Email us at {{CONTACT_EMAIL}}.
 
 We follow security best practices.
 `
-			tmpFile, err := os.CreateTemp("", "SECURITY.md")
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			defer os.Remove(tmpFile.Name())
-
-			_, err = tmpFile.WriteString(content)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			tmpFile.Close()
-
-			result, err := validator.ValidateSECURITYMd(tmpFile.Name())
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			gomega.Expect(result.Valid).To(gomega.BeFalse())
-
-			hasTemplateError := false
-			for _, errMsg := range result.Errors {
-				if strings.Contains(errMsg, "template variable") {
-					hasTemplateError = true
-					break
-				}
-			}
-			gomega.Expect(hasTemplateError).To(gomega.BeTrue())
+			expectValidationFailsWithError(content, "template variable")
 		})
 	})
 
@@ -185,26 +189,7 @@ Missing content.
 ## Security Practices
 
 `
-			tmpFile, err := os.CreateTemp("", "SECURITY.md")
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			defer os.Remove(tmpFile.Name())
-
-			_, err = tmpFile.WriteString(content)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			tmpFile.Close()
-
-			result, err := validator.ValidateSECURITYMd(tmpFile.Name())
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			gomega.Expect(result.Valid).To(gomega.BeFalse())
-
-			hasContentError := false
-			for _, errMsg := range result.Errors {
-				if strings.Contains(errMsg, "substantive") {
-					hasContentError = true
-					break
-				}
-			}
-			gomega.Expect(hasContentError).To(gomega.BeTrue())
+			expectValidationFailsWithError(content, "substantive")
 		})
 	})
 
