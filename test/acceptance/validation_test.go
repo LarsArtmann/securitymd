@@ -71,7 +71,8 @@ We follow best practices.
 			result, err := validator.ValidateSECURITYMd(tmpFile.Name())
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(result.Valid).To(gomega.BeFalse())
-			gomega.Expect(strings.Join(result.Errors, "")).To(gomega.ContainSubstring("Reporting a Vulnerability"))
+			gomega.Expect(strings.Join(result.Errors, "")).
+				To(gomega.ContainSubstring("Reporting a Vulnerability"))
 		})
 
 		ginkgo.It("fails when contact email is missing", func() {
@@ -101,7 +102,8 @@ We follow best practices.
 			result, err := validator.ValidateSECURITYMd(tmpFile.Name())
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(result.Valid).To(gomega.BeFalse())
-			gomega.Expect(strings.Join(result.Errors, "")).To(gomega.ContainSubstring("contact email"))
+			gomega.Expect(strings.Join(result.Errors, "")).
+				To(gomega.ContainSubstring("contact email"))
 		})
 	})
 

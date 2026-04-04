@@ -123,7 +123,10 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	return nil
 }
 
-func printValidationResult(result *internal.SecurityValidationResult, validator *internal.SecurityValidator) error {
+func printValidationResult(
+	result *internal.SecurityValidationResult,
+	validator *internal.SecurityValidator,
+) error {
 	if outputFormat == "json" {
 		return printJSONResults([]*internal.SecurityValidationResult{result})
 	}

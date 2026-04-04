@@ -11,9 +11,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/LarsArtmann/template-SECURITY/internal/types"
+	"github.com/spf13/viper"
 )
 
 // Error types.
@@ -163,14 +162,14 @@ func (st *SecurityTool) FindConfigFile() string {
 
 // Config represents a configuration file structure.
 type Config struct {
-	Organization   string            `yaml:"organization" mapstructure:"organization"`
-	ContactEmail   string            `yaml:"contactEmail" mapstructure:"contactEmail"`
-	Type           types.PolicyType  `yaml:"type" mapstructure:"type"`
-	OutputDir      string            `yaml:"outputDir" mapstructure:"outputDir"`
-	TemplateDir    string            `yaml:"templateDir" mapstructure:"templateDir"`
+	Organization   string            `yaml:"organization"   mapstructure:"organization"`
+	ContactEmail   string            `yaml:"contactEmail"   mapstructure:"contactEmail"`
+	Type           types.PolicyType  `yaml:"type"           mapstructure:"type"`
+	OutputDir      string            `yaml:"outputDir"      mapstructure:"outputDir"`
+	TemplateDir    string            `yaml:"templateDir"    mapstructure:"templateDir"`
 	DefaultVersion string            `yaml:"defaultVersion" mapstructure:"defaultVersion"`
-	SupportYears   int               `yaml:"supportYears" mapstructure:"supportYears"`
-	Variables      map[string]string `yaml:"variables" mapstructure:"variables"`
+	SupportYears   int               `yaml:"supportYears"   mapstructure:"supportYears"`
+	Variables      map[string]string `yaml:"variables"      mapstructure:"variables"`
 }
 
 // PolicyConfig represents security policy configuration.
