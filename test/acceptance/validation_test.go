@@ -39,6 +39,20 @@ var _ = ginkgo.Describe("Security Policy Validation", ginkgo.Label("acceptance")
 		gomega.Expect(hasError).To(gomega.BeTrue())
 	}
 
+	createTempFileAndValidate := func(content string) *internal.SecurityValidationResult {
+		tmpFile, err := os.CreateTemp("", "SECURITY.md")
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		defer os.Remove(tmpFile.Name())
+
+		_, err = tmpFile.WriteString(content)
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		tmpFile.Close()
+
+		result, err := validator.ValidateSECURITYMd(tmpFile.Name())
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		return result
+	}
+
 	ginkgo.Describe("Validating SECURITY.md completeness", func() {
 		ginkgo.It("validates a complete security policy", func() {
 			content := `# Security Policy
@@ -58,16 +72,7 @@ Email us at security@example.com with any security issues.
 We follow security best practices.
 
 `
-			tmpFile, err := os.CreateTemp("", "SECURITY.md")
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			defer os.Remove(tmpFile.Name())
-
-			_, err = tmpFile.WriteString(content)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			tmpFile.Close()
-
-			result, err := validator.ValidateSECURITYMd(tmpFile.Name())
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+			result := createTempFileAndValidate(content)
 			gomega.Expect(result.Valid).To(gomega.BeTrue())
 		})
 
@@ -83,19 +88,7 @@ v1.0
 We follow best practices.
 
 `
-			tmpFile, err := os.CreateTemp("", "SECURITY.md")
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			defer os.Remove(tmpFile.Name())
-
-			_, err = tmpFile.WriteString(content)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			tmpFile.Close()
-
-			result, err := validator.ValidateSECURITYMd(tmpFile.Name())
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			gomega.Expect(result.Valid).To(gomega.BeFalse())
-			gomega.Expect(strings.Join(result.Errors, "")).
-				To(gomega.ContainSubstring("Reporting a Vulnerability"))
+			expectValidationFailsWithError(content, "Reporting a Vulnerability")
 		})
 
 		ginkgo.It("fails when contact email is missing", func() {
@@ -114,19 +107,7 @@ Contact us through our website.
 We follow best practices.
 
 `
-			tmpFile, err := os.CreateTemp("", "SECURITY.md")
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			defer os.Remove(tmpFile.Name())
-
-			_, err = tmpFile.WriteString(content)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			tmpFile.Close()
-
-			result, err := validator.ValidateSECURITYMd(tmpFile.Name())
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			gomega.Expect(result.Valid).To(gomega.BeFalse())
-			gomega.Expect(strings.Join(result.Errors, "")).
-				To(gomega.ContainSubstring("contact email"))
+			expectValidationFailsWithError(content, "contact email")
 		})
 	})
 
