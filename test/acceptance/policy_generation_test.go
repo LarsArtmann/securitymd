@@ -17,6 +17,15 @@ var _ = ginkgo.Describe("Security Policy Generation", ginkgo.Label("acceptance")
 		outputDir string
 	)
 
+	assertPolicyContains := func(expected string) {
+		err := tool.GeneratePolicy(nil, config)
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+
+		content, err := os.ReadFile(filepath.Join(outputDir, "SECURITY.md"))
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		gomega.Expect(string(content)).To(gomega.ContainSubstring(expected))
+	}
+
 	ginkgo.BeforeEach(func() {
 		tool = internal.NewSecurityTool()
 		outputDir = ginkgo.GinkgoT().TempDir()
@@ -70,30 +79,15 @@ _Last updated: {{.LastUpdated}}_
 		})
 
 		ginkgo.It("includes the organization name", func() {
-			err := tool.GeneratePolicy(nil, config)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-			content, err := os.ReadFile(filepath.Join(outputDir, "SECURITY.md"))
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			gomega.Expect(string(content)).To(gomega.ContainSubstring("Acme Corp"))
+			assertPolicyContains("Acme Corp")
 		})
 
 		ginkgo.It("includes the contact email", func() {
-			err := tool.GeneratePolicy(nil, config)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-			content, err := os.ReadFile(filepath.Join(outputDir, "SECURITY.md"))
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			gomega.Expect(string(content)).To(gomega.ContainSubstring("security@acme.com"))
+			assertPolicyContains("security@acme.com")
 		})
 
 		ginkgo.It("includes version information", func() {
-			err := tool.GeneratePolicy(nil, config)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-			content, err := os.ReadFile(filepath.Join(outputDir, "SECURITY.md"))
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			gomega.Expect(string(content)).To(gomega.ContainSubstring("Supported Versions"))
+			assertPolicyContains("Supported Versions")
 		})
 	})
 
