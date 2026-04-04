@@ -9,6 +9,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func assertContainsAll(t *testing.T, expected, actual []string, itemType string) {
+	for _, expectedItem := range expected {
+		found := false
+
+		for _, actualItem := range actual {
+			if strings.Contains(actualItem, expectedItem) {
+				found = true
+
+				break
+			}
+		}
+
+		assert.True(
+			t,
+			found,
+			"Expected %s '%s' not found in %v",
+			itemType,
+			expectedItem,
+			actual,
+		)
+	}
+}
+
 func TestSecurityValidator_ValidateSECURITYMd(t *testing.T) {
 	validator := NewSecurityValidator()
 
@@ -155,46 +178,10 @@ We follow security best practices.
 			assert.Equal(t, tt.expectValid, result.Valid)
 
 			// Check errors
-			for _, expectedError := range tt.expectedErrors {
-				found := false
-
-				for _, actualError := range result.Errors {
-					if strings.Contains(actualError, expectedError) {
-						found = true
-
-						break
-					}
-				}
-
-				assert.True(
-					t,
-					found,
-					"Expected error '%s' not found in %v",
-					expectedError,
-					result.Errors,
-				)
-			}
+			assertContainsAll(t, tt.expectedErrors, result.Errors, "error")
 
 			// Check warnings
-			for _, expectedWarning := range tt.expectedWarns {
-				found := false
-
-				for _, actualWarning := range result.Warnings {
-					if strings.Contains(actualWarning, expectedWarning) {
-						found = true
-
-						break
-					}
-				}
-
-				assert.True(
-					t,
-					found,
-					"Expected warning '%s' not found in %v",
-					expectedWarning,
-					result.Warnings,
-				)
-			}
+			assertContainsAll(t, tt.expectedWarns, result.Warnings, "warning")
 		})
 	}
 }
