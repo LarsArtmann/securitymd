@@ -16,10 +16,11 @@ func newStatusCmd() *cobra.Command {
 		"Show overview of current security policies,\navailable templates, and compliance status.",
 		runStatus,
 	)
+
 	return cmd
 }
 
-func runStatus(cmd *cobra.Command, args []string) error {
+func runStatus(_ *cobra.Command, _ []string) error {
 	color.White("📋 Security Policy Status")
 	color.White("========================")
 
@@ -58,10 +59,12 @@ func countSecurityTemplates(dir string) int {
 		if entry.IsDir() {
 			continue
 		}
+
 		name := entry.Name()
 		if len(name) <= 3 || name[len(name)-3:] != ".md" {
 			continue
 		}
+
 		lowerName := strings.ToLower(name)
 		if strings.Contains(lowerName, "security") || strings.Contains(lowerName, "github") {
 			count++

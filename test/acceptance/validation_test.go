@@ -18,27 +18,33 @@ var _ = ginkgo.Describe("Security Policy Validation", ginkgo.Label("acceptance")
 	expectValidationFailsWithError := func(content, expectedErrorSubstring string) {
 		withTempFile(content, func(path string) {
 			result, err := validator.ValidateSECURITYMd(path)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+			expectNoError(err)
 			gomega.Expect(result.Valid).To(gomega.BeFalse())
 
 			hasError := false
+
 			for _, errMsg := range result.Errors {
 				if strings.Contains(errMsg, expectedErrorSubstring) {
 					hasError = true
+
 					break
 				}
 			}
+
 			gomega.Expect(hasError).To(gomega.BeTrue())
 		})
 	}
 
 	createTempFileAndValidate := func(content string) *internal.SecurityValidationResult {
 		var result *internal.SecurityValidationResult
+
 		withTempFile(content, func(path string) {
 			var err error
+
 			result, err = validator.ValidateSECURITYMd(path)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+			expectNoError(err)
 		})
+
 		return result
 	}
 
@@ -157,12 +163,15 @@ Missing content.
 			result := createTempFileAndValidate(content)
 
 			hasShortWarning := false
+
 			for _, warning := range result.Warnings {
 				if strings.Contains(warning, "too short") {
 					hasShortWarning = true
+
 					break
 				}
 			}
+
 			gomega.Expect(hasShortWarning).To(gomega.BeTrue())
 		})
 	})

@@ -19,10 +19,10 @@ var _ = ginkgo.Describe("Security Policy Generation", ginkgo.Label("acceptance")
 
 	assertPolicyContains := func(expected string) {
 		err := tool.GeneratePolicy(nil, config)
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		expectNoError(err)
 
 		content, err := os.ReadFile(filepath.Join(outputDir, "SECURITY.md"))
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		expectNoError(err)
 		gomega.Expect(string(content)).To(gomega.ContainSubstring(expected))
 	}
 
@@ -39,12 +39,7 @@ var _ = ginkgo.Describe("Security Policy Generation", ginkgo.Label("acceptance")
 	})
 
 	ginkgo.Describe("Generating a complete security policy", func() {
-		ginkgo.BeforeEach(func() {
-			templateDir := filepath.Join(outputDir, "..", "templates")
-			err := os.MkdirAll(templateDir, 0o755)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-			templateContent := `# Security Policy for {{.Organization}}
+		const templateContent = `# Security Policy for {{.Organization}}
 
 ## Supported Versions
 
@@ -62,17 +57,20 @@ We follow security best practices.
 
 _Last updated: {{.LastUpdated}}_
 `
-			templateFile := filepath.Join(templateDir, "SECURITY.md")
-			err = os.WriteFile(templateFile, []byte(templateContent), 0o644)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-			err = os.Chdir(filepath.Join(outputDir, ".."))
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		ginkgo.BeforeEach(func() {
+			templateDir := filepath.Join(outputDir, "..", "templates")
+			expectNoError(os.MkdirAll(templateDir, 0o755))
+
+			templateFile := filepath.Join(templateDir, "SECURITY.md")
+			expectNoError(os.WriteFile(templateFile, []byte(templateContent), 0o644))
+
+			expectNoError(os.Chdir(filepath.Join(outputDir, "..")))
 		})
 
 		ginkgo.It("creates a SECURITY.md file in the output directory", func() {
 			err := tool.GeneratePolicy(nil, config)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+			expectNoError(err)
 
 			outputFile := filepath.Join(outputDir, "SECURITY.md")
 			gomega.Expect(outputFile).To(gomega.BeAnExistingFile())
@@ -98,12 +96,18 @@ _Last updated: {{.LastUpdated}}_
 				config.OutputDir = ginkgo.GinkgoT().TempDir()
 
 				templateDir := filepath.Join(config.OutputDir, "..", "templates")
-				os.MkdirAll(templateDir, 0o755)
-				os.WriteFile(filepath.Join(templateDir, "SECURITY.md"), []byte("# Test"), 0o644)
-				os.Chdir(filepath.Join(config.OutputDir, ".."))
+				expectNoError(os.MkdirAll(templateDir, 0o755))
+				expectNoError(
+					os.WriteFile(
+						filepath.Join(templateDir, "SECURITY.md"),
+						[]byte("# Test"),
+						0o644,
+					),
+				)
+				expectNoError(os.Chdir(filepath.Join(config.OutputDir, "..")))
 
 				err := tool.GeneratePolicy(nil, config)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
+				expectNoError(err)
 			})
 		})
 	})

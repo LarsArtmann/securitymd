@@ -31,19 +31,8 @@ func lineChecker(lines []string, patterns ...string) bool {
 			}
 		}
 	}
-	return false
-}
 
-// firstMatchingLine returns the first line matching any of the patterns.
-func firstMatchingLine(lines []string, patterns ...string) string {
-	for _, line := range lines {
-		for _, pattern := range patterns {
-			if strings.Contains(strings.ToLower(line), strings.ToLower(pattern)) {
-				return line
-			}
-		}
-	}
-	return ""
+	return false
 }
 
 // ValidateSECURITYMd validates a SECURITY.md file.
@@ -97,8 +86,10 @@ func (sv *SecurityValidator) validateContentQuality(
 	content string,
 	result *SecurityValidationResult,
 ) {
-	const minLines = 20
-	const minLineLength = 20
+	const (
+		minLines      = 20
+		minLineLength = 20
+	)
 
 	lines := strings.Split(content, "\n")
 
@@ -119,8 +110,10 @@ func (sv *SecurityValidator) validateContentQuality(
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		if len(trimmed) > minLineLength && !strings.HasPrefix(trimmed, "#") && !strings.Contains(trimmed, "example") {
+		if len(trimmed) > minLineLength && !strings.HasPrefix(trimmed, "#") &&
+			!strings.Contains(trimmed, "example") {
 			hasActualContent = true
+
 			break
 		}
 	}
@@ -141,6 +134,7 @@ func hasVersionInformation(lines []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 

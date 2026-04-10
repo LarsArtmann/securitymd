@@ -35,7 +35,7 @@ func newSetupCmd() *cobra.Command {
 	return cmd
 }
 
-func runSetup(cmd *cobra.Command, args []string) error {
+func runSetup(cmd *cobra.Command, _ []string) error {
 	// Check for config file first
 	securityTool := internal.NewSecurityTool()
 	configFile := securityTool.FindConfigFile()

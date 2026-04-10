@@ -155,6 +155,7 @@ func printJSONError(filename string, err error) error {
 
 func printJSONResults(results []*internal.SecurityValidationResult) error {
 	validCount, totalCount, allValid := countValidAndCheck(results)
+
 	return printJSON(map[string]any{
 		"valid": allValid,
 		"files": results,
@@ -170,27 +171,36 @@ func printJSON(data map[string]any) error {
 	if jErr != nil {
 		return fmt.Errorf("failed to marshal JSON: %w", jErr)
 	}
+
 	fmt.Println(string(jsonBytes))
+
 	return nil
 }
 
-func countValidAndCheck(results []*internal.SecurityValidationResult) (validCount, totalCount int, allValid bool) {
+func countValidAndCheck(
+	results []*internal.SecurityValidationResult,
+) (validCount, totalCount int, allValid bool) {
 	for _, r := range results {
 		totalCount++
+
 		if r.Valid {
 			validCount++
 		}
 	}
+
 	allValid = validCount == totalCount
-	return
+
+	return validCount, totalCount, allValid
 }
 
 func allResultsValid(results []*internal.SecurityValidationResult) bool {
 	_, _, allValid := countValidAndCheck(results)
+
 	return allValid
 }
 
 func countValid(results []*internal.SecurityValidationResult) int {
 	count, _, _ := countValidAndCheck(results)
+
 	return count
 }
