@@ -1,7 +1,6 @@
 package acceptance
 
 import (
-	"os"
 	"strings"
 
 	"github.com/LarsArtmann/template-SECURITY/internal"
@@ -17,39 +16,29 @@ var _ = ginkgo.Describe("Security Policy Validation", ginkgo.Label("acceptance")
 	})
 
 	expectValidationFailsWithError := func(content, expectedErrorSubstring string) {
-		tmpFile, err := os.CreateTemp("", "SECURITY.md")
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-		defer os.Remove(tmpFile.Name())
+		withTempFile(content, func(path string) {
+			result, err := validator.ValidateSECURITYMd(path)
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+			gomega.Expect(result.Valid).To(gomega.BeFalse())
 
-		_, err = tmpFile.WriteString(content)
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-		tmpFile.Close()
-
-		result, err := validator.ValidateSECURITYMd(tmpFile.Name())
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-		gomega.Expect(result.Valid).To(gomega.BeFalse())
-
-		hasError := false
-		for _, errMsg := range result.Errors {
-			if strings.Contains(errMsg, expectedErrorSubstring) {
-				hasError = true
-				break
+			hasError := false
+			for _, errMsg := range result.Errors {
+				if strings.Contains(errMsg, expectedErrorSubstring) {
+					hasError = true
+					break
+				}
 			}
-		}
-		gomega.Expect(hasError).To(gomega.BeTrue())
+			gomega.Expect(hasError).To(gomega.BeTrue())
+		})
 	}
 
 	createTempFileAndValidate := func(content string) *internal.SecurityValidationResult {
-		tmpFile, err := os.CreateTemp("", "SECURITY.md")
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-		defer os.Remove(tmpFile.Name())
-
-		_, err = tmpFile.WriteString(content)
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-		tmpFile.Close()
-
-		result, err := validator.ValidateSECURITYMd(tmpFile.Name())
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		var result *internal.SecurityValidationResult
+		withTempFile(content, func(path string) {
+			var err error
+			result, err = validator.ValidateSECURITYMd(path)
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		})
 		return result
 	}
 
@@ -76,8 +65,15 @@ We follow security best practices.
 			gomega.Expect(result.Valid).To(gomega.BeTrue())
 		})
 
-		ginkgo.It("fails when reporting section is missing", func() {
-			content := `# Security Policy
+		ginkgo.It("fails validation for incomplete policies", func() {
+			testCases := []struct {
+				name        string
+				content     string
+				errContains string
+			}{
+				{
+					name: "missing reporting section",
+					content: `# Security Policy
 
 ## Supported Versions
 
@@ -87,12 +83,12 @@ v1.0
 
 We follow best practices.
 
-`
-			expectValidationFailsWithError(content, "Reporting a Vulnerability")
-		})
-
-		ginkgo.It("fails when contact email is missing", func() {
-			content := `# Security Policy
+`,
+					errContains: "Reporting a Vulnerability",
+				},
+				{
+					name: "missing contact email",
+					content: `# Security Policy
 
 ## Supported Versions
 
@@ -106,14 +102,12 @@ Contact us through our website.
 
 We follow best practices.
 
-`
-			expectValidationFailsWithError(content, "contact email")
-		})
-	})
-
-	ginkgo.Describe("Detecting template variables", func() {
-		ginkgo.It("fails when template variables are unresolved", func() {
-			content := `# Security Policy
+`,
+					errContains: "contact email",
+				},
+				{
+					name: "unresolved template variables",
+					content: `# Security Policy
 
 ## Supported Versions
 
@@ -128,8 +122,29 @@ Email us at {{CONTACT_EMAIL}}.
 ## Security Practices
 
 We follow security best practices.
-`
-			expectValidationFailsWithError(content, "template variable")
+`,
+					errContains: "template variable",
+				},
+				{
+					name: "lacks substantive content",
+					content: `# Security Policy
+
+## Supported Versions
+
+## Reporting a Vulnerability
+
+## Security Practices
+
+`,
+					errContains: "substantive",
+				},
+			}
+
+			for _, tc := range testCases {
+				ginkgo.By(tc.name, func() {
+					expectValidationFailsWithError(tc.content, tc.errContains)
+				})
+			}
 		})
 	})
 
@@ -149,19 +164,6 @@ Missing content.
 				}
 			}
 			gomega.Expect(hasShortWarning).To(gomega.BeTrue())
-		})
-
-		ginkgo.It("fails when policy lacks substantive content", func() {
-			content := `# Security Policy
-
-## Supported Versions
-
-## Reporting a Vulnerability
-
-## Security Practices
-
-`
-			expectValidationFailsWithError(content, "substantive")
 		})
 	})
 

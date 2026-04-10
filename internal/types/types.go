@@ -82,21 +82,19 @@ type ValidationResult struct {
 	Metadata    any       `json:"metadata,omitempty"`
 }
 
-// Error represents a validation error.
-type Error struct {
+// ValidationMessage represents a validation message with location info.
+type ValidationMessage struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	Field   string `json:"field,omitempty"`
 	Line    int    `json:"line,omitempty"`
 }
 
+// Error represents a validation error.
+type Error = ValidationMessage
+
 // Warning represents a validation warning.
-type Warning struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	Field   string `json:"field,omitempty"`
-	Line    int    `json:"line,omitempty"`
-}
+type Warning = ValidationMessage
 
 // Template represents a security policy template.
 type Template struct {

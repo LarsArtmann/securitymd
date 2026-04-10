@@ -6,7 +6,6 @@ import (
 
 	"github.com/LarsArtmann/template-SECURITY/internal"
 	"github.com/LarsArtmann/template-SECURITY/internal/types"
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -19,13 +18,12 @@ var (
 )
 
 func newSetupCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "setup",
-		Short: "Generate SECURITY.md template",
-		Long: `Generate a SECURITY.md template for your project.
-Supports basic GitHub and enterprise security policies.`,
-		RunE: runSetup,
-	}
+	cmd := newCommand(
+		"setup",
+		"Generate SECURITY.md template",
+		"Generate a SECURITY.md template for your project.\nSupports basic GitHub and enterprise security policies.",
+		runSetup,
+	)
 
 	// Command line flags
 	cmd.Flags().StringVarP(&policyType, "type", "t", "github", "Policy type (github, enterprise)")
@@ -49,11 +47,11 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	)
 
 	if configFile != "" {
-		color.Cyan("📄 Loading configuration from: %s", configFile)
+		printInfo("📄 Loading configuration from: %s", configFile)
 
 		userConfig, err = securityTool.LoadConfig(configFile)
 		if err != nil {
-			color.Yellow("⚠️  Warning: Failed to load config file: %v", err)
+			printWarning("⚠️  Warning: Failed to load config file: %v", err)
 		}
 	}
 
@@ -105,7 +103,7 @@ func runSetup(cmd *cobra.Command, args []string) error {
 		outputDirToUse = userConfig.OutputDir
 	}
 
-	color.Cyan("🔒 Generating SECURITY.md for: %s", orgName)
+	printInfo("🔒 Generating SECURITY.md for: %s", orgName)
 
 	// Prepare variables from config
 	variables := make(map[string]string)

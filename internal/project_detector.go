@@ -15,10 +15,12 @@ type ProjectDetector struct{}
 // and lastPartFromEnd("org/repo", "/", 2) returns "org".
 func lastPartFromEnd(s, sep string, n int) string {
 	parts := strings.Split(s, sep)
+
 	idx := len(parts) - n
 	if idx >= 0 {
 		return parts[idx]
 	}
+
 	return ""
 }
 
@@ -32,6 +34,7 @@ func (pd *ProjectDetector) DetectProjectName() string {
 	// Try to detect from git remote first (more reliable)
 	if name := pd.detectFromGitRemote(); name != "" {
 		name = strings.TrimSuffix(name, ".git")
+
 		return lastPartFromEnd(name, "/", 1)
 	}
 

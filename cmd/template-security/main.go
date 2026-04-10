@@ -13,7 +13,6 @@ var (
 	date    = "unknown"
 )
 
-//nolint:gochecknoglobals // Version info from build flags
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "template-security",

@@ -162,14 +162,14 @@ func (st *SecurityTool) FindConfigFile() string {
 
 // Config represents a configuration file structure.
 type Config struct {
-	Organization   string            `yaml:"organization"   mapstructure:"organization"`
-	ContactEmail   string            `yaml:"contactEmail"   mapstructure:"contactEmail"`
-	Type           types.PolicyType  `yaml:"type"           mapstructure:"type"`
-	OutputDir      string            `yaml:"outputDir"      mapstructure:"outputDir"`
-	TemplateDir    string            `yaml:"templateDir"    mapstructure:"templateDir"`
-	DefaultVersion string            `yaml:"defaultVersion" mapstructure:"defaultVersion"`
-	SupportYears   int               `yaml:"supportYears"   mapstructure:"supportYears"`
-	Variables      map[string]string `yaml:"variables"      mapstructure:"variables"`
+	Organization   string            `mapstructure:"organization"   yaml:"organization"`
+	ContactEmail   string            `mapstructure:"contactEmail"   yaml:"contactEmail"`
+	Type           types.PolicyType  `mapstructure:"type"           yaml:"type"`
+	OutputDir      string            `mapstructure:"outputDir"      yaml:"outputDir"`
+	TemplateDir    string            `mapstructure:"templateDir"    yaml:"templateDir"`
+	DefaultVersion string            `mapstructure:"defaultVersion" yaml:"defaultVersion"`
+	SupportYears   int               `mapstructure:"supportYears"   yaml:"supportYears"`
+	Variables      map[string]string `mapstructure:"variables"      yaml:"variables"`
 }
 
 // PolicyConfig represents security policy configuration.

@@ -10,14 +10,12 @@ import (
 )
 
 func newStatusCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "status",
-		Short: "Show security policy status",
-		Long: `Show overview of current security policies,
-available templates, and compliance status.`,
-		RunE: runStatus,
-	}
-
+	cmd := newCommand(
+		"status",
+		"Show security policy status",
+		"Show overview of current security policies,\navailable templates, and compliance status.",
+		runStatus,
+	)
 	return cmd
 }
 
@@ -25,7 +23,6 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	color.White("📋 Security Policy Status")
 	color.White("========================")
 
-	// Check for SECURITY.md
 	if _, err := os.Stat("SECURITY.md"); err == nil {
 		color.Green("✅ SECURITY.md exists")
 	} else {
@@ -34,16 +31,15 @@ func runStatus(cmd *cobra.Command, args []string) error {
 		color.Yellow("Run 'template-security setup' to create one")
 	}
 
-	// Count available templates
 	templatesDir := "templates"
 	if count := countSecurityTemplates(templatesDir); count > 0 {
-		color.Cyan("Available SECURITY.md templates: %d", count)
+		printInfo("Available SECURITY.md templates: %d", count)
 	} else {
-		color.Yellow("No templates directory found")
+		printWarning("No templates directory found")
 	}
 
 	fmt.Println()
-	color.Cyan("Next steps:")
+	printInfo("Next steps:")
 	fmt.Println("  1. Run 'template-security setup --type github' to generate SECURITY.md")
 	fmt.Println("  2. Run 'template-security validate' to check SECURITY.md")
 
@@ -59,12 +55,16 @@ func countSecurityTemplates(dir string) int {
 	count := 0
 
 	for _, entry := range entries {
-		if !entry.IsDir() && len(entry.Name()) > 3 && entry.Name()[len(entry.Name())-3:] == ".md" {
-			// Count only SECURITY.md related templates
-			if strings.Contains(strings.ToLower(entry.Name()), "security") ||
-				strings.Contains(strings.ToLower(entry.Name()), "github") {
-				count++
-			}
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if len(name) <= 3 || name[len(name)-3:] != ".md" {
+			continue
+		}
+		lowerName := strings.ToLower(name)
+		if strings.Contains(lowerName, "security") || strings.Contains(lowerName, "github") {
+			count++
 		}
 	}
 

@@ -14,13 +14,12 @@ import (
 var outputFormat string
 
 func newValidateCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "validate",
-		Short: "Validate security policies",
-		Long: `Validate security policies for completeness and compliance.
-Checks SECURITY.md files for required sections and content quality.`,
-		RunE: runValidate,
-	}
+	cmd := newCommand(
+		"validate",
+		"Validate security policies",
+		"Validate security policies for completeness and compliance.\nChecks SECURITY.md files for required sections and content quality.",
+		runValidate,
+	)
 
 	cmd.Flags().String("file", "", "Validate specific policy file")
 	cmd.Flags().StringVar(&outputFormat, "format", "text", "Output format (text, json)")
@@ -36,6 +35,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	if file != "" {
 		return validateSpecificFile(file, validator)
 	}
+
 	return validateAllPolicies(validator)
 }
 
@@ -46,9 +46,11 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		if outputFormat == "json" {
-			return outputJSONError(filename, err)
+			return printJSONError(filename, err)
 		}
+
 		color.Red("❌ File not found: %s", filename)
+
 		return fmt.Errorf("file not found: %s", filename)
 	}
 
@@ -84,7 +86,9 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 			if outputFormat != "json" {
 				color.Red("❌ Failed to validate %s: %v", filename, err)
 			}
+
 			overallValid = false
+
 			continue
 		}
 
@@ -99,6 +103,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 		if outputFormat != "json" {
 			color.Yellow("⚠️  No security policy files found to validate")
 		}
+
 		return nil
 	}
 
@@ -140,56 +145,52 @@ func printValidationResult(
 	return nil
 }
 
-func printJSONResults(results []*internal.SecurityValidationResult) error {
-	data, err := json.MarshalIndent(map[string]interface{}{
-		"valid": allResultsValid(results),
-		"files": results,
-		"summary": map[string]int{
-			"total": len(results),
-			"valid": countValid(results),
-		},
-	}, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal JSON: %w", err)
-	}
-
-	fmt.Println(string(data))
-
-	if !allResultsValid(results) {
-		return errors.New("validation failed")
-	}
-
-	return nil
-}
-
-func allResultsValid(results []*internal.SecurityValidationResult) bool {
-	for _, r := range results {
-		if !r.Valid {
-			return false
-		}
-	}
-	return true
-}
-
-func countValid(results []*internal.SecurityValidationResult) int {
-	count := 0
-	for _, r := range results {
-		if r.Valid {
-			count++
-		}
-	}
-	return count
-}
-
-func outputJSONError(filename string, err error) error {
-	data, jErr := json.MarshalIndent(map[string]interface{}{
+func printJSONError(filename string, err error) error {
+	return printJSON(map[string]any{
 		"error":   "file not found",
 		"file":    filename,
 		"details": err.Error(),
-	}, "", "  ")
+	})
+}
+
+func printJSONResults(results []*internal.SecurityValidationResult) error {
+	validCount, totalCount, allValid := countValidAndCheck(results)
+	return printJSON(map[string]any{
+		"valid": allValid,
+		"files": results,
+		"summary": map[string]int{
+			"total": totalCount,
+			"valid": validCount,
+		},
+	})
+}
+
+func printJSON(data map[string]any) error {
+	jsonBytes, jErr := json.MarshalIndent(data, "", "  ")
 	if jErr != nil {
-		return jErr
+		return fmt.Errorf("failed to marshal JSON: %w", jErr)
 	}
-	fmt.Println(string(data))
-	return err
+	fmt.Println(string(jsonBytes))
+	return nil
+}
+
+func countValidAndCheck(results []*internal.SecurityValidationResult) (validCount, totalCount int, allValid bool) {
+	for _, r := range results {
+		totalCount++
+		if r.Valid {
+			validCount++
+		}
+	}
+	allValid = validCount == totalCount
+	return
+}
+
+func allResultsValid(results []*internal.SecurityValidationResult) bool {
+	_, _, allValid := countValidAndCheck(results)
+	return allValid
+}
+
+func countValid(results []*internal.SecurityValidationResult) int {
+	count, _, _ := countValidAndCheck(results)
+	return count
 }

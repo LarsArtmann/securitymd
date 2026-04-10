@@ -22,6 +22,30 @@ type SecurityValidationResult struct {
 	File     string
 }
 
+// lineChecker is a helper to find lines matching any of the patterns.
+func lineChecker(lines []string, patterns ...string) bool {
+	for _, line := range lines {
+		for _, pattern := range patterns {
+			if strings.Contains(strings.ToLower(line), strings.ToLower(pattern)) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// firstMatchingLine returns the first line matching any of the patterns.
+func firstMatchingLine(lines []string, patterns ...string) string {
+	for _, line := range lines {
+		for _, pattern := range patterns {
+			if strings.Contains(strings.ToLower(line), strings.ToLower(pattern)) {
+				return line
+			}
+		}
+	}
+	return ""
+}
+
 // ValidateSECURITYMd validates a SECURITY.md file.
 func (sv *SecurityValidator) ValidateSECURITYMd(
 	filePath string,
@@ -30,7 +54,6 @@ func (sv *SecurityValidator) ValidateSECURITYMd(
 		File: filePath,
 	}
 
-	// Read file
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
@@ -39,64 +62,21 @@ func (sv *SecurityValidator) ValidateSECURITYMd(
 	contentStr := string(content)
 	lines := strings.Split(contentStr, "\n")
 
-	// Check for required sections
 	requiredSections := []struct {
-		title   string
 		pattern string
-		level   string // "error" or "warning"
+		level   string
 		message string
 	}{
-		{
-			title:   "Security Contact Information",
-			pattern: "# Security Policy",
-			level:   "error",
-			message: "Missing Security Policy header",
-		},
-		{
-			title:   "Reporting a Vulnerability",
-			pattern: "## Reporting a Vulnerability",
-			level:   "error",
-			message: "Missing 'Reporting a Vulnerability' section",
-		},
-		{
-			title:   "Supported Versions",
-			pattern: "## Supported Versions",
-			level:   "error",
-			message: "Missing 'Supported Versions' section",
-		},
-		{
-			title:   "Security Practices",
-			pattern: "## Security Practices",
-			level:   "error",
-			message: "Missing 'Security Practices' section",
-		},
-		{
-			title:   "Security Contact",
-			pattern: "@",
-			level:   "error",
-			message: "Missing contact email address",
-		},
-		{
-			title:   "Response Time",
-			pattern: "response time|Response Time|within",
-			level:   "warning",
-			message: "Should specify response time for vulnerability reports",
-		},
+		{"# Security Policy", "error", "Missing Security Policy header"},
+		{"## Reporting a Vulnerability", "error", "Missing 'Reporting a Vulnerability' section"},
+		{"## Supported Versions", "error", "Missing 'Supported Versions' section"},
+		{"## Security Practices", "error", "Missing 'Security Practices' section"},
+		{"@", "error", "Missing contact email address"},
+		{"response time", "warning", "Should specify response time for vulnerability reports"},
 	}
 
-	// Check each section
 	for _, section := range requiredSections {
-		found := false
-
-		for _, line := range lines {
-			if strings.Contains(strings.ToLower(line), strings.ToLower(section.pattern)) {
-				found = true
-
-				break
-			}
-		}
-
-		if !found {
+		if !lineChecker(lines, section.pattern) {
 			if section.level == "error" {
 				result.Errors = append(result.Errors, section.message)
 			} else {
@@ -105,10 +85,8 @@ func (sv *SecurityValidator) ValidateSECURITYMd(
 		}
 	}
 
-	// Check content quality
 	sv.validateContentQuality(contentStr, result)
 
-	// Determine if valid
 	result.Valid = len(result.Errors) == 0
 
 	return result, nil
@@ -119,14 +97,15 @@ func (sv *SecurityValidator) validateContentQuality(
 	content string,
 	result *SecurityValidationResult,
 ) {
+	const minLines = 20
+	const minLineLength = 20
+
 	lines := strings.Split(content, "\n")
 
-	// Minimum content check
-	if len(lines) < 20 {
+	if len(lines) < minLines {
 		result.Warnings = append(result.Warnings, "SECURITY.md seems too short (< 20 lines)")
 	}
 
-	// Check for template variables that weren't replaced
 	for _, line := range lines {
 		if strings.Contains(line, "{{") && strings.Contains(line, "}}") {
 			result.Errors = append(
@@ -136,14 +115,12 @@ func (sv *SecurityValidator) validateContentQuality(
 		}
 	}
 
-	// Check for actual content (not just placeholders)
 	hasActualContent := false
 
 	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if len(line) > 20 && !strings.HasPrefix(line, "#") && !strings.Contains(line, "example") {
+		trimmed := strings.TrimSpace(line)
+		if len(trimmed) > minLineLength && !strings.HasPrefix(trimmed, "#") && !strings.Contains(trimmed, "example") {
 			hasActualContent = true
-
 			break
 		}
 	}
@@ -152,21 +129,19 @@ func (sv *SecurityValidator) validateContentQuality(
 		result.Errors = append(result.Errors, "SECURITY.md lacks substantive content")
 	}
 
-	// Check for version information
-	hasVersion := false
+	if !hasVersionInformation(lines) {
+		result.Warnings = append(result.Warnings, "No version information found")
+	}
+}
 
+func hasVersionInformation(lines []string) bool {
 	for _, line := range lines {
 		if strings.Contains(strings.ToLower(line), "version") &&
 			(strings.Contains(line, "v") || strings.Contains(line, ".")) {
-			hasVersion = true
-
-			break
+			return true
 		}
 	}
-
-	if !hasVersion {
-		result.Warnings = append(result.Warnings, "No version information found")
-	}
+	return false
 }
 
 // PrintResults prints validation results in a user-friendly format.
