@@ -106,25 +106,24 @@ func (sv *SecurityValidator) validateContentQuality(
 		}
 	}
 
-	hasActualContent := false
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if len(trimmed) > minLineLength && !strings.HasPrefix(trimmed, "#") &&
-			!strings.Contains(trimmed, "example") {
-			hasActualContent = true
-
-			break
-		}
-	}
-
-	if !hasActualContent {
+	if !hasActualContent(lines, minLineLength) {
 		result.Errors = append(result.Errors, "SECURITY.md lacks substantive content")
 	}
 
 	if !hasVersionInformation(lines) {
 		result.Warnings = append(result.Warnings, "No version information found")
 	}
+}
+
+func hasActualContent(lines []string, minLength int) bool {
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if len(trimmed) > minLength && !strings.HasPrefix(trimmed, "#") &&
+			!strings.Contains(trimmed, "example") {
+			return true
+		}
+	}
+	return false
 }
 
 func hasVersionInformation(lines []string) bool {
@@ -134,7 +133,6 @@ func hasVersionInformation(lines []string) bool {
 			return true
 		}
 	}
-
 	return false
 }
 

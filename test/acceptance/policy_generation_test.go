@@ -76,16 +76,19 @@ _Last updated: {{.LastUpdated}}_
 			gomega.Expect(outputFile).To(gomega.BeAnExistingFile())
 		})
 
-		ginkgo.It("includes the organization name", func() {
-			assertPolicyContains("Acme Corp")
-		})
-
-		ginkgo.It("includes the contact email", func() {
-			assertPolicyContains("security@acme.com")
-		})
-
-		ginkgo.It("includes version information", func() {
-			assertPolicyContains("Supported Versions")
+		ginkgo.It("includes the organization name, contact email, and version information", func() {
+			for _, tc := range []struct {
+				name     string
+				expected string
+			}{
+				{"organization name", "Acme Corp"},
+				{"contact email", "security@acme.com"},
+				{"version information", "Supported Versions"},
+			} {
+				ginkgo.By(tc.name, func() {
+					assertPolicyContains(tc.expected)
+				})
+			}
 		})
 	})
 
