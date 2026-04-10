@@ -10,6 +10,18 @@ import (
 // ProjectDetector detects project information from various sources.
 type ProjectDetector struct{}
 
+// lastPartFromEnd extracts the nth part from the end of a split string.
+// For example, lastPartFromEnd("org/repo", "/", 1) returns "repo",
+// and lastPartFromEnd("org/repo", "/", 2) returns "org".
+func lastPartFromEnd(s, sep string, n int) string {
+	parts := strings.Split(s, sep)
+	idx := len(parts) - n
+	if idx >= 0 {
+		return parts[idx]
+	}
+	return ""
+}
+
 // NewProjectDetector creates a new project detector.
 func NewProjectDetector() *ProjectDetector {
 	return &ProjectDetector{}
@@ -19,15 +31,8 @@ func NewProjectDetector() *ProjectDetector {
 func (pd *ProjectDetector) DetectProjectName() string {
 	// Try to detect from git remote first (more reliable)
 	if name := pd.detectFromGitRemote(); name != "" {
-		// Extract repo name from git URL
-		if parts := strings.Split(name, "/"); len(parts) > 0 {
-			repoName := parts[len(parts)-1]
-
-			repoName = strings.TrimSuffix(repoName, ".git")
-			if repoName != "" {
-				return repoName
-			}
-		}
+		name = strings.TrimSuffix(name, ".git")
+		return lastPartFromEnd(name, "/", 1)
 	}
 
 	// Try to detect from package.json
@@ -146,9 +151,9 @@ func (pd *ProjectDetector) detectOrgFromGitRemote() string {
 	}
 
 	// Parse generic path
-	parts := strings.Split(gitURL, "/")
-	if len(parts) >= 2 {
-		return parts[len(parts)-2]
+	org := lastPartFromEnd(gitURL, "/", 2)
+	if org != "" {
+		return org
 	}
 
 	return ""
@@ -293,10 +298,7 @@ func (pd *ProjectDetector) detectFromGoMod() string {
 			module = strings.TrimSpace(module)
 
 			// Extract last part of module path
-			parts := strings.Split(module, "/")
-			if len(parts) > 0 {
-				return parts[len(parts)-1]
-			}
+			return lastPartFromEnd(module, "/", 1)
 		}
 	}
 

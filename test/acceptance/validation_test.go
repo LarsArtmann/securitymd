@@ -139,16 +139,7 @@ We follow security best practices.
 
 Missing content.
 `
-			tmpFile, err := os.CreateTemp("", "SECURITY.md")
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			defer os.Remove(tmpFile.Name())
-
-			_, err = tmpFile.WriteString(content)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
-			tmpFile.Close()
-
-			result, err := validator.ValidateSECURITYMd(tmpFile.Name())
-			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+			result := createTempFileAndValidate(content)
 
 			hasShortWarning := false
 			for _, warning := range result.Warnings {
