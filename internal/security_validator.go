@@ -123,6 +123,7 @@ func hasActualContent(lines []string, minLength int) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -133,6 +134,7 @@ func hasVersionInformation(lines []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
