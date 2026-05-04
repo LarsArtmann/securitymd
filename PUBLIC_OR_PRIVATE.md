@@ -25,6 +25,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 ### 1. Zero Security Risk — No Secrets, No Vulnerable Logic
 
 This tool **validates markdown files**. It reads `SECURITY.md`, checks for sections, and generates templates. There is:
+
 - No network server, no API endpoints, no database
 - No secrets, credentials, or private keys anywhere in the codebase
 - No proprietary algorithms or business logic
@@ -35,6 +36,7 @@ This tool **validates markdown files**. It reads `SECURITY.md`, checks for secti
 ### 2. Solves a Real, Unsolved Problem
 
 As noted in `PARTS.md`: **no dedicated SECURITY.md validator exists** in the open-source ecosystem. Markdown linters are generic; GitHub's guidance is documentation-only. This tool fills a genuine gap:
+
 - Security-specific validation rules
 - CI/CD integration ready
 - Opinionated standards based on GitHub's official guidelines
@@ -48,6 +50,7 @@ As noted in `PARTS.md`: **no dedicated SECURITY.md validator exists** in the ope
 ### 4. Community Benefit
 
 Making this public would:
+
 - Help other projects improve their security disclosure practices
 - Serve as a reference implementation for SECURITY.md best practices
 - Enable contributions (bug fixes, new validation rules, additional templates)
@@ -73,15 +76,15 @@ Making this public would:
 
 ### 1. Code Quality Is Not Production-Ready
 
-| Issue | Detail |
-|-------|--------|
-| `go.mod` has `replace` directive | Points to local `../go-composable-business-types` — won't compile for external users without fixing |
-| `go mod tidy` required | Dependency graph is stale; LSP reports 20+ errors |
-| BDD test suite is skeleton-only | `BDD_TESTS_REVIEW.md` scores it 0/50 — acceptance tests exist but are incomplete |
-| Shell scripts are legacy | 1,300 lines of bash that duplicate Go functionality; no clear migration path documented |
-| Workflow uses outdated Go 1.21 | `go.mod` says 1.26 but CI uses `setup-go@v4` with Go 1.21 |
-| Config uses placeholder values | `.template-security.yaml` has `MyCompany`, `security@mycompany.com`, `hackerone.com` URLs |
-| SECURITY.md itself has `security@github.com` | Not a real contact for this project |
+| Issue                                        | Detail                                                                                              |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `go.mod` has `replace` directive             | Points to local `../go-composable-business-types` — won't compile for external users without fixing |
+| `go mod tidy` required                       | Dependency graph is stale; LSP reports 20+ errors                                                   |
+| BDD test suite is skeleton-only              | `BDD_TESTS_REVIEW.md` scores it 0/50 — acceptance tests exist but are incomplete                    |
+| Shell scripts are legacy                     | 1,300 lines of bash that duplicate Go functionality; no clear migration path documented             |
+| Workflow uses outdated Go 1.21               | `go.mod` says 1.26 but CI uses `setup-go@v4` with Go 1.21                                           |
+| Config uses placeholder values               | `.template-security.yaml` has `MyCompany`, `security@mycompany.com`, `hackerone.com` URLs           |
+| SECURITY.md itself has `security@github.com` | Not a real contact for this project                                                                 |
 
 ### 2. Unfinished Architecture Refactoring
 
@@ -142,16 +145,16 @@ Making this public would:
 
 ## Decision Matrix
 
-| Factor                    | Weight | Public | Private | Notes                          |
-|---------------------------|--------|--------|---------|--------------------------------|
-| Security risk             | High   | 10     | 10      | No difference — zero risk      |
-| Community value           | High   | 9      | 2       | Fills a real gap               |
-| Code quality perception   | High   | 4      | 7       | Needs cleanup first            |
-| Maintenance burden        | Medium | 4      | 8       | Private = zero expectations    |
-| Portfolio/reputation      | Medium | 8      | 3       | Shows engineering standards    |
-| Reusability               | Medium | 9      | 3       | Others can build on it         |
-| Dependency readiness      | High   | 3      | 8       | `replace` directive blocks use |
-| **Weighted Total**        |        | **47/70** | **41/70** | **Public wins, marginally** |
+| Factor                  | Weight | Public    | Private   | Notes                          |
+| ----------------------- | ------ | --------- | --------- | ------------------------------ |
+| Security risk           | High   | 10        | 10        | No difference — zero risk      |
+| Community value         | High   | 9         | 2         | Fills a real gap               |
+| Code quality perception | High   | 4         | 7         | Needs cleanup first            |
+| Maintenance burden      | Medium | 4         | 8         | Private = zero expectations    |
+| Portfolio/reputation    | Medium | 8         | 3         | Shows engineering standards    |
+| Reusability             | Medium | 9         | 3         | Others can build on it         |
+| Dependency readiness    | High   | 3         | 8         | `replace` directive blocks use |
+| **Weighted Total**      |        | **47/70** | **41/70** | **Public wins, marginally**    |
 
 ---
 

@@ -1,6 +1,6 @@
 package types
 
-import "github.com/larsartmann/go-composable-business-types/id"
+import id "github.com/larsartmann/go-branded-id"
 
 type (
 	IDID        = id.ID[IDBrand, string]
