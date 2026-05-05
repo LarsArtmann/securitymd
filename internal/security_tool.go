@@ -10,8 +10,8 @@ import (
 	"text/template"
 	"time"
 
-	finding "github.com/larsartmann/go-finding"
 	"github.com/LarsArtmann/template-SECURITY/internal/types"
+	finding "github.com/larsartmann/go-finding"
 	"github.com/spf13/viper"
 )
 
@@ -46,7 +46,7 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 	err := configViper.ReadInConfig()
 	if err != nil {
 		return nil, finding.NewIOError(
-			fmt.Sprintf("failed to read config file %s", configPath),
+			"failed to read config file "+configPath,
 			err,
 		)
 	}
@@ -172,7 +172,7 @@ func (st *SecurityTool) GeneratePolicy(_ context.Context, config PolicyConfig) e
 	err = os.WriteFile(outputFile, []byte(content), 0o644)
 	if err != nil {
 		return finding.NewIOError(
-			fmt.Sprintf("failed to write file %s", outputFile),
+			"failed to write file "+outputFile,
 			err,
 		)
 	}

@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/LarsArtmann/template-SECURITY/internal"
-	finding "github.com/larsartmann/go-finding"
 	"github.com/fatih/color"
+	finding "github.com/larsartmann/go-finding"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,8 @@ func newValidateCmd() *cobra.Command {
 
 	cmd.Flags().String("file", "", "Validate specific policy file")
 	cmd.Flags().StringVar(&outputFormat, "format", "text", "Output format (text, json, sarif)")
-	cmd.Flags().StringVar(&minimumSeverity, "severity", "info", "Minimum severity to report (info, warning, error, critical)")
+	cmd.Flags().
+		StringVar(&minimumSeverity, "severity", "info", "Minimum severity to report (info, warning, error, critical)")
 
 	return cmd
 }
@@ -88,6 +89,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	}
 
 	var reports []*finding.Report
+
 	overallValid := true
 
 	for _, filename := range policyFiles {
@@ -195,5 +197,3 @@ func printSummary(_ []*finding.Report, overallValid bool) {
 		color.Red("❌ Some policies failed validation")
 	}
 }
-
-

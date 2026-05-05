@@ -64,7 +64,12 @@ func lineChecker(lines []string, patterns ...string) bool {
 }
 
 // buildFinding creates a Finding using the Builder API with consistent defaults.
-func buildFinding(rule, message string, severity finding.Severity, file string, line int) (finding.Finding, error) {
+func buildFinding(
+	rule, message string,
+	severity finding.Severity,
+	file string,
+	line int,
+) (finding.Finding, error) {
 	return finding.NewBuilder(rule, toolName, message, severity, finding.Pos(file, line, 0)).
 		WithCategory(finding.CategorySecurity).
 		WithTags(finding.TagSecurity).
@@ -108,11 +113,31 @@ func (sv *SecurityValidator) checkRequiredSections(
 		message string
 	}{
 		{"# Security Policy", "error", "missing-header", "Missing Security Policy header"},
-		{"## Reporting a Vulnerability", "error", "missing-reporting", "Missing 'Reporting a Vulnerability' section"},
-		{"## Supported Versions", "error", "missing-versions", "Missing 'Supported Versions' section"},
-		{"## Security Practices", "error", "missing-practices", "Missing 'Security Practices' section"},
+		{
+			"## Reporting a Vulnerability",
+			"error",
+			"missing-reporting",
+			"Missing 'Reporting a Vulnerability' section",
+		},
+		{
+			"## Supported Versions",
+			"error",
+			"missing-versions",
+			"Missing 'Supported Versions' section",
+		},
+		{
+			"## Security Practices",
+			"error",
+			"missing-practices",
+			"Missing 'Security Practices' section",
+		},
 		{"@", "error", "missing-contact", "Missing contact email address"},
-		{"response time", "warning", "missing-response-time", "Should specify response time for vulnerability reports"},
+		{
+			"response time",
+			"warning",
+			"missing-response-time",
+			"Should specify response time for vulnerability reports",
+		},
 	}
 
 	for _, section := range requiredSections {
@@ -132,6 +157,19 @@ func (sv *SecurityValidator) checkRequiredSections(
 	}
 }
 
+func (sv *SecurityValidator) addFinding(
+	rule, message string,
+	severity finding.Severity,
+	file string,
+	line int,
+	report *finding.Report,
+) {
+	f, err := buildFinding(rule, message, severity, file, line)
+	if err == nil {
+		report.AddFinding(f)
+	}
+}
+
 func (sv *SecurityValidator) validateContentQuality(
 	filePath string,
 	_ string,
@@ -144,39 +182,25 @@ func (sv *SecurityValidator) validateContentQuality(
 	)
 
 	if len(lines) < minLines {
-		f, err := buildFinding("too-short", "SECURITY.md seems too short (< 20 lines)", finding.SeverityWarning, filePath, 0)
-		if err == nil {
-			report.AddFinding(f)
-		}
+		sv.addFinding("too-short", "SECURITY.md seems too short (< 20 lines)",
+			finding.SeverityWarning, filePath, 0, report)
 	}
 
 	for i, line := range lines {
 		if strings.Contains(line, "{{") && strings.Contains(line, "}}") {
-			f, err := buildFinding(
-				"unresolved-template",
-				"Unresolved template variable: "+strings.TrimSpace(line),
-				finding.SeverityError,
-				filePath,
-				i+1,
-			)
-			if err == nil {
-				report.AddFinding(f)
-			}
+			sv.addFinding("unresolved-template", "Unresolved template variable: "+strings.TrimSpace(line),
+				finding.SeverityError, filePath, i+1, report)
 		}
 	}
 
 	if !hasActualContent(lines, minLineLength) {
-		f, err := buildFinding("no-content", "SECURITY.md lacks substantive content", finding.SeverityError, filePath, 0)
-		if err == nil {
-			report.AddFinding(f)
-		}
+		sv.addFinding("no-content", "SECURITY.md lacks substantive content",
+			finding.SeverityError, filePath, 0, report)
 	}
 
 	if !hasVersionInformation(lines) {
-		f, err := buildFinding("no-version-info", "No version information found", finding.SeverityWarning, filePath, 0)
-		if err == nil {
-			report.AddFinding(f)
-		}
+		sv.addFinding("no-version-info", "No version information found",
+			finding.SeverityWarning, filePath, 0, report)
 	}
 }
 
@@ -249,6 +273,7 @@ func (sv *SecurityValidator) PrintResults(reports []*finding.Report) {
 		}
 
 		valid := ReportIsValid(report)
+
 		status := "✅"
 		if !valid {
 			status = "❌"

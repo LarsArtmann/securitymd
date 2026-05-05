@@ -25,7 +25,8 @@ var _ = ginkgo.Describe("Security Policy Validation", ginkgo.Label("acceptance")
 			hasError := false
 
 			for _, f := range report.Findings {
-				if f.Severity == finding.SeverityError && strings.Contains(f.Message, expectedErrorSubstring) {
+				if f.Severity == finding.SeverityError &&
+					strings.Contains(f.Message, expectedErrorSubstring) {
 					hasError = true
 
 					break
@@ -165,7 +166,8 @@ Missing content.
 			hasShortWarning := false
 
 			for _, f := range report.Findings {
-				if f.Severity == finding.SeverityWarning && strings.Contains(f.Message, "too short") {
+				if f.Severity == finding.SeverityWarning &&
+					strings.Contains(f.Message, "too short") {
 					hasShortWarning = true
 
 					break

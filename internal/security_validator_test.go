@@ -188,8 +188,18 @@ We follow security best practices.
 			valid := ReportIsValid(report)
 			assert.Equal(t, tt.expectValid, valid)
 
-			assertContainsAll(t, tt.expectedErrors, collectMessages(report, finding.SeverityError), "error")
-			assertContainsAll(t, tt.expectedWarns, collectMessages(report, finding.SeverityWarning), "warning")
+			assertContainsAll(
+				t,
+				tt.expectedErrors,
+				collectMessages(report, finding.SeverityError),
+				"error",
+			)
+			assertContainsAll(
+				t,
+				tt.expectedWarns,
+				collectMessages(report, finding.SeverityWarning),
+				"warning",
+			)
 		})
 	}
 }
@@ -243,10 +253,28 @@ func TestSecurityValidator_PrintResults(t *testing.T) {
 	validator := NewSecurityValidator()
 
 	report1 := finding.NewReport(finding.ToolInfo{Name: toolName})
-	report1.AddFinding(finding.NewFinding("test", toolName, "Minor warning", finding.SeverityWarning, finding.Pos("SECURITY.md", 1, 0), 1.0))
+	report1.AddFinding(
+		finding.NewFinding(
+			"test",
+			toolName,
+			"Minor warning",
+			finding.SeverityWarning,
+			finding.Pos("SECURITY.md", 1, 0),
+			1.0,
+		),
+	)
 
 	report2 := finding.NewReport(finding.ToolInfo{Name: toolName})
-	report2.AddFinding(finding.NewFinding("test", toolName, "Missing section", finding.SeverityError, finding.Pos("BAD_SECURITY.md", 1, 0), 1.0))
+	report2.AddFinding(
+		finding.NewFinding(
+			"test",
+			toolName,
+			"Missing section",
+			finding.SeverityError,
+			finding.Pos("BAD_SECURITY.md", 1, 0),
+			1.0,
+		),
+	)
 
 	reports := []*finding.Report{report1, report2}
 

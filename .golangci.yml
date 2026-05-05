@@ -132,4 +132,45 @@ formatters:
     - goimports
     - gofumpt
     - golines
+linters-settings:
+  depguard:
+    rules:
+      Main:
+        allow:
+          - $gostd
+          - github.com/fatih/color
+          - github.com/spf13/cobra
+          - github.com/spf13/pflag
+          - github.com/spf13/viper
+          - github.com/larsartmann/go-finding
+          - github.com/larsartmann/go-finding/pipeline
+          - github.com/LarsArtmann/template-SECURITY/internal
+          - github.com/LarsArtmann/template-SECURITY/internal/types
+      Test:
+        allow:
+          - $gostd
+          - github.com/fatih/color
+          - github.com/spf13/cobra
+          - github.com/spf13/pflag
+          - github.com/larsartmann/go-finding
+          - github.com/larsartmann/go-finding/pipeline
+          - github.com/LarsArtmann/template-SECURITY/internal
+          - github.com/LarsArtmann/template-SECURITY/internal/types
+          - github.com/onsi/ginkgo/v2
+          - github.com/onsi/gomega
+          - github.com/stretchr/testify
+  forbidigo:
+    allow:
+      - ^fmt\.Fprint
+      - ^fmt\.Fprintf
+      - ^fmt\.Fprintln
+  gocognit:
+    min-complexity: 30
+  nestif:
+    max-depth: 5
+  varnamelen:
+    min-length: 2
+  funlen:
+    lines: 80
+    statements: 60
 issues: {}
