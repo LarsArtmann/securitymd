@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// RunEFunc is a type for cobra command RunE functions.
 type RunEFunc func(*cobra.Command, []string) error
 
 func newCommand(use, short, long string, runE RunEFunc) *cobra.Command {
