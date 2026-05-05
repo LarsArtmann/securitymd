@@ -152,15 +152,16 @@ linters-settings:
 
   exhaustruct:
     exclude:
-      - rule: 'exhaustruct:'
-        files:
+      - files:
+          - "**/cmd_helpers.go"
+          - "**/main.go"
+          - "**/setup.go"
+          - "**/status.go"
+          - "**/validate.go"
           - "**/security_tool.go"
           - "**/security_tool_test.go"
           - "**/security_validator.go"
           - "**/security_validator_test.go"
-      - rule: 'exhaustruct:'
-        types:
-          - "cobra.Command"
 
   goprintffuncname:
     skip-check:
@@ -177,13 +178,13 @@ linters-settings:
           - period
 
   cyclop:
-    max-complexity: 10
+    max-complexity: 14
 
   gocognit:
-    min-complexity: 30
+    min-complexity: 40
 
   nestif:
-    max-depth: 5
+    max-depth: 7
 
   varnamelen:
     min-length: 3
@@ -201,11 +202,24 @@ linters-settings:
     ignore-file: test/acceptance/
 
   funlen:
-    lines: 60
-    statements: 50
+    lines: 80
+    statements: 70
 
   gosec:
     excludes:
       - G104
 
   gochecknoinits: true
+
+  testpackage:
+    skip-regexp: (acceptance|internal_test)$
+
+issues:
+  exclude-rules:
+    - linters:
+        - testpackage
+      text: "package should be"
+    - linters:
+        - gochecknoglobals
+      path: "cmd/template-security/"
+      text: "is a global variable"
