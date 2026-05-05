@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -12,7 +11,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var outputFormat string
+var (
+	outputFormat    string
+	minimumSeverity string
+)
 
 func newValidateCmd() *cobra.Command {
 	cmd := newCommand(
@@ -23,7 +25,8 @@ func newValidateCmd() *cobra.Command {
 	)
 
 	cmd.Flags().String("file", "", "Validate specific policy file")
-	cmd.Flags().StringVar(&outputFormat, "format", "text", "Output format (text, json)")
+	cmd.Flags().StringVar(&outputFormat, "format", "text", "Output format (text, json, sarif)")
+	cmd.Flags().StringVar(&minimumSeverity, "severity", "info", "Minimum severity to report (info, warning, error, critical)")
 
 	return cmd
 }
@@ -40,14 +43,25 @@ func runValidate(cmd *cobra.Command, _ []string) error {
 	return validateAllPolicies(validator)
 }
 
+func parseSeverity(s string) finding.Severity {
+	sev := finding.Severity(s)
+	if sev.IsValid() {
+		return sev
+	}
+
+	return finding.SeverityInfo
+}
+
 func validateSpecificFile(filename string, validator *internal.SecurityValidator) error {
-	if outputFormat != "json" {
+	if outputFormat != "json" && outputFormat != "sarif" {
 		color.Cyan("🔍 Validating security policy: %s", filename)
 	}
 
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		if outputFormat == "json" {
-			return printJSONError(filename, err)
+		if outputFormat == "json" || outputFormat == "sarif" {
+			fmt.Fprintf(os.Stderr, "file not found: %s\n", filename)
+
+			return fmt.Errorf("file not found: %s", filename)
 		}
 
 		color.Red("❌ File not found: %s", filename)
@@ -60,11 +74,11 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	return printValidationResult(report, validator)
+	return outputReport(report)
 }
 
 func validateAllPolicies(validator *internal.SecurityValidator) error {
-	if outputFormat != "json" {
+	if outputFormat != "json" && outputFormat != "sarif" {
 		color.Cyan("✅ Validating all security policies...")
 	}
 
@@ -83,7 +97,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 
 		report, err := validator.ValidateSECURITYMd(filename)
 		if err != nil {
-			if outputFormat != "json" {
+			if outputFormat != "json" && outputFormat != "sarif" {
 				color.Red("❌ Failed to validate %s: %v", filename, err)
 			}
 
@@ -94,32 +108,28 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 
 		reports = append(reports, report)
 
-		if !reportIsValid(reports) {
+		if !internal.ReportIsValid(report) {
 			overallValid = false
 		}
 	}
 
 	if len(reports) == 0 {
-		if outputFormat != "json" {
+		if outputFormat != "json" && outputFormat != "sarif" {
 			color.Yellow("⚠️  No security policy files found to validate")
 		}
 
 		return nil
 	}
 
-	if outputFormat == "json" {
-		return printJSONReports(reports)
+	if outputFormat != "text" {
+		merged := mergeReports(reports)
+
+		return outputReport(merged)
 	}
 
 	validator.PrintResults(reports)
 
-	color.White("\n📊 Validation Summary:")
-
-	if overallValid {
-		color.Green("✅ All policies passed validation")
-	} else {
-		color.Red("❌ Some policies failed validation")
-	}
+	printSummary(reports, overallValid)
 
 	if !overallValid {
 		return errors.New("one or more policies failed validation")
@@ -128,79 +138,62 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	return nil
 }
 
-func reportIsValid(reports []*finding.Report) bool {
-	for _, r := range reports {
-		for _, f := range r.Findings {
-			if f.Severity == finding.SeverityError {
-				return false
-			}
-		}
+func mergeReports(reports []*finding.Report) *finding.Report {
+	if len(reports) == 1 {
+		return reports[0]
 	}
 
-	return true
+	merged := finding.NewReport(finding.ToolInfo{Name: "template-security"})
+
+	for _, r := range reports {
+		merged.AddFindings(r.Findings)
+	}
+
+	merged.ComputeSummary()
+
+	return merged
 }
 
-func printValidationResult(
-	report *finding.Report,
-	validator *internal.SecurityValidator,
-) error {
-	if outputFormat == "json" {
-		return printJSONReports([]*finding.Report{report})
+func outputReport(report *finding.Report) error {
+	minSev := parseSeverity(minimumSeverity)
+
+	switch outputFormat {
+	case "json":
+		return report.WriteJSON(os.Stdout)
+	case "sarif":
+		return report.WriteSARIFFiltered(os.Stdout, minSev)
+	default:
+		return printTextReport(report)
 	}
+}
 
-	validator.PrintResults([]*finding.Report{report})
+func printTextReport(report *finding.Report) error {
+	minSev := parseSeverity(minimumSeverity)
+	filtered := finding.Filter(report.Findings,
+		finding.BySeverityAtLeast(minSev),
+		finding.NotSuppressed,
+	)
 
-	if !reportIsValid([]*finding.Report{report}) {
-		return errors.New("policy validation failed")
+	for _, f := range filtered {
+		icon := "⚠️"
+		if f.Severity == finding.SeverityError || f.Severity == finding.SeverityCritical {
+			icon = "❌"
+		}
+
+		fmt.Printf("  %s %s\n", icon, f.Message)
 	}
 
 	return nil
 }
 
-func printJSONError(filename string, err error) error {
-	return printJSON(map[string]any{
-		"error":   "file not found",
-		"file":    filename,
-		"details": err.Error(),
-	})
-}
+func printSummary(_ []*finding.Report, overallValid bool) {
+	color.White("\n📊 Validation Summary:")
 
-func printJSONReports(reports []*finding.Report) error {
-	validCount := 0
-
-	for _, r := range reports {
-		if isValid(r) {
-			validCount++
-		}
+	if overallValid {
+		color.Green("✅ All policies passed validation")
+	} else {
+		color.Red("❌ Some policies failed validation")
 	}
-
-	return printJSON(map[string]any{
-		"valid": validCount == len(reports),
-		"files": reports,
-		"summary": map[string]int{
-			"total": len(reports),
-			"valid": validCount,
-		},
-	})
 }
 
-func isValid(report *finding.Report) bool {
-	for _, f := range report.Findings {
-		if f.Severity == finding.SeverityError {
-			return false
-		}
-	}
 
-	return true
-}
-
-func printJSON(data map[string]any) error {
-	jsonBytes, jErr := json.MarshalIndent(data, "", "  ")
-	if jErr != nil {
-		return fmt.Errorf("failed to marshal JSON: %w", jErr)
-	}
-
-	fmt.Println(string(jsonBytes))
-
-	return nil
-}

@@ -3,7 +3,6 @@ package internal
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,50 +10,21 @@ import (
 	"text/template"
 	"time"
 
+	finding "github.com/larsartmann/go-finding"
 	"github.com/LarsArtmann/template-SECURITY/internal/types"
 	"github.com/spf13/viper"
 )
 
 // Error types.
 var (
-	ErrConfigNotFound    = errors.New("configuration file not found")
-	ErrInvalidConfig     = errors.New("invalid configuration")
-	ErrTemplateNotFound  = errors.New("template not found")
-	ErrTemplateParse     = errors.New("failed to parse template")
-	ErrFileWrite         = errors.New("failed to write file")
-	ErrInvalidPolicyType = errors.New("invalid policy type")
-	ErrMissingField      = errors.New("required field missing")
+	ErrConfigNotFound    = finding.NewValidationError("configuration file not found", nil)
+	ErrInvalidConfig     = finding.NewValidationError("invalid configuration", nil)
+	ErrTemplateNotFound  = finding.NewValidationError("template not found", nil)
+	ErrTemplateParse     = finding.NewValidationError("failed to parse template", nil)
+	ErrFileWrite         = finding.NewIOError("failed to write file", nil)
+	ErrInvalidPolicyType = finding.NewValidationError("invalid policy type", nil)
+	ErrMissingField      = finding.NewValidationError("required field missing", nil)
 )
-
-// SecurityError represents a structured error with code and context.
-type SecurityError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	Field   string `json:"field,omitempty"`
-	Cause   error  `json:"cause,omitempty"`
-}
-
-func (e *SecurityError) Error() string {
-	if e.Cause != nil {
-		return fmt.Sprintf("%s: %s (caused by: %v)", e.Code, e.Message, e.Cause)
-	}
-
-	return fmt.Sprintf("%s: %s", e.Code, e.Message)
-}
-
-func (e *SecurityError) Unwrap() error {
-	return e.Cause
-}
-
-// NewSecurityError creates a new SecurityError.
-func NewSecurityError(code, message, field string, cause error) *SecurityError {
-	return &SecurityError{
-		Code:    code,
-		Message: message,
-		Field:   field,
-		Cause:   cause,
-	}
-}
 
 // SecurityTool represents a simple security policy tool.
 type SecurityTool struct{}
@@ -68,38 +38,26 @@ func NewSecurityTool() *SecurityTool {
 func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 	configViper := viper.New()
 
-	// Set config file path
 	configViper.SetConfigFile(configPath)
 
-	// Enable environment variable support
 	configViper.AutomaticEnv()
 	configViper.SetEnvPrefix("TEMPLATE_SECURITY")
 
-	// Read config file
 	err := configViper.ReadInConfig()
 	if err != nil {
-		return nil, NewSecurityError(
-			"CONFIG_READ_FAILED",
-			"failed to read config file",
-			configPath,
+		return nil, finding.NewIOError(
+			fmt.Sprintf("failed to read config file %s", configPath),
 			err,
 		)
 	}
 
-	// Unmarshal into config struct
 	var config Config
 
 	err = configViper.Unmarshal(&config)
 	if err != nil {
-		return nil, NewSecurityError(
-			"CONFIG_UNMARSHAL_FAILED",
-			"failed to unmarshal config",
-			"",
-			err,
-		)
+		return nil, finding.NewParseError("failed to unmarshal config", err)
 	}
 
-	// Set defaults
 	if config.Type == "" {
 		config.Type = types.PolicyTypeGitHub
 	}
@@ -129,7 +87,6 @@ func (st *SecurityTool) LoadConfig(configPath string) (*Config, error) {
 
 // FindConfigFile finds configuration file in current directory or parent directories.
 func (st *SecurityTool) FindConfigFile() string {
-	// Check for config files in order of preference
 	configNames := []string{
 		".template-security.yaml",
 		".template-security.yml",
@@ -137,7 +94,6 @@ func (st *SecurityTool) FindConfigFile() string {
 		"template-security.yml",
 	}
 
-	// Start in current directory and go up
 	dir, _ := os.Getwd()
 
 	for {
@@ -148,10 +104,9 @@ func (st *SecurityTool) FindConfigFile() string {
 			}
 		}
 
-		// Go up one directory
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			break // Reached root
+			break
 		}
 
 		dir = parent
@@ -193,35 +148,33 @@ type TemplateData struct {
 }
 
 // GeneratePolicy generates a security policy.
-func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig) error {
-	// Prepare template data
+func (st *SecurityTool) GeneratePolicy(_ context.Context, config PolicyConfig) error {
 	templateData := st.prepareTemplateData(config)
 
-	// Read template
 	templateContent, err := st.readTemplate(config.Type)
 	if err != nil {
-		return NewSecurityError(
-			"TEMPLATE_READ_FAILED",
-			"failed to read template",
-			string(config.Type),
+		return finding.NewIOError(
+			fmt.Sprintf("failed to read template for type %s", config.Type),
 			err,
 		)
 	}
 
-	// Process template
 	content, err := st.processTemplate(templateContent, templateData)
 	if err != nil {
-		return NewSecurityError("TEMPLATE_PROCESS_FAILED", "failed to process template", "", err)
+		return finding.NewParseError("failed to process template", err)
 	}
 
-	// Save to SECURITY.md
 	outputFile := "SECURITY.md"
 	if config.OutputDir != "." {
 		outputFile = strings.TrimSuffix(config.OutputDir, "/") + "/SECURITY.md"
 	}
 
-	if err := os.WriteFile(outputFile, []byte(content), 0o644); err != nil {
-		return NewSecurityError("FILE_WRITE_FAILED", "failed to write file", outputFile, err)
+	err = os.WriteFile(outputFile, []byte(content), 0o644)
+	if err != nil {
+		return finding.NewIOError(
+			fmt.Sprintf("failed to write file %s", outputFile),
+			err,
+		)
 	}
 
 	fmt.Printf("✅ Generated %s for %s\n", outputFile, config.Organization)
@@ -231,8 +184,7 @@ func (st *SecurityTool) GeneratePolicy(ctx context.Context, config PolicyConfig)
 
 // prepareTemplateData prepares template data with defaults.
 func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
-	// Start with required fields
-	supportYears := 1 // default
+	supportYears := 1
 
 	if years, exists := config.Variables["SUPPORT_YEARS"]; exists {
 		if parsed, err := time.ParseDuration(years + "y"); err == nil {
@@ -250,7 +202,6 @@ func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 		AdditionalFields: make(map[string]any),
 	}
 
-	// Add user-provided variables
 	for k, v := range config.Variables {
 		data.AdditionalFields[k] = v
 	}
@@ -258,12 +209,9 @@ func (st *SecurityTool) prepareTemplateData(config PolicyConfig) TemplateData {
 	return data
 }
 
-// readTemplate reads the appropriate template file.
 func (st *SecurityTool) readTemplate(_ types.PolicyType) (string, error) {
 	templatePath := "templates/SECURITY.md"
 
-	// For now, we use the same template for both types
-	// In the future, we could have different templates
 	content, err := os.ReadFile(templatePath)
 	if err != nil {
 		return "", err
@@ -272,15 +220,12 @@ func (st *SecurityTool) readTemplate(_ types.PolicyType) (string, error) {
 	return string(content), nil
 }
 
-// processTemplate processes template using Go's text/template.
 func (st *SecurityTool) processTemplate(templateContent string, data TemplateData) (string, error) {
-	// Create template
 	tmpl, err := template.New("security").Parse(templateContent)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
 
-	// Execute template with data
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute template: %w", err)

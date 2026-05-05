@@ -226,7 +226,8 @@ func TestSecurityValidator_ValidateContentQuality(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			report := finding.NewReport(finding.ToolInfo{Name: toolName})
-			validator.validateContentQuality("test.md", tt.content, report)
+			lines := strings.Split(tt.content, "\n")
+			validator.validateContentQuality("test.md", tt.content, lines, report)
 
 			if len(tt.expectedErrors) > 0 {
 				errorMessages := collectMessages(report, finding.SeverityError)

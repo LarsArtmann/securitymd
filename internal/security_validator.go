@@ -1,21 +1,53 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 
 	finding "github.com/larsartmann/go-finding"
+	"github.com/larsartmann/go-finding/pipeline"
 )
 
 const toolName = "template-security"
 
 // SecurityValidator validates security policy files.
-type SecurityValidator struct{}
+// It implements pipeline.Detector for integration with the go-finding ecosystem.
+type SecurityValidator struct {
+	filePath string
+}
 
-// NewSecurityValidator creates a new security validator.
+// NewSecurityValidator creates a new security validator for the given file.
+// The filePath is used by Detect() to know which file to validate.
 func NewSecurityValidator() *SecurityValidator {
 	return &SecurityValidator{}
+}
+
+// WithFile sets the file path to validate. Returns a new validator.
+func (sv *SecurityValidator) WithFile(path string) *SecurityValidator {
+	return &SecurityValidator{filePath: path}
+}
+
+// Name implements pipeline.Detector.
+func (sv *SecurityValidator) Name() string {
+	return toolName
+}
+
+// Detect implements pipeline.Detector.
+func (sv *SecurityValidator) Detect(ctx context.Context) ([]finding.Finding, error) {
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("security validation cancelled: %w", ctx.Err())
+	default:
+	}
+
+	report, err := sv.ValidateSECURITYMd(sv.filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return report.Findings, nil
 }
 
 // lineChecker is a helper to find lines matching any of the patterns.
@@ -31,16 +63,14 @@ func lineChecker(lines []string, patterns ...string) bool {
 	return false
 }
 
-// makeFinding creates a Finding for a validation issue at the given file and line.
-func makeFinding(rule, message string, severity finding.Severity, file string, line int) finding.Finding {
-	return finding.NewFinding(
-		rule,
-		toolName,
-		message,
-		severity,
-		finding.Pos(file, line, 0),
-		1.0,
-	)
+// buildFinding creates a Finding using the Builder API with consistent defaults.
+func buildFinding(rule, message string, severity finding.Severity, file string, line int) (finding.Finding, error) {
+	return finding.NewBuilder(rule, toolName, message, severity, finding.Pos(file, line, 0)).
+		WithCategory(finding.CategorySecurity).
+		WithTags(finding.TagSecurity).
+		WithFixStrategy(finding.FixStrategySuggest).
+		WithConfidence(1.0).
+		Build()
 }
 
 // ValidateSECURITYMd validates a SECURITY.md file and returns a Report containing findings.
@@ -51,17 +81,31 @@ func (sv *SecurityValidator) ValidateSECURITYMd(
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
+		return nil, finding.NewIOError("failed to read file", err).
+			WithPosition(finding.Pos(filePath, 0, 0))
 	}
 
 	contentStr := string(content)
 	lines := strings.Split(contentStr, "\n")
 
+	sv.checkRequiredSections(filePath, lines, report)
+	sv.validateContentQuality(filePath, contentStr, lines, report)
+
+	report.ComputeSummary()
+
+	return report, nil
+}
+
+func (sv *SecurityValidator) checkRequiredSections(
+	filePath string,
+	lines []string,
+	report *finding.Report,
+) {
 	requiredSections := []struct {
-		pattern  string
-		level    string
-		rule     string
-		message  string
+		pattern string
+		level   string
+		rule    string
+		message string
 	}{
 		{"# Security Policy", "error", "missing-header", "Missing Security Policy header"},
 		{"## Reporting a Vulnerability", "error", "missing-reporting", "Missing 'Reporting a Vulnerability' section"},
@@ -78,22 +122,20 @@ func (sv *SecurityValidator) ValidateSECURITYMd(
 				severity = finding.SeverityError
 			}
 
-			f := makeFinding(section.rule, section.message, severity, filePath, 0)
-			f.Category = finding.CategorySecurity
+			f, err := buildFinding(section.rule, section.message, severity, filePath, 0)
+			if err != nil {
+				continue
+			}
 
 			report.AddFinding(f)
 		}
 	}
-
-	sv.validateContentQuality(filePath, contentStr, report)
-
-	return report, nil
 }
 
-// validateContentQuality checks the quality of the content and adds findings.
 func (sv *SecurityValidator) validateContentQuality(
 	filePath string,
-	content string,
+	_ string,
+	lines []string,
 	report *finding.Report,
 ) {
 	const (
@@ -101,38 +143,40 @@ func (sv *SecurityValidator) validateContentQuality(
 		minLineLength = 20
 	)
 
-	lines := strings.Split(content, "\n")
-
 	if len(lines) < minLines {
-		f := makeFinding("too-short", "SECURITY.md seems too short (< 20 lines)", finding.SeverityWarning, filePath, 0)
-		f.Category = finding.CategorySecurity
-		report.AddFinding(f)
+		f, err := buildFinding("too-short", "SECURITY.md seems too short (< 20 lines)", finding.SeverityWarning, filePath, 0)
+		if err == nil {
+			report.AddFinding(f)
+		}
 	}
 
 	for i, line := range lines {
 		if strings.Contains(line, "{{") && strings.Contains(line, "}}") {
-			f := makeFinding(
+			f, err := buildFinding(
 				"unresolved-template",
 				"Unresolved template variable: "+strings.TrimSpace(line),
 				finding.SeverityError,
 				filePath,
 				i+1,
 			)
-			f.Category = finding.CategorySecurity
-			report.AddFinding(f)
+			if err == nil {
+				report.AddFinding(f)
+			}
 		}
 	}
 
 	if !hasActualContent(lines, minLineLength) {
-		f := makeFinding("no-content", "SECURITY.md lacks substantive content", finding.SeverityError, filePath, 0)
-		f.Category = finding.CategorySecurity
-		report.AddFinding(f)
+		f, err := buildFinding("no-content", "SECURITY.md lacks substantive content", finding.SeverityError, filePath, 0)
+		if err == nil {
+			report.AddFinding(f)
+		}
 	}
 
 	if !hasVersionInformation(lines) {
-		f := makeFinding("no-version-info", "No version information found", finding.SeverityWarning, filePath, 0)
-		f.Category = finding.CategorySecurity
-		report.AddFinding(f)
+		f, err := buildFinding("no-version-info", "No version information found", finding.SeverityWarning, filePath, 0)
+		if err == nil {
+			report.AddFinding(f)
+		}
 	}
 }
 
@@ -161,13 +205,24 @@ func hasVersionInformation(lines []string) bool {
 
 // ReportIsValid returns true if the report has no error-severity findings.
 func ReportIsValid(report *finding.Report) bool {
-	for _, f := range report.Findings {
-		if f.Severity == finding.SeverityError {
-			return false
-		}
+	return len(finding.Filter(report.Findings, finding.BySeverity(finding.SeverityError))) == 0
+}
+
+// DetectFile is a convenience function that creates a validator for a single file,
+// runs Detect, and returns the findings as a Report.
+func DetectFile(ctx context.Context, filePath string) (*finding.Report, error) {
+	detector := &SecurityValidator{filePath: filePath}
+
+	findings, err := detector.Detect(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	return true
+	report := finding.NewReport(finding.ToolInfo{Name: toolName})
+	report.AddFindings(findings)
+	report.ComputeSummary()
+
+	return report, nil
 }
 
 // PrintResults prints validation results in a user-friendly format.
@@ -214,3 +269,6 @@ func (sv *SecurityValidator) PrintResults(reports []*finding.Report) {
 		}
 	}
 }
+
+// Compile-time interface check.
+var _ pipeline.Detector = (*SecurityValidator)(nil)
