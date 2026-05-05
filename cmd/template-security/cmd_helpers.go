@@ -1,3 +1,4 @@
+// Package main provides CLI command helpers for template-security.
 package main
 
 import (
@@ -8,26 +9,20 @@ import (
 type RunEFunc func(*cobra.Command, []string) error
 
 func newCommand(use, short, long string, runE RunEFunc) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   use,
 		Short: short,
 		Long:  long,
 		RunE:  runE,
 	}
+
+	return cmd
 }
 
-func printInfo(format string, args ...any) {
+func printInfof(format string, args ...any) {
 	color.Cyan(format, args...)
 }
 
-func printSuccess(format string, args ...any) {
-	color.Green(format, args...)
-}
-
-func printWarning(format string, args ...any) {
+func printWarningf(format string, args ...any) {
 	color.Yellow(format, args...)
-}
-
-func printError(format string, args ...any) {
-	color.Red(format, args...)
 }

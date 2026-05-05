@@ -34,13 +34,13 @@ func runStatus(_ *cobra.Command, _ []string) error {
 
 	templatesDir := "templates"
 	if count := countSecurityTemplates(templatesDir); count > 0 {
-		printInfo("Available SECURITY.md templates: %d", count)
+		printInfof("Available SECURITY.md templates: %d", count)
 	} else {
-		printWarning("No templates directory found")
+		printWarningf("No templates directory found")
 	}
 
 	fmt.Println()
-	printInfo("Next steps:")
+	printInfof("Next steps:")
 	fmt.Println("  1. Run 'template-security setup --type github' to generate SECURITY.md")
 	fmt.Println("  2. Run 'template-security validate' to check SECURITY.md")
 

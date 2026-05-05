@@ -11,17 +11,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	// outputFormatJSON represents JSON output format.
+	outputFormatJSON = "json"
+	// outputFormatSarif represents SARIF output format.
+	outputFormatSarif = "sarif"
+	// outputFormatText represents text output format.
+	outputFormatText = "text"
+)
+
 var (
 	outputFormat    string
 	minimumSeverity string
 )
+
+// errPolicyValidation is returned when one or more policies failed validation.
+var errPolicyValidation = errors.New("one or more policies failed validation")
 
 func newValidateCmd() *cobra.Command {
 	cmd := newCommand(
 		"validate",
 		"Validate security policies",
 		"Validate security policies for completeness and compliance.\nChecks SECURITY.md files for required sections and content quality.",
-		runValidate,
+		nil,
 	)
 
 	cmd.Flags().String("file", "", "Validate specific policy file")
@@ -29,19 +41,19 @@ func newValidateCmd() *cobra.Command {
 	cmd.Flags().
 		StringVar(&minimumSeverity, "severity", "info", "Minimum severity to report (info, warning, error, critical)")
 
-	return cmd
-}
+	cmd.RunE = func(_ *cobra.Command, _ []string) error {
+		file, _ := cmd.Flags().GetString("file")
 
-func runValidate(cmd *cobra.Command, _ []string) error {
-	file, _ := cmd.Flags().GetString("file")
+		validator := internal.NewSecurityValidator()
 
-	validator := internal.NewSecurityValidator()
+		if file != "" {
+			return validateSpecificFile(file, validator)
+		}
 
-	if file != "" {
-		return validateSpecificFile(file, validator)
+		return validateAllPolicies(validator)
 	}
 
-	return validateAllPolicies(validator)
+	return cmd
 }
 
 func parseSeverity(s string) finding.Severity {
@@ -54,12 +66,13 @@ func parseSeverity(s string) finding.Severity {
 }
 
 func validateSpecificFile(filename string, validator *internal.SecurityValidator) error {
-	if outputFormat != "json" && outputFormat != "sarif" {
+	if outputFormat != outputFormatJSON && outputFormat != outputFormatSarif {
 		color.Cyan("🔍 Validating security policy: %s", filename)
 	}
 
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		if outputFormat == "json" || outputFormat == "sarif" {
+	stat, err := os.Stat(filename)
+	if err != nil {
+		if outputFormat == outputFormatJSON || outputFormat == outputFormatSarif {
 			fmt.Fprintf(os.Stderr, "file not found: %s\n", filename)
 
 			return fmt.Errorf("file not found: %s", filename)
@@ -70,6 +83,8 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 		return fmt.Errorf("file not found: %s", filename)
 	}
 
+	_ = stat
+
 	report, err := validator.ValidateSECURITYMd(filename)
 	if err != nil {
 		return fmt.Errorf("validation failed: %w", err)
@@ -79,7 +94,7 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 }
 
 func validateAllPolicies(validator *internal.SecurityValidator) error {
-	if outputFormat != "json" && outputFormat != "sarif" {
+	if outputFormat != outputFormatJSON && outputFormat != outputFormatSarif {
 		color.Cyan("✅ Validating all security policies...")
 	}
 
@@ -99,7 +114,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 
 		report, err := validator.ValidateSECURITYMd(filename)
 		if err != nil {
-			if outputFormat != "json" && outputFormat != "sarif" {
+			if outputFormat != outputFormatJSON && outputFormat != outputFormatSarif {
 				color.Red("❌ Failed to validate %s: %v", filename, err)
 			}
 
@@ -116,14 +131,14 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	}
 
 	if len(reports) == 0 {
-		if outputFormat != "json" && outputFormat != "sarif" {
+		if outputFormat != outputFormatJSON && outputFormat != outputFormatSarif {
 			color.Yellow("⚠️  No security policy files found to validate")
 		}
 
 		return nil
 	}
 
-	if outputFormat != "text" {
+	if outputFormat != outputFormatText {
 		merged := mergeReports(reports)
 
 		return outputReport(merged)
@@ -134,7 +149,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	printSummary(reports, overallValid)
 
 	if !overallValid {
-		return errors.New("one or more policies failed validation")
+		return errPolicyValidation
 	}
 
 	return nil
@@ -160,10 +175,14 @@ func outputReport(report *finding.Report) error {
 	minSev := parseSeverity(minimumSeverity)
 
 	switch outputFormat {
-	case "json":
-		return report.WriteJSON(os.Stdout)
-	case "sarif":
-		return report.WriteSARIFFiltered(os.Stdout, minSev)
+	case outputFormatJSON:
+		err := report.WriteJSON(os.Stdout)
+
+		return err
+	case outputFormatSarif:
+		err := report.WriteSARIFFiltered(os.Stdout, minSev)
+
+		return err
 	default:
 		return printTextReport(report)
 	}
@@ -176,13 +195,14 @@ func printTextReport(report *finding.Report) error {
 		finding.NotSuppressed,
 	)
 
-	for _, f := range filtered {
+	for _, findingItem := range filtered {
 		icon := "⚠️"
-		if f.Severity == finding.SeverityError || f.Severity == finding.SeverityCritical {
+		if findingItem.Severity == finding.SeverityError ||
+			findingItem.Severity == finding.SeverityCritical {
 			icon = "❌"
 		}
 
-		fmt.Printf("  %s %s\n", icon, f.Message)
+		fmt.Fprintf(os.Stdout, "  %s %s\n", icon, findingItem.Message)
 	}
 
 	return nil

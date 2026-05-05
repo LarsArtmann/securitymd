@@ -25,6 +25,7 @@ type VersionStatus string
 // ContactType represents different types of contact methods.
 type ContactType string
 
+// ContactTypeEmail is for email-based security contact.
 const (
 	ContactTypeEmail ContactType = "email"
 	ContactTypeWeb   ContactType = "web"
@@ -34,18 +35,18 @@ const (
 // Version represents a software version with support information.
 type Version struct {
 	Name            string        `json:"name"`
-	SemanticVersion string        `json:"semantic_version"`
-	SupportedUntil  time.Time     `json:"supported_until"`
+	SemanticVersion string        `json:"semanticVersion"`
+	SupportedUntil  time.Time     `json:"supportedUntil"`
 	Status          VersionStatus `json:"status"`
-	IsLatest        bool          `json:"is_latest"`
-	IsPrevious      bool          `json:"is_previous"`
+	IsLatest        bool          `json:"isLatest"`
+	IsPrevious      bool          `json:"isPrevious"`
 }
 
 // Contact represents security contact information.
 type Contact struct {
 	Type         ContactType `json:"type"`
 	Value        string      `json:"value"`
-	ResponseTime string      `json:"response_time"`
+	ResponseTime string      `json:"responseTime"`
 	Description  string      `json:"description"`
 }
 
@@ -57,8 +58,8 @@ type SecurityPolicy struct {
 	Contacts     []Contact  `json:"contacts"`
 	Content      string     `json:"content"`
 	Type         PolicyType `json:"type"`
-	ValidatedAt  *time.Time `json:"validated_at,omitempty"`
-	LastModified time.Time  `json:"last_modified"`
+	ValidatedAt  *time.Time `json:"validatedAt,omitempty"`
+	LastModified time.Time  `json:"lastModified"`
 }
 
 // Project represents project information.
@@ -73,12 +74,12 @@ type Project struct {
 // ValidationResult represents the result of validating a security policy.
 type ValidationResult struct {
 	ID          ID        `json:"id"`
-	PolicyID    PolicyID  `json:"policy_id"`
+	PolicyID    PolicyID  `json:"policyId"`
 	Valid       bool      `json:"valid"`
 	Errors      []Error   `json:"errors"`
 	Warnings    []Warning `json:"warnings"`
 	Score       int       `json:"score"` // 0-100
-	ValidatedAt time.Time `json:"validated_at"`
+	ValidatedAt time.Time `json:"validatedAt"`
 	Metadata    any       `json:"metadata,omitempty"`
 }
 
@@ -104,8 +105,8 @@ type Template struct {
 	Type        PolicyType         `json:"type"`
 	Content     string             `json:"content"`
 	Variables   []TemplateVariable `json:"variables"`
-	CreatedAt   time.Time          `json:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	UpdatedAt   time.Time          `json:"updatedAt"`
 }
 
 // TemplateVariable represents a variable in a template.
@@ -114,6 +115,6 @@ type TemplateVariable struct {
 	Description  string `json:"description"`
 	Type         string `json:"type"`
 	Required     bool   `json:"required"`
-	DefaultValue string `json:"default_value"`
+	DefaultValue string `json:"defaultValue"`
 	Example      string `json:"example"`
 }

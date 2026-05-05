@@ -17,9 +17,7 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:   "template-security",
 		Short: "Validate and generate SECURITY.md files",
-		Long: `Template-Security validates and generates SECURITY.md files for completeness 
-and compliance. Ensures your security policy contains all essential sections 
-and follows industry best practices for vulnerability disclosure.`,
+		Long:  `Template-Security validates and generates SECURITY.md files for completeness and compliance. Ensures your security policy contains all essential sections and follows industry best practices for vulnerability disclosure.`,
 		Example: `  # Validate existing SECURITY.md
   template-security validate
 

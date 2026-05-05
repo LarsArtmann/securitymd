@@ -1,4 +1,5 @@
 version: "2"
+
 run:
   timeout: 5m
   go: 1.26.1
@@ -11,8 +12,10 @@ run:
   allow-serial-runners: true
   issues-exit-code: 1
   tests: true
+
 output:
   formats: {}
+
 linters:
   enable:
     - arangolint
@@ -26,7 +29,6 @@ linters:
     - copyloopvar
     - cyclop
     - decorder
-    - depguard
     - dogsled
     - dupl
     - dupword
@@ -126,51 +128,84 @@ linters:
     - zerologlint
   disable:
     - funcorder
+    - depguard
+
 formatters:
   enable:
     - gci
     - goimports
     - gofumpt
     - golines
+
 linters-settings:
-  depguard:
-    rules:
-      Main:
-        allow:
-          - $gostd
-          - github.com/fatih/color
-          - github.com/spf13/cobra
-          - github.com/spf13/pflag
-          - github.com/spf13/viper
-          - github.com/larsartmann/go-finding
-          - github.com/larsartmann/go-finding/pipeline
-          - github.com/LarsArtmann/template-SECURITY/internal
-          - github.com/LarsArtmann/template-SECURITY/internal/types
-      Test:
-        allow:
-          - $gostd
-          - github.com/fatih/color
-          - github.com/spf13/cobra
-          - github.com/spf13/pflag
-          - github.com/larsartmann/go-finding
-          - github.com/larsartmann/go-finding/pipeline
-          - github.com/LarsArtmann/template-SECURITY/internal
-          - github.com/LarsArtmann/template-SECURITY/internal/types
-          - github.com/onsi/ginkgo/v2
-          - github.com/onsi/gomega
-          - github.com/stretchr/testify
   forbidigo:
     allow:
-      - ^fmt\.Fprint
-      - ^fmt\.Fprintf
-      - ^fmt\.Fprintln
+      - fmt\.(F)?Print(ln)?$
+      - fmt\.Fprintf$
+      - ^os\.Stderr$
+      - ^os\.Stdout$
+
+  gochecknoglobals:
+    checks:
+      - startingWithUnderscore
+      - type:*service*func
+
+  exhaustruct:
+    exclude:
+      - rule: 'exhaustruct:'
+        files:
+          - "**/security_tool.go"
+          - "**/security_tool_test.go"
+          - "**/security_validator.go"
+          - "**/security_validator_test.go"
+      - rule: 'exhaustruct:'
+        types:
+          - "cobra.Command"
+
+  goprintffuncname:
+    skip-check:
+      - ^print(Info|Success|Warning|Error)$
+
+  revive:
+    confidence: 0.8
+    rules:
+      - name: exported
+        arguments:
+          - disabledIfCommentBased
+      - name: package-comments
+        arguments:
+          - period
+
+  cyclop:
+    max-complexity: 10
+
   gocognit:
     min-complexity: 30
+
   nestif:
     max-depth: 5
+
   varnamelen:
-    min-length: 2
+    min-length: 3
+    ignore-type-asserts: true
+    ignore-map-index: true
+    ignore-channel-receive: true
+    ignore-declared-const: true
+
+  tagliatelle:
+    rules:
+      - key: json
+        values: [camel]
+
+  paralleltest:
+    ignore-file: test/acceptance/
+
   funlen:
-    lines: 80
-    statements: 60
-issues: {}
+    lines: 60
+    statements: 50
+
+  gosec:
+    excludes:
+      - G104
+
+  gochecknoinits: true

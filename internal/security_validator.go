@@ -188,8 +188,14 @@ func (sv *SecurityValidator) validateContentQuality(
 
 	for i, line := range lines {
 		if strings.Contains(line, "{{") && strings.Contains(line, "}}") {
-			sv.addFinding("unresolved-template", "Unresolved template variable: "+strings.TrimSpace(line),
-				finding.SeverityError, filePath, i+1, report)
+			sv.addFinding(
+				"unresolved-template",
+				"Unresolved template variable: "+strings.TrimSpace(line),
+				finding.SeverityError,
+				filePath,
+				i+1,
+				report,
+			)
 		}
 	}
 
