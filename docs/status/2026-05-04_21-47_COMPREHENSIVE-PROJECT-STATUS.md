@@ -13,20 +13,21 @@
 
 A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` files for GitHub repositories. Checks for required sections, content quality, and generates compliant templates.
 
-| Metric | Value |
-|--------|-------|
-| Go source lines | ~2,245 |
-| Shell script lines | ~1,323 (legacy) |
-| Go packages | 4 (`cmd/template-security`, `internal`, `internal/types`, `test/acceptance`) |
-| Dependencies | 8 direct (cobra, viper, ginkgo, gomega, testify, fatih/color, go-branded-id) |
-| BDD test specs | 9 (all passing) |
-| Unit test files | 2 (`security_tool_test.go`, `security_validator_test.go`) |
+| Metric             | Value                                                                        |
+| ------------------ | ---------------------------------------------------------------------------- |
+| Go source lines    | ~2,245                                                                       |
+| Shell script lines | ~1,323 (legacy)                                                              |
+| Go packages        | 4 (`cmd/template-security`, `internal`, `internal/types`, `test/acceptance`) |
+| Dependencies       | 8 direct (cobra, viper, ginkgo, gomega, testify, fatih/color, go-branded-id) |
+| BDD test specs     | 9 (all passing)                                                              |
+| Unit test files    | 2 (`security_tool_test.go`, `security_validator_test.go`)                    |
 
 ---
 
 ## a) FULLY DONE
 
 ### 1. Core CLI Application
+
 - **Status:** COMPLETE
 - Three commands: `validate`, `setup`, `status`
 - `validate` — validates SECURITY.md for required sections, content quality, template variables
@@ -36,6 +37,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - Colorized terminal output via fatih/color
 
 ### 2. Dependency Migration: go-composable-business-types → go-branded-id
+
 - **Status:** COMPLETE (just done this session)
 - `internal/types/ids.go` import updated to `github.com/larsartmann/go-branded-id`
 - `go.mod` updated with new dependency and `replace` directive pointing to `../go-branded-id`
@@ -43,6 +45,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - All builds and tests pass cleanly
 
 ### 3. BDD Acceptance Test Suite
+
 - **Status:** COMPLETE
 - Ginkgo v2 + Gomega framework integrated
 - 9 specs covering:
@@ -53,12 +56,14 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - Test helpers (`withTempFile`, `expectNoError`) extracted
 
 ### 4. Domain Types
+
 - **Status:** COMPLETE
 - Well-defined types in `internal/types/types.go`: `PolicyType`, `VersionStatus`, `ContactType`, `Version`, `Contact`, `SecurityPolicy`, `Project`, `ValidationResult`, `Template`
 - Branded IDs in `internal/types/ids.go`: `IDID`, `PolicyID`
 - Types use branded ID types for type-safe identifiers
 
 ### 5. Security Validation Engine
+
 - **Status:** COMPLETE
 - Validates required sections (Security Policy header, Reporting a Vulnerability, Supported Versions, Security Practices, contact email)
 - Content quality checks (minimum length, no template variables, substantive content, version information)
@@ -66,6 +71,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - User-friendly result printing with colorized output
 
 ### 6. Template System
+
 - **Status:** COMPLETE
 - Go `text/template` based (not string replacement)
 - Template data with defaults (organization, email, version, dates)
@@ -73,6 +79,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - Template file: `templates/SECURITY.md`
 
 ### 7. Configuration Management
+
 - **Status:** COMPLETE (using viper)
 - YAML config file support (`.template-security.yaml`)
 - Config file discovery (walks up directory tree)
@@ -80,22 +87,26 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - CLI flag overrides
 
 ### 8. Project Detection
+
 - **Status:** COMPLETE
 - Multi-source detection: git remote, package.json, go.mod, Cargo.toml, pyproject.toml, directory name
 - Organization and domain extraction from git URLs (HTTPS + SSH)
 - Fallback chain from most to least reliable source
 
 ### 9. Git Town Configuration
+
 - **Status:** COMPLETE
 - `git-town.toml` configured with `main = "master"` and GitHub API connector
 
 ### 10. Linting Configuration
+
 - **Status:** COMPLETE
 - `.golangci.yml` with 80+ linters enabled
 - `.go-arch-lint.yml` with Clean Architecture / DDD enforcement
 - Extremely comprehensive linter setup
 
 ### 11. CI/CD Workflow
+
 - **Status:** EXISTS but outdated
 - `.github/workflows/security-validation.yml` present
 - Validates SECURITY.md on push/PR
@@ -106,6 +117,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 ## b) PARTIALLY DONE
 
 ### 1. Branded ID Integration in Domain Types
+
 - **Status:** 20% — Types defined in `ids.go` but only `SecurityPolicy.ID` and `ValidationResult.ID`/`ValidationResult.PolicyID` actually use them
 - `Template.ID` still uses `IDID` type alias which maps to `id.ID[IDBrand, string]` — but `IDBrand` is a generic "ID" brand, not template-specific
 - No constructor functions (`NewPolicyID()`, `NewTemplateID()`, etc.)
@@ -113,6 +125,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - The branded IDs exist but aren't meaningfully differentiated — `IDID` and `PolicyID` are both `id.ID[X, string]` with different brands, which is correct, but there are no factory functions or meaningful usage beyond type definitions
 
 ### 2. Error Handling
+
 - **Status:** 60% — Structured `SecurityError` type exists with code, message, field, cause
 - Named sentinel errors defined (`ErrConfigNotFound`, `ErrInvalidConfig`, etc.)
 - BUT: Not all code paths use `SecurityError` consistently
@@ -120,6 +133,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - No error wrapping chain in validator
 
 ### 3. Documentation
+
 - **Status:** 50%
 - README.md: Good, covers features, commands, validation standards
 - CHANGELOG.md: Skeleton only — no actual entries beyond "Initial release"
@@ -131,6 +145,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - `docs/planning/go-composable-business-types-usage.md`: Now STALE — references old library name
 
 ### 4. CLI Help & Examples
+
 - **Status:** 70%
 - Root command has good example text
 - `validate` has `--file` and `--format` flags
@@ -142,49 +157,59 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 ## c) NOT STARTED
 
 ### 1. Replace viper with koanf
+
 - Mentioned in IMPROVEMENT_PLAN.md and PARTS.md as a recommendation
 - viper is functional but overkill; koanf is the preferred library per project standards
 - No work done on this
 
 ### 2. Extract `projectmeta` Library
+
 - Detailed plan in PARTS.md
 - `ProjectDetector` has clear extraction potential
 - Would need: refined API, options pattern, context support, comprehensive tests
 - Not started
 
 ### 3. Plugin System for Validation Rules
+
 - Listed in IMPROVEMENT_PLAN.md as medium-impact, medium-effort
 - Would allow custom validation rules
 - Not started
 
 ### 4. Template Repository (Multiple Sources)
+
 - Currently hardcoded single template file
 - Support for multiple template sources not started
 - Enterprise templates referenced in shell scripts but not in Go code
 
 ### 5. Integration / E2E Tests
+
 - BDD acceptance tests cover some integration scenarios
 - But no true end-to-end CLI tests (build binary, run commands, check output)
 - Not started
 
 ### 6. Logging
+
 - No structured logging anywhere in the codebase
 - `fmt.Printf` used for output
 - Not started
 
 ### 7. Performance Metrics / Benchmarking
+
 - No benchmarks for validation or generation
 - Not started
 
 ### 8. Pre-commit Hook
+
 - Not started
 - Could validate SECURITY.md before commits
 
 ### 9. Update SECURITY.md with Real Contact Info
+
 - Currently has `security@github.com` and `MyCompany`
 - Needs real project-specific values
 
 ### 10. Migrate Shell Scripts to Go or Remove
+
 - 1,323 lines of bash in `scripts/` directory
 - Duplicate Go functionality in many cases
 - `security-setup.sh` (370+ lines) duplicates `setup` command
@@ -194,17 +219,20 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - `build.sh` is simple and could be replaced by `go build`
 
 ### 11. Fix CI/CD Workflow Go Version
+
 - Workflow uses `setup-go@v4` with Go 1.21
 - `go.mod` specifies Go 1.26.2
 - Version mismatch will cause build failures in CI
 
 ### 12. Fix `go-arch-lint.yml` to Match Actual Structure
+
 - Arch lint config references `internal/domain/entities/`, `internal/infrastructure/db/`, `pkg/errors/`, etc.
 - Actual project structure is flat: `internal/security_tool.go`, `internal/security_validator.go`, `internal/project_detector.go`
 - The arch lint config is a TEMPLATE that was never customized for this project
 - Running `go-arch-lint` would produce countless false positives
 
 ### 13. nix flake migration
+
 - justfile exists (deprecated per project standards)
 - No `flake.nix` exists
 - Should be migrated
@@ -214,32 +242,38 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 ## d) TOTALLY FUCKED UP
 
 ### 1. Stale Documentation Referencing Dead Dependency
+
 - `docs/planning/go-composable-business-types-usage.md` is a 435-line document that references the OLD library throughout
 - All code examples, import paths, and recommendations point to `go-composable-business-types/id`
 - This is actively misleading now
 
 ### 2. `.template-security.yaml` Has Placeholder Values
+
 - `organization: "MyCompany"`, `contact_email: "security@mycompany.com"`
 - `BUG_BOUNTY_URL: "https://hackerone.com/mycompany"`
 - These are production config files with fake values — anyone running `template-security setup` gets garbage output
 
 ### 3. `SECURITY.md` Has Wrong Contact
+
 - Lists `security@github.com` as the security contact
 - This is GitHub's security email, not this project's
 - "MyCompany" appears in safe harbor section
 
 ### 4. `go-arch-lint.yml` Is Completely Wrong
+
 - Defines components like `domain-entities`, `domain-values`, `domain-repositories`, `sqlc-generated`, `pkg-errors`
 - NONE of these directories exist in the project
 - The config was copied from a template and never customized
 - Running arch lint against this project would be meaningless
 
 ### 5. CI Workflow Will Fail
+
 - `setup-go@v4` with Go 1.21 vs `go.mod` requiring 1.26.2
 - Build step tries `make build || just build || go build` — no Makefile exists, justfile is deprecated
 - The fallback to `go build` would work but the first two attempts are dead ends
 
 ### 6. CHANGELOG.md Is Empty
+
 - Only has "Initial release" under v0.1.0
 - 20+ commits of actual work with zero changelog entries
 - Defeats the purpose of having a changelog
@@ -284,33 +318,33 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 
 ## f) Top 25 Things We Should Get Done Next
 
-| # | Priority | Task | Effort | Impact |
-|---|----------|------|--------|--------|
-| 1 | P0 | Fix SECURITY.md with real contact info | 5 min | Blocks release |
-| 2 | P0 | Fix CI workflow Go version (1.21 → 1.26.2) | 10 min | CI is broken |
-| 3 | P0 | Update `go-composable-business-types-usage.md` to reference `go-branded-id` | 30 min | Misleading docs |
-| 4 | P0 | Replace placeholder values in `.template-security.yaml` | 5 min | Bad defaults |
-| 5 | P1 | Fix or remove `.go-arch-lint.yml` | 30 min | False confidence |
-| 6 | P1 | Write CHANGELOG entries for all work since v0.1.0 | 1 hour | Release readiness |
-| 7 | P1 | Complete branded ID integration (factory functions, meaningful brands) | 2 hours | Type safety |
-| 8 | P1 | Replace viper with koanf in `security_tool.go` | 2 hours | Project standards |
-| 9 | P1 | Update `PUBLIC_OR_PRIVATE.md` — remove "replace directive" issue (still exists but pointing to correct lib now) | 30 min | Accurate status |
-| 10 | P1 | Add CLI integration tests (build binary, run validate/setup/status) | 3 hours | Confidence |
-| 11 | P1 | Migrate justfile to flake.nix | 3 hours | Project standards |
-| 12 | P1 | Update IMPROVEMENT_PLAN.md to reflect current reality | 1 hour | Accurate planning |
-| 13 | P2 | Remove or refactor `scripts/security-setup.sh` (duplicates Go `setup` command) | 1 hour | Reduce confusion |
-| 14 | P2 | Remove or refactor `scripts/validate-policies.sh` (duplicates Go `validate` command) | 30 min | Reduce confusion |
-| 15 | P2 | Implement Go equivalents for `scripts/compliance-check.sh` (GDPR/SOC2/ISO27001) | 4 hours | Feature parity |
-| 16 | P2 | Implement Go equivalents for `scripts/generate-metrics.sh` (metrics/Prometheus) | 4 hours | Feature parity |
-| 17 | P2 | Remove `scripts/build.sh` (replaced by `go build` or flake.nix) | 5 min | Cleanup |
-| 18 | P2 | Add structured logging (replace `fmt.Printf` with `slog`) | 2 hours | Observability |
-| 19 | P2 | Add `version` subcommand to CLI | 30 min | User experience |
-| 20 | P2 | Tune `.golangci.yml` — reduce from 80+ linters to project-appropriate set | 1 hour | Build speed |
-| 21 | P2 | Update `BDD_TESTS_REVIEW.md` — BDD tests now exist (score should be updated) | 30 min | Accurate docs |
-| 22 | P3 | Add pre-commit hook for SECURITY.md validation | 1 hour | Developer experience |
-| 23 | P3 | Extract `projectmeta` library (as described in PARTS.md) | 2-3 days | Reusability |
-| 24 | P3 | Add benchmarks for validation and template processing | 1 hour | Performance awareness |
-| 25 | P3 | Decide: make this repo public or private (per PUBLIC_OR_PRIVATE.md analysis) | Decision | Direction |
+| #   | Priority | Task                                                                                                            | Effort   | Impact                |
+| --- | -------- | --------------------------------------------------------------------------------------------------------------- | -------- | --------------------- |
+| 1   | P0       | Fix SECURITY.md with real contact info                                                                          | 5 min    | Blocks release        |
+| 2   | P0       | Fix CI workflow Go version (1.21 → 1.26.2)                                                                      | 10 min   | CI is broken          |
+| 3   | P0       | Update `go-composable-business-types-usage.md` to reference `go-branded-id`                                     | 30 min   | Misleading docs       |
+| 4   | P0       | Replace placeholder values in `.template-security.yaml`                                                         | 5 min    | Bad defaults          |
+| 5   | P1       | Fix or remove `.go-arch-lint.yml`                                                                               | 30 min   | False confidence      |
+| 6   | P1       | Write CHANGELOG entries for all work since v0.1.0                                                               | 1 hour   | Release readiness     |
+| 7   | P1       | Complete branded ID integration (factory functions, meaningful brands)                                          | 2 hours  | Type safety           |
+| 8   | P1       | Replace viper with koanf in `security_tool.go`                                                                  | 2 hours  | Project standards     |
+| 9   | P1       | Update `PUBLIC_OR_PRIVATE.md` — remove "replace directive" issue (still exists but pointing to correct lib now) | 30 min   | Accurate status       |
+| 10  | P1       | Add CLI integration tests (build binary, run validate/setup/status)                                             | 3 hours  | Confidence            |
+| 11  | P1       | Migrate justfile to flake.nix                                                                                   | 3 hours  | Project standards     |
+| 12  | P1       | Update IMPROVEMENT_PLAN.md to reflect current reality                                                           | 1 hour   | Accurate planning     |
+| 13  | P2       | Remove or refactor `scripts/security-setup.sh` (duplicates Go `setup` command)                                  | 1 hour   | Reduce confusion      |
+| 14  | P2       | Remove or refactor `scripts/validate-policies.sh` (duplicates Go `validate` command)                            | 30 min   | Reduce confusion      |
+| 15  | P2       | Implement Go equivalents for `scripts/compliance-check.sh` (GDPR/SOC2/ISO27001)                                 | 4 hours  | Feature parity        |
+| 16  | P2       | Implement Go equivalents for `scripts/generate-metrics.sh` (metrics/Prometheus)                                 | 4 hours  | Feature parity        |
+| 17  | P2       | Remove `scripts/build.sh` (replaced by `go build` or flake.nix)                                                 | 5 min    | Cleanup               |
+| 18  | P2       | Add structured logging (replace `fmt.Printf` with `slog`)                                                       | 2 hours  | Observability         |
+| 19  | P2       | Add `version` subcommand to CLI                                                                                 | 30 min   | User experience       |
+| 20  | P2       | Tune `.golangci.yml` — reduce from 80+ linters to project-appropriate set                                       | 1 hour   | Build speed           |
+| 21  | P2       | Update `BDD_TESTS_REVIEW.md` — BDD tests now exist (score should be updated)                                    | 30 min   | Accurate docs         |
+| 22  | P3       | Add pre-commit hook for SECURITY.md validation                                                                  | 1 hour   | Developer experience  |
+| 23  | P3       | Extract `projectmeta` library (as described in PARTS.md)                                                        | 2-3 days | Reusability           |
+| 24  | P3       | Add benchmarks for validation and template processing                                                           | 1 hour   | Performance awareness |
+| 25  | P3       | Decide: make this repo public or private (per PUBLIC_OR_PRIVATE.md analysis)                                    | Decision | Direction             |
 
 ---
 
@@ -319,6 +353,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 **What is the actual security contact email and organization name for this project?**
 
 Everything hinges on this:
+
 - `SECURITY.md` currently says `security@github.com` and `MyCompany`
 - `.template-security.yaml` says `security@mycompany.com` and `MyCompany`
 - The safe harbor section says "MyCompany commits to..."
@@ -378,12 +413,12 @@ cmd/template-security
 
 ## Test Coverage Summary
 
-| Package | Tests | Status |
-|---------|-------|--------|
-| `internal` | Unit tests (testify) | PASS |
-| `internal/types` | No test files | — |
-| `test/acceptance` | 9 BDD specs (ginkgo) | ALL PASS |
-| `cmd/template-security` | No test files | — |
+| Package                 | Tests                | Status   |
+| ----------------------- | -------------------- | -------- |
+| `internal`              | Unit tests (testify) | PASS     |
+| `internal/types`        | No test files        | —        |
+| `test/acceptance`       | 9 BDD specs (ginkgo) | ALL PASS |
+| `cmd/template-security` | No test files        | —        |
 
 **Gap:** No tests for `cmd/template-security` (CLI layer) or `internal/types` (domain types).
 
@@ -416,4 +451,4 @@ ee92e72 fix(deduplicate): crush refactoring for duplicate dup_177527142555827500
 
 ---
 
-*Report generated at 2026-05-04_21-47 by Crush*
+_Report generated at 2026-05-04_21-47 by Crush_
