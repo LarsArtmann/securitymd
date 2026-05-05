@@ -153,15 +153,11 @@ linters-settings:
   exhaustruct:
     exclude:
       - files:
-          - "**/cmd_helpers.go"
-          - "**/main.go"
-          - "**/setup.go"
-          - "**/status.go"
-          - "**/validate.go"
-          - "**/security_tool.go"
-          - "**/security_tool_test.go"
-          - "**/security_validator.go"
-          - "**/security_validator_test.go"
+          - "cmd/template-security/cmd_helpers.go"
+          - "cmd/template-security/main.go"
+          - "cmd/template-security/setup.go"
+          - "cmd/template-security/status.go"
+          - "cmd/template-security/validate.go"
 
   goprintffuncname:
     skip-check:
@@ -223,3 +219,6 @@ issues:
         - gochecknoglobals
       path: "cmd/template-security/"
       text: "is a global variable"
+    - linters:
+        - exhaustruct
+      path: "cmd/template-security/"
