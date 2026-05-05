@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/LarsArtmann/template-SECURITY/internal"
+	finding "github.com/larsartmann/go-finding"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,7 @@ func newValidateCmd() *cobra.Command {
 	return cmd
 }
 
-func runValidate(cmd *cobra.Command, args []string) error {
+func runValidate(cmd *cobra.Command, _ []string) error {
 	file, _ := cmd.Flags().GetString("file")
 
 	validator := internal.NewSecurityValidator()
@@ -54,12 +55,12 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 		return fmt.Errorf("file not found: %s", filename)
 	}
 
-	result, err := validator.ValidateSECURITYMd(filename)
+	report, err := validator.ValidateSECURITYMd(filename)
 	if err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	return printValidationResult(result, validator)
+	return printValidationResult(report, validator)
 }
 
 func validateAllPolicies(validator *internal.SecurityValidator) error {
@@ -72,8 +73,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 		"security-policy.md",
 	}
 
-	var results []*internal.SecurityValidationResult
-
+	var reports []*finding.Report
 	overallValid := true
 
 	for _, filename := range policyFiles {
@@ -81,7 +81,7 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 			continue
 		}
 
-		result, err := validator.ValidateSECURITYMd(filename)
+		report, err := validator.ValidateSECURITYMd(filename)
 		if err != nil {
 			if outputFormat != "json" {
 				color.Red("❌ Failed to validate %s: %v", filename, err)
@@ -92,14 +92,14 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 			continue
 		}
 
-		results = append(results, result)
+		reports = append(reports, report)
 
-		if !result.Valid {
+		if !reportIsValid(reports) {
 			overallValid = false
 		}
 	}
 
-	if len(results) == 0 {
+	if len(reports) == 0 {
 		if outputFormat != "json" {
 			color.Yellow("⚠️  No security policy files found to validate")
 		}
@@ -108,10 +108,10 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	}
 
 	if outputFormat == "json" {
-		return printJSONResults(results)
+		return printJSONReports(reports)
 	}
 
-	validator.PrintResults(results)
+	validator.PrintResults(reports)
 
 	color.White("\n📊 Validation Summary:")
 
@@ -128,17 +128,29 @@ func validateAllPolicies(validator *internal.SecurityValidator) error {
 	return nil
 }
 
+func reportIsValid(reports []*finding.Report) bool {
+	for _, r := range reports {
+		for _, f := range r.Findings {
+			if f.Severity == finding.SeverityError {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func printValidationResult(
-	result *internal.SecurityValidationResult,
+	report *finding.Report,
 	validator *internal.SecurityValidator,
 ) error {
 	if outputFormat == "json" {
-		return printJSONResults([]*internal.SecurityValidationResult{result})
+		return printJSONReports([]*finding.Report{report})
 	}
 
-	validator.PrintResults([]*internal.SecurityValidationResult{result})
+	validator.PrintResults([]*finding.Report{report})
 
-	if !result.Valid {
+	if !reportIsValid([]*finding.Report{report}) {
 		return errors.New("policy validation failed")
 	}
 
@@ -153,17 +165,33 @@ func printJSONError(filename string, err error) error {
 	})
 }
 
-func printJSONResults(results []*internal.SecurityValidationResult) error {
-	validCount, totalCount, allValid := countValidAndCheck(results)
+func printJSONReports(reports []*finding.Report) error {
+	validCount := 0
+
+	for _, r := range reports {
+		if isValid(r) {
+			validCount++
+		}
+	}
 
 	return printJSON(map[string]any{
-		"valid": allValid,
-		"files": results,
+		"valid": validCount == len(reports),
+		"files": reports,
 		"summary": map[string]int{
-			"total": totalCount,
+			"total": len(reports),
 			"valid": validCount,
 		},
 	})
+}
+
+func isValid(report *finding.Report) bool {
+	for _, f := range report.Findings {
+		if f.Severity == finding.SeverityError {
+			return false
+		}
+	}
+
+	return true
 }
 
 func printJSON(data map[string]any) error {
@@ -175,32 +203,4 @@ func printJSON(data map[string]any) error {
 	fmt.Println(string(jsonBytes))
 
 	return nil
-}
-
-func countValidAndCheck(
-	results []*internal.SecurityValidationResult,
-) (validCount, totalCount int, allValid bool) {
-	for _, r := range results {
-		totalCount++
-
-		if r.Valid {
-			validCount++
-		}
-	}
-
-	allValid = validCount == totalCount
-
-	return validCount, totalCount, allValid
-}
-
-func allResultsValid(results []*internal.SecurityValidationResult) bool {
-	_, _, allValid := countValidAndCheck(results)
-
-	return allValid
-}
-
-func countValid(results []*internal.SecurityValidationResult) int {
-	count, _, _ := countValidAndCheck(results)
-
-	return count
 }

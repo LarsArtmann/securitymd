@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	finding "github.com/larsartmann/go-finding"
 )
+
+const toolName = "template-security"
 
 // SecurityValidator validates security policy files.
 type SecurityValidator struct{}
@@ -12,14 +16,6 @@ type SecurityValidator struct{}
 // NewSecurityValidator creates a new security validator.
 func NewSecurityValidator() *SecurityValidator {
 	return &SecurityValidator{}
-}
-
-// SecurityValidationResult represents the result of security validation.
-type SecurityValidationResult struct {
-	Valid    bool
-	Errors   []string
-	Warnings []string
-	File     string
 }
 
 // lineChecker is a helper to find lines matching any of the patterns.
@@ -35,13 +31,23 @@ func lineChecker(lines []string, patterns ...string) bool {
 	return false
 }
 
-// ValidateSECURITYMd validates a SECURITY.md file.
+// makeFinding creates a Finding for a validation issue at the given file and line.
+func makeFinding(rule, message string, severity finding.Severity, file string, line int) finding.Finding {
+	return finding.NewFinding(
+		rule,
+		toolName,
+		message,
+		severity,
+		finding.Pos(file, line, 0),
+		1.0,
+	)
+}
+
+// ValidateSECURITYMd validates a SECURITY.md file and returns a Report containing findings.
 func (sv *SecurityValidator) ValidateSECURITYMd(
 	filePath string,
-) (*SecurityValidationResult, error) {
-	result := &SecurityValidationResult{
-		File: filePath,
-	}
+) (*finding.Report, error) {
+	report := finding.NewReport(finding.ToolInfo{Name: toolName})
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -52,39 +58,43 @@ func (sv *SecurityValidator) ValidateSECURITYMd(
 	lines := strings.Split(contentStr, "\n")
 
 	requiredSections := []struct {
-		pattern string
-		level   string
-		message string
+		pattern  string
+		level    string
+		rule     string
+		message  string
 	}{
-		{"# Security Policy", "error", "Missing Security Policy header"},
-		{"## Reporting a Vulnerability", "error", "Missing 'Reporting a Vulnerability' section"},
-		{"## Supported Versions", "error", "Missing 'Supported Versions' section"},
-		{"## Security Practices", "error", "Missing 'Security Practices' section"},
-		{"@", "error", "Missing contact email address"},
-		{"response time", "warning", "Should specify response time for vulnerability reports"},
+		{"# Security Policy", "error", "missing-header", "Missing Security Policy header"},
+		{"## Reporting a Vulnerability", "error", "missing-reporting", "Missing 'Reporting a Vulnerability' section"},
+		{"## Supported Versions", "error", "missing-versions", "Missing 'Supported Versions' section"},
+		{"## Security Practices", "error", "missing-practices", "Missing 'Security Practices' section"},
+		{"@", "error", "missing-contact", "Missing contact email address"},
+		{"response time", "warning", "missing-response-time", "Should specify response time for vulnerability reports"},
 	}
 
 	for _, section := range requiredSections {
 		if !lineChecker(lines, section.pattern) {
+			severity := finding.SeverityWarning
 			if section.level == "error" {
-				result.Errors = append(result.Errors, section.message)
-			} else {
-				result.Warnings = append(result.Warnings, section.message)
+				severity = finding.SeverityError
 			}
+
+			f := makeFinding(section.rule, section.message, severity, filePath, 0)
+			f.Category = finding.CategorySecurity
+
+			report.AddFinding(f)
 		}
 	}
 
-	sv.validateContentQuality(contentStr, result)
+	sv.validateContentQuality(filePath, contentStr, report)
 
-	result.Valid = len(result.Errors) == 0
-
-	return result, nil
+	return report, nil
 }
 
-// validateContentQuality checks the quality of the content.
+// validateContentQuality checks the quality of the content and adds findings.
 func (sv *SecurityValidator) validateContentQuality(
+	filePath string,
 	content string,
-	result *SecurityValidationResult,
+	report *finding.Report,
 ) {
 	const (
 		minLines      = 20
@@ -94,24 +104,35 @@ func (sv *SecurityValidator) validateContentQuality(
 	lines := strings.Split(content, "\n")
 
 	if len(lines) < minLines {
-		result.Warnings = append(result.Warnings, "SECURITY.md seems too short (< 20 lines)")
+		f := makeFinding("too-short", "SECURITY.md seems too short (< 20 lines)", finding.SeverityWarning, filePath, 0)
+		f.Category = finding.CategorySecurity
+		report.AddFinding(f)
 	}
 
-	for _, line := range lines {
+	for i, line := range lines {
 		if strings.Contains(line, "{{") && strings.Contains(line, "}}") {
-			result.Errors = append(
-				result.Errors,
+			f := makeFinding(
+				"unresolved-template",
 				"Unresolved template variable: "+strings.TrimSpace(line),
+				finding.SeverityError,
+				filePath,
+				i+1,
 			)
+			f.Category = finding.CategorySecurity
+			report.AddFinding(f)
 		}
 	}
 
 	if !hasActualContent(lines, minLineLength) {
-		result.Errors = append(result.Errors, "SECURITY.md lacks substantive content")
+		f := makeFinding("no-content", "SECURITY.md lacks substantive content", finding.SeverityError, filePath, 0)
+		f.Category = finding.CategorySecurity
+		report.AddFinding(f)
 	}
 
 	if !hasVersionInformation(lines) {
-		result.Warnings = append(result.Warnings, "No version information found")
+		f := makeFinding("no-version-info", "No version information found", finding.SeverityWarning, filePath, 0)
+		f.Category = finding.CategorySecurity
+		report.AddFinding(f)
 	}
 }
 
@@ -138,13 +159,24 @@ func hasVersionInformation(lines []string) bool {
 	return false
 }
 
+// ReportIsValid returns true if the report has no error-severity findings.
+func ReportIsValid(report *finding.Report) bool {
+	for _, f := range report.Findings {
+		if f.Severity == finding.SeverityError {
+			return false
+		}
+	}
+
+	return true
+}
+
 // PrintResults prints validation results in a user-friendly format.
-func (sv *SecurityValidator) PrintResults(results []*SecurityValidationResult) {
-	totalFiles := len(results)
+func (sv *SecurityValidator) PrintResults(reports []*finding.Report) {
+	totalFiles := len(reports)
 	validFiles := 0
 
-	for _, result := range results {
-		if result.Valid {
+	for _, report := range reports {
+		if ReportIsValid(report) {
 			validFiles++
 		}
 	}
@@ -155,25 +187,29 @@ func (sv *SecurityValidator) PrintResults(results []*SecurityValidationResult) {
 	fmt.Printf("Valid files: %d\n", validFiles)
 	fmt.Printf("Invalid files: %d\n\n", totalFiles-validFiles)
 
-	for _, result := range results {
+	for _, report := range reports {
+		file := "<unknown>"
+		if len(report.Findings) > 0 {
+			file = report.Findings[0].Position.File
+		}
+
+		valid := ReportIsValid(report)
 		status := "✅"
-		if !result.Valid {
+		if !valid {
 			status = "❌"
 		}
 
-		fmt.Printf("%s %s\n", status, result.File)
+		fmt.Printf("%s %s\n", status, file)
 
-		// Print errors
-		for _, err := range result.Errors {
-			fmt.Printf("  ❌ Error: %s\n", err)
+		for _, f := range report.Findings {
+			if f.Severity == finding.SeverityError {
+				fmt.Printf("  ❌ Error: %s\n", f.Message)
+			} else {
+				fmt.Printf("  ⚠️  Warning: %s\n", f.Message)
+			}
 		}
 
-		// Print warnings
-		for _, warning := range result.Warnings {
-			fmt.Printf("  ⚠️  Warning: %s\n", warning)
-		}
-
-		if len(result.Errors) > 0 || len(result.Warnings) > 0 {
+		if len(report.Findings) > 0 {
 			fmt.Println()
 		}
 	}

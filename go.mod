@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/fatih/color v1.19.0
-	github.com/larsartmann/go-branded-id v0.1.0
+	github.com/larsartmann/go-finding v0.3.0
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
 	github.com/spf13/cobra v1.10.2

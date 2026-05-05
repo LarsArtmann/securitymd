@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/LarsArtmann/template-SECURITY/internal"
+	finding "github.com/larsartmann/go-finding"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -17,14 +18,14 @@ var _ = ginkgo.Describe("Security Policy Validation", ginkgo.Label("acceptance")
 
 	expectValidationFailsWithError := func(content, expectedErrorSubstring string) {
 		withTempFile(content, func(path string) {
-			result, err := validator.ValidateSECURITYMd(path)
+			report, err := validator.ValidateSECURITYMd(path)
 			expectNoError(err)
-			gomega.Expect(result.Valid).To(gomega.BeFalse())
+			gomega.Expect(internal.ReportIsValid(report)).To(gomega.BeFalse())
 
 			hasError := false
 
-			for _, errMsg := range result.Errors {
-				if strings.Contains(errMsg, expectedErrorSubstring) {
+			for _, f := range report.Findings {
+				if f.Severity == finding.SeverityError && strings.Contains(f.Message, expectedErrorSubstring) {
 					hasError = true
 
 					break
@@ -35,17 +36,17 @@ var _ = ginkgo.Describe("Security Policy Validation", ginkgo.Label("acceptance")
 		})
 	}
 
-	createTempFileAndValidate := func(content string) *internal.SecurityValidationResult {
-		var result *internal.SecurityValidationResult
+	createTempFileAndValidate := func(content string) *finding.Report {
+		var report *finding.Report
 
 		withTempFile(content, func(path string) {
 			var err error
 
-			result, err = validator.ValidateSECURITYMd(path)
+			report, err = validator.ValidateSECURITYMd(path)
 			expectNoError(err)
 		})
 
-		return result
+		return report
 	}
 
 	ginkgo.Describe("Validating SECURITY.md completeness", func() {
@@ -67,8 +68,8 @@ Email us at security@example.com with any security issues.
 We follow security best practices.
 
 `
-			result := createTempFileAndValidate(content)
-			gomega.Expect(result.Valid).To(gomega.BeTrue())
+			report := createTempFileAndValidate(content)
+			gomega.Expect(internal.ReportIsValid(report)).To(gomega.BeTrue())
 		})
 
 		ginkgo.It("fails validation for incomplete policies", func() {
@@ -127,8 +128,7 @@ Email us at {{CONTACT_EMAIL}}.
 
 ## Security Practices
 
-We follow security best practices.
-`,
+We follow security best practices.`,
 					errContains: "template variable",
 				},
 				{
@@ -160,12 +160,12 @@ We follow security best practices.
 
 Missing content.
 `
-			result := createTempFileAndValidate(content)
+			report := createTempFileAndValidate(content)
 
 			hasShortWarning := false
 
-			for _, warning := range result.Warnings {
-				if strings.Contains(warning, "too short") {
+			for _, f := range report.Findings {
+				if f.Severity == finding.SeverityWarning && strings.Contains(f.Message, "too short") {
 					hasShortWarning = true
 
 					break

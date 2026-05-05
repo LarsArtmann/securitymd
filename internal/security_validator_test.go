@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	finding "github.com/larsartmann/go-finding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,6 +31,18 @@ func assertContainsAll(t *testing.T, expected, actual []string, itemType string)
 			actual,
 		)
 	}
+}
+
+func collectMessages(report *finding.Report, severity finding.Severity) []string {
+	var messages []string
+
+	for _, f := range report.Findings {
+		if f.Severity == severity {
+			messages = append(messages, f.Message)
+		}
+	}
+
+	return messages
 }
 
 func TestSecurityValidator_ValidateSECURITYMd(t *testing.T) {
@@ -164,24 +177,19 @@ We follow security best practices.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create temporary file
 			tmpDir := t.TempDir()
 			filename := tmpDir + "/SECURITY.md"
 			err := os.WriteFile(filename, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
-			// Run validation
-			result, err := validator.ValidateSECURITYMd(filename)
+			report, err := validator.ValidateSECURITYMd(filename)
 			require.NoError(t, err)
 
-			// Check validity
-			assert.Equal(t, tt.expectValid, result.Valid)
+			valid := ReportIsValid(report)
+			assert.Equal(t, tt.expectValid, valid)
 
-			// Check errors
-			assertContainsAll(t, tt.expectedErrors, result.Errors, "error")
-
-			// Check warnings
-			assertContainsAll(t, tt.expectedWarns, result.Warnings, "warning")
+			assertContainsAll(t, tt.expectedErrors, collectMessages(report, finding.SeverityError), "error")
+			assertContainsAll(t, tt.expectedWarns, collectMessages(report, finding.SeverityWarning), "warning")
 		})
 	}
 }
@@ -217,15 +225,14 @@ func TestSecurityValidator_ValidateContentQuality(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := &SecurityValidationResult{}
-			validator.validateContentQuality(tt.content, result)
+			report := finding.NewReport(finding.ToolInfo{Name: toolName})
+			validator.validateContentQuality("test.md", tt.content, report)
 
 			if len(tt.expectedErrors) > 0 {
+				errorMessages := collectMessages(report, finding.SeverityError)
 				for _, expectedError := range tt.expectedErrors {
-					assert.Contains(t, result.Errors, expectedError)
+					assert.Contains(t, errorMessages, expectedError)
 				}
-			} else {
-				// Don't check for empty errors, as validation logic may add warnings
 			}
 		})
 	}
@@ -234,24 +241,15 @@ func TestSecurityValidator_ValidateContentQuality(t *testing.T) {
 func TestSecurityValidator_PrintResults(t *testing.T) {
 	validator := NewSecurityValidator()
 
-	results := []*SecurityValidationResult{
-		{
-			File:     "SECURITY.md",
-			Valid:    true,
-			Errors:   []string{},
-			Warnings: []string{"Minor warning"},
-		},
-		{
-			File:     "BAD_SECURITY.md",
-			Valid:    false,
-			Errors:   []string{"Missing section"},
-			Warnings: []string{},
-		},
-	}
+	report1 := finding.NewReport(finding.ToolInfo{Name: toolName})
+	report1.AddFinding(finding.NewFinding("test", toolName, "Minor warning", finding.SeverityWarning, finding.Pos("SECURITY.md", 1, 0), 1.0))
 
-	// This test just ensures PrintResults doesn't panic
-	// In a real implementation, you might capture stdout and verify the output
+	report2 := finding.NewReport(finding.ToolInfo{Name: toolName})
+	report2.AddFinding(finding.NewFinding("test", toolName, "Missing section", finding.SeverityError, finding.Pos("BAD_SECURITY.md", 1, 0), 1.0))
+
+	reports := []*finding.Report{report1, report2}
+
 	assert.NotPanics(t, func() {
-		validator.PrintResults(results)
+		validator.PrintResults(reports)
 	})
 }
