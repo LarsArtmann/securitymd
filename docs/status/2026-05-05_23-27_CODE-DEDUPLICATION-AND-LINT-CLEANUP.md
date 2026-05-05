@@ -10,19 +10,19 @@ Session 3 today: completed code deduplication (art-dupl → 0 clones), linting c
 
 **Overall Health: 🟡 FUNCTIONAL BUT NEEDS WORK**
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| Build | Clean | ✅ |
-| `go vet` | Clean | ✅ |
-| Tests | 22/22 pass | ✅ |
-| Coverage | 22.6% total | 🔴 |
-| Lint warnings | 52 | 🟡 |
-| Code duplication | 0 clones | ✅ |
-| `cmd/` coverage | 0.0% | 🔴 |
-| `internal/` coverage | 32.6% | 🟡 |
-| Uncommitted changes | 6 files | 🔴 |
-| Stale docs | Multiple | 🟡 |
-| Dead code | Present | 🟡 |
+| Metric               | Value       | Status |
+| -------------------- | ----------- | ------ |
+| Build                | Clean       | ✅     |
+| `go vet`             | Clean       | ✅     |
+| Tests                | 22/22 pass  | ✅     |
+| Coverage             | 22.6% total | 🔴     |
+| Lint warnings        | 52          | 🟡     |
+| Code duplication     | 0 clones    | ✅     |
+| `cmd/` coverage      | 0.0%        | 🔴     |
+| `internal/` coverage | 32.6%       | 🟡     |
+| Uncommitted changes  | 6 files     | 🔴     |
+| Stale docs           | Multiple    | 🟡     |
+| Dead code            | Present     | 🟡     |
 
 ---
 
@@ -41,16 +41,16 @@ Session 3 today: completed code deduplication (art-dupl → 0 clones), linting c
 
 ### 2. go-finding Integration (Sessions 1–2)
 
-| Integration Point | Status |
-|---|---|
-| `finding.Report` as data model | ✅ Complete |
-| `finding.Builder` for all findings | ✅ Complete |
-| `finding.FindingError` for error types | ✅ Complete |
-| `pipeline.Detector` interface | ✅ Complete |
-| `WriteJSON()` / `WriteSARIFFiltered()` | ✅ Complete |
+| Integration Point                        | Status      |
+| ---------------------------------------- | ----------- |
+| `finding.Report` as data model           | ✅ Complete |
+| `finding.Builder` for all findings       | ✅ Complete |
+| `finding.FindingError` for error types   | ✅ Complete |
+| `pipeline.Detector` interface            | ✅ Complete |
+| `WriteJSON()` / `WriteSARIFFiltered()`   | ✅ Complete |
 | Severity filtering with `-severity` flag | ✅ Complete |
-| Context-aware `Detect(ctx)` | ✅ Complete |
-| `finding.Filter` predicates | ✅ Complete |
+| Context-aware `Detect(ctx)`              | ✅ Complete |
+| `finding.Filter` predicates              | ✅ Complete |
 
 ### 3. CLI Commands
 
@@ -83,18 +83,18 @@ Session 3 today: completed code deduplication (art-dupl → 0 clones), linting c
 
 ### 1. Lint Warnings (52 total)
 
-| Category | Count | Examples |
-|----------|-------|---------|
-| `depguard` | ~8 | Imports not in allow-list (disabled but still warning) |
-| `gochecknoglobals` | ~7 | CLI flag vars (orgName, contactEmail, etc.) |
-| `exhaustruct` | ~3 | cobra.Command, finding.ToolInfo, SecurityValidator |
-| `forbidigo` | ~5 | fmt.Printf in PrintResults, printTextReport |
-| `varnamelen` | ~3 | `f` for findings, `i` for index |
-| `cyclop` | 2 | `runSetup` (19), `validateContentQuality` (11) — both > 10 |
-| `wrapcheck` | ~3 | Unwrapped errors from external packages |
-| `err113` | 2 | Dynamic errors via fmt.Errorf |
-| `unused` | 2 | `printSuccess`, `printError` — removed in working tree |
-| Other | ~17 | revive, goconst, goprintffuncname, etc. |
+| Category           | Count | Examples                                                   |
+| ------------------ | ----- | ---------------------------------------------------------- |
+| `depguard`         | ~8    | Imports not in allow-list (disabled but still warning)     |
+| `gochecknoglobals` | ~7    | CLI flag vars (orgName, contactEmail, etc.)                |
+| `exhaustruct`      | ~3    | cobra.Command, finding.ToolInfo, SecurityValidator         |
+| `forbidigo`        | ~5    | fmt.Printf in PrintResults, printTextReport                |
+| `varnamelen`       | ~3    | `f` for findings, `i` for index                            |
+| `cyclop`           | 2     | `runSetup` (19), `validateContentQuality` (11) — both > 10 |
+| `wrapcheck`        | ~3    | Unwrapped errors from external packages                    |
+| `err113`           | 2     | Dynamic errors via fmt.Errorf                              |
+| `unused`           | 2     | `printSuccess`, `printError` — removed in working tree     |
+| Other              | ~17   | revive, goconst, goprintffuncname, etc.                    |
 
 ### 2. CI/CD Pipeline
 
@@ -224,33 +224,33 @@ While `setup.go` and `validate.go` were inlined to closures, `status.go` still p
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| # | Priority | Task | Impact | Effort |
-|---|----------|------|--------|--------|
-| 1 | 🔴 P0 | Resolve type split brain — delete unused `internal/types/` or integrate with go-finding | High | 2h |
-| 2 | 🔴 P0 | Add tests for `cmd/` — validate, setup, status commands | High | 3h |
-| 3 | 🔴 P0 | Fix CI workflow — Go 1.26, add test step, add golangci-lint step | High | 1h |
-| 4 | 🔴 P0 | Delete dead shell scripts in `scripts/` (or migrate to nix) | Medium | 30m |
-| 5 | 🔴 P0 | Delete empty `report/` and `reports/` directories | Low | 1m |
-| 6 | 🟠 P1 | Reduce `runSetup` complexity from 19 to <10 | High | 1h |
-| 7 | 🟠 P1 | Test JSON output format (`-format json`) | Medium | 30m |
-| 8 | 🟠 P1 | Test SARIF output format (`-format sarif`) | Medium | 30m |
-| 9 | 🟠 P1 | Fix all lint warnings (52 → 0) | Medium | 2h |
-| 10 | 🟠 P1 | Create project-level `AGENTS.md` with build/test/lint commands | Medium | 30m |
-| 11 | 🟠 P1 | Create `FEATURES.md` feature inventory | Medium | 1h |
-| 12 | 🟠 P1 | Create `TODO_LIST.md` from codebase analysis | Medium | 1h |
-| 13 | 🟡 P2 | Convert CLI globals to struct-based command state | Medium | 1h |
-| 14 | 🟡 P2 | Inline `runStatus` in `status.go` (consistent with setup/validate pattern) | Low | 10m |
-| 15 | 🟡 P2 | Update `README.md` with go-finding integration details | Medium | 30m |
-| 16 | 🟡 P2 | Update `CHANGELOG.md` for sessions 1–3 | Low | 30m |
-| 17 | 🟡 P2 | Update `IMPROVEMENT_PLAN.md` to reflect current state | Medium | 30m |
-| 18 | 🟡 P2 | Add `CONTRIBUTING.md` | Medium | 30m |
-| 19 | 🟡 P2 | Migrate justfile → flake.nix (per AGENTS.md mandate) | High | 3h |
-| 20 | 🟢 P3 | Add goreleaser for release automation | Medium | 2h |
-| 21 | 🟢 P3 | Add coverage enforcement (minimum threshold in CI) | Medium | 30m |
-| 22 | 🟢 P3 | Review `BDD_TESTS_REVIEW.md` for freshness | Low | 15m |
-| 23 | 🟢 P3 | Review and clean legacy docs (PARTS.md, PROJECT_SPLIT_EXECUTIVE_REPORT.md) | Low | 30m |
-| 24 | 🟢 P3 | Add end-to-end CLI tests (exec-based, test the binary) | High | 2h |
-| 25 | 🟢 P3 | Add version tagging and release workflow | Medium | 1h |
+| #   | Priority | Task                                                                                    | Impact | Effort |
+| --- | -------- | --------------------------------------------------------------------------------------- | ------ | ------ |
+| 1   | 🔴 P0    | Resolve type split brain — delete unused `internal/types/` or integrate with go-finding | High   | 2h     |
+| 2   | 🔴 P0    | Add tests for `cmd/` — validate, setup, status commands                                 | High   | 3h     |
+| 3   | 🔴 P0    | Fix CI workflow — Go 1.26, add test step, add golangci-lint step                        | High   | 1h     |
+| 4   | 🔴 P0    | Delete dead shell scripts in `scripts/` (or migrate to nix)                             | Medium | 30m    |
+| 5   | 🔴 P0    | Delete empty `report/` and `reports/` directories                                       | Low    | 1m     |
+| 6   | 🟠 P1    | Reduce `runSetup` complexity from 19 to <10                                             | High   | 1h     |
+| 7   | 🟠 P1    | Test JSON output format (`-format json`)                                                | Medium | 30m    |
+| 8   | 🟠 P1    | Test SARIF output format (`-format sarif`)                                              | Medium | 30m    |
+| 9   | 🟠 P1    | Fix all lint warnings (52 → 0)                                                          | Medium | 2h     |
+| 10  | 🟠 P1    | Create project-level `AGENTS.md` with build/test/lint commands                          | Medium | 30m    |
+| 11  | 🟠 P1    | Create `FEATURES.md` feature inventory                                                  | Medium | 1h     |
+| 12  | 🟠 P1    | Create `TODO_LIST.md` from codebase analysis                                            | Medium | 1h     |
+| 13  | 🟡 P2    | Convert CLI globals to struct-based command state                                       | Medium | 1h     |
+| 14  | 🟡 P2    | Inline `runStatus` in `status.go` (consistent with setup/validate pattern)              | Low    | 10m    |
+| 15  | 🟡 P2    | Update `README.md` with go-finding integration details                                  | Medium | 30m    |
+| 16  | 🟡 P2    | Update `CHANGELOG.md` for sessions 1–3                                                  | Low    | 30m    |
+| 17  | 🟡 P2    | Update `IMPROVEMENT_PLAN.md` to reflect current state                                   | Medium | 30m    |
+| 18  | 🟡 P2    | Add `CONTRIBUTING.md`                                                                   | Medium | 30m    |
+| 19  | 🟡 P2    | Migrate justfile → flake.nix (per AGENTS.md mandate)                                    | High   | 3h     |
+| 20  | 🟢 P3    | Add goreleaser for release automation                                                   | Medium | 2h     |
+| 21  | 🟢 P3    | Add coverage enforcement (minimum threshold in CI)                                      | Medium | 30m    |
+| 22  | 🟢 P3    | Review `BDD_TESTS_REVIEW.md` for freshness                                              | Low    | 15m    |
+| 23  | 🟢 P3    | Review and clean legacy docs (PARTS.md, PROJECT_SPLIT_EXECUTIVE_REPORT.md)              | Low    | 30m    |
+| 24  | 🟢 P3    | Add end-to-end CLI tests (exec-based, test the binary)                                  | High   | 2h     |
+| 25  | 🟢 P3    | Add version tagging and release workflow                                                | Medium | 1h     |
 
 ---
 
@@ -259,11 +259,13 @@ While `setup.go` and `validate.go` were inlined to closures, `status.go` still p
 **Should `internal/types/` be deleted entirely, or should the domain types be used as the internal model with `go-finding` serving purely as the output/reporting layer?**
 
 Arguments for keeping `internal/types/`:
+
 - Richer domain model (Version with dates/status, Contact with response times, Template with variables)
 - Could serve as the "source of truth" that gets converted to `finding.Finding` for output
 - Future expansion (template management, version tracking) would need these types anyway
 
 Arguments for deleting:
+
 - Currently 100% dead code — nothing instantiates any of these types
 - `go-finding` already provides a complete model (Finding, Report, Severity, Category, Tags)
 - Maintaining two parallel type systems is a maintenance burden
@@ -275,31 +277,31 @@ The decision here fundamentally shapes the architecture going forward. It's your
 
 ## File Change Summary (This Session — Uncommitted)
 
-| File | Changes |
-|------|---------|
-| `.golangci.yml` | Restructured: disabled depguard, added exhaustruct excludes, tuned linters |
+| File                                   | Changes                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `.golangci.yml`                        | Restructured: disabled depguard, added exhaustruct excludes, tuned linters                 |
 | `cmd/template-security/cmd_helpers.go` | Renamed printInfo→printInfof, printWarning→printWarningf; removed printSuccess, printError |
-| `cmd/template-security/setup.go` | Inlined runSetup as closure; added doc comments to globals |
-| `cmd/template-security/status.go` | Updated printInfo/printWarning calls to new names |
-| `cmd/template-security/validate.go` | Inlined runValidate as closure |
-| `internal/security_validator.go` | Extracted addFinding helper; reformatted unresolved-template call |
+| `cmd/template-security/setup.go`       | Inlined runSetup as closure; added doc comments to globals                                 |
+| `cmd/template-security/status.go`      | Updated printInfo/printWarning calls to new names                                          |
+| `cmd/template-security/validate.go`    | Inlined runValidate as closure                                                             |
+| `internal/security_validator.go`       | Extracted addFinding helper; reformatted unresolved-template call                          |
 
 ---
 
 ## Codebase Metrics
 
-| Metric | Value |
-|--------|-------|
-| Total Go LOC | 2,330 |
-| Go source files | 12 |
-| Packages | 4 (cmd, internal, internal/types, test/acceptance) |
-| Tests | 22 |
-| Test pass rate | 100% |
-| Total coverage | 22.6% |
-| `internal/` coverage | 32.6% |
-| `cmd/` coverage | 0.0% |
-| `test/acceptance/` coverage | 100% |
-| Lint warnings | 52 |
-| Clone groups | 0 |
-| Dependencies (direct) | 7 |
-| Go version | 1.26.2 |
+| Metric                      | Value                                              |
+| --------------------------- | -------------------------------------------------- |
+| Total Go LOC                | 2,330                                              |
+| Go source files             | 12                                                 |
+| Packages                    | 4 (cmd, internal, internal/types, test/acceptance) |
+| Tests                       | 22                                                 |
+| Test pass rate              | 100%                                               |
+| Total coverage              | 22.6%                                              |
+| `internal/` coverage        | 32.6%                                              |
+| `cmd/` coverage             | 0.0%                                               |
+| `test/acceptance/` coverage | 100%                                               |
+| Lint warnings               | 52                                                 |
+| Clone groups                | 0                                                  |
+| Dependencies (direct)       | 7                                                  |
+| Go version                  | 1.26.2                                             |

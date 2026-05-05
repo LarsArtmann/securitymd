@@ -70,12 +70,17 @@ func buildFinding(
 	file string,
 	line int,
 ) (finding.Finding, error) {
-	return finding.NewBuilder(rule, toolName, message, severity, finding.Pos(file, line, 0)).
+	result, err := finding.NewBuilder(rule, toolName, message, severity, finding.Pos(file, line, 0)).
 		WithCategory(finding.CategorySecurity).
 		WithTags(finding.TagSecurity).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithConfidence(1.0).
 		Build()
+	if err != nil {
+		return result, fmt.Errorf("failed to build finding: %w", err)
+	}
+
+	return result, nil
 }
 
 // ValidateSECURITYMd validates a SECURITY.md file and returns a Report containing findings.

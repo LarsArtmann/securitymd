@@ -14,28 +14,28 @@ Two major sessions completed today: (1) migrated to `go-finding v0.3.0` as the d
 
 ### 1. go-finding Migration (Session 1 — commit dd4fb09)
 
-| What | Before | After |
-|------|--------|-------|
-| Validation results | `SecurityValidationResult{Valid, Errors, Warnings, File}` | `*finding.Report` with `[]Finding` |
-| Validation errors/warnings | `[]string` | `finding.Finding` with severity, category, tags, rule names |
-| CLI JSON output | Manual `json.MarshalIndent` map construction | `finding.Report` serialization |
-| ID types | `id.ID[IDBrand, string]` via `go-branded-id` | Plain `type ID string` / `type PolicyID string` |
-| Nonsense `IDID` | `type IDID string` ("ID ID") | Renamed to `type ID string` |
-| `go-branded-id` | Required dependency | Removed |
+| What                       | Before                                                    | After                                                       |
+| -------------------------- | --------------------------------------------------------- | ----------------------------------------------------------- |
+| Validation results         | `SecurityValidationResult{Valid, Errors, Warnings, File}` | `*finding.Report` with `[]Finding`                          |
+| Validation errors/warnings | `[]string`                                                | `finding.Finding` with severity, category, tags, rule names |
+| CLI JSON output            | Manual `json.MarshalIndent` map construction              | `finding.Report` serialization                              |
+| ID types                   | `id.ID[IDBrand, string]` via `go-branded-id`              | Plain `type ID string` / `type PolicyID string`             |
+| Nonsense `IDID`            | `type IDID string` ("ID ID")                              | Renamed to `type ID string`                                 |
+| `go-branded-id`            | Required dependency                                       | Removed                                                     |
 
 ### 2. Deep go-finding Integration (Session 2 — uncommitted)
 
-| Integration Point | Implementation |
-|---|---|
-| `pipeline.Detector` | `SecurityValidator` implements `Name()` + `Detect(ctx)` with compile-time check |
-| `finding.Builder` | All findings via `NewBuilder().WithCategory().WithTags().WithFixStrategy().WithConfidence().Build()` |
-| `finding.FindingError` | Replaced custom `SecurityError` — config errors use `NewIOError()`, parse errors use `NewParseError()` |
-| `report.WriteJSON()` | `-format json` uses native go-finding streaming serialization |
-| `report.WriteSARIFFiltered()` | `-format sarif` outputs SARIF 2.1.0 for GitHub Code Scanning |
-| `-severity` flag | `finding.BySeverityAtLeast()` predicate for minimum severity filtering |
-| `finding.Filter` | `BySeverity`, `BySeverityAtLeast`, `NotSuppressed` predicates |
-| `DetectFile()` | Convenience: single-file detect → `*finding.Report` |
-| Context awareness | `Detect(ctx)` respects cancellation |
+| Integration Point             | Implementation                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `pipeline.Detector`           | `SecurityValidator` implements `Name()` + `Detect(ctx)` with compile-time check                        |
+| `finding.Builder`             | All findings via `NewBuilder().WithCategory().WithTags().WithFixStrategy().WithConfidence().Build()`   |
+| `finding.FindingError`        | Replaced custom `SecurityError` — config errors use `NewIOError()`, parse errors use `NewParseError()` |
+| `report.WriteJSON()`          | `-format json` uses native go-finding streaming serialization                                          |
+| `report.WriteSARIFFiltered()` | `-format sarif` outputs SARIF 2.1.0 for GitHub Code Scanning                                           |
+| `-severity` flag              | `finding.BySeverityAtLeast()` predicate for minimum severity filtering                                 |
+| `finding.Filter`              | `BySeverity`, `BySeverityAtLeast`, `NotSuppressed` predicates                                          |
+| `DetectFile()`                | Convenience: single-file detect → `*finding.Report`                                                    |
+| Context awareness             | `Detect(ctx)` respects cancellation                                                                    |
 
 ### 3. Previously Complete
 
@@ -57,18 +57,19 @@ We implement `Detector` but don't actually **run the pipeline**. The `pipeline.N
 
 ### 2. Test Coverage — 23.4% overall
 
-| Package | Coverage | Change |
-|---------|----------|--------|
-| `internal` | 33.6% | Down from 35.2% (new untested code added) |
-| `internal/types` | N/A | No test files |
-| `cmd/template-security` | 0.0% | Unchanged — no tests at all |
-| `test/acceptance` | 100.0% | Unchanged |
+| Package                 | Coverage | Change                                    |
+| ----------------------- | -------- | ----------------------------------------- |
+| `internal`              | 33.6%    | Down from 35.2% (new untested code added) |
+| `internal/types`        | N/A      | No test files                             |
+| `cmd/template-security` | 0.0%     | Unchanged — no tests at all               |
+| `test/acceptance`       | 100.0%   | Unchanged                                 |
 
 Notable uncovered functions: `DetectFile()` (0.0%), `hasVersionInformation()` (75.0%)
 
 ### 3. SARIF Output — 60%
 
 `WriteSARIFFiltered` is wired but:
+
 - File URIs are relative paths, not proper `file://` URIs
 - No `--sarif-output` flag for writing to file instead of stdout
 - Not tested in any test
@@ -103,24 +104,25 @@ Notable uncovered functions: `DetectFile()` (0.0%), `hasVersionInformation()` (7
 
 All warnings are from an overly strict `.golangci.yml`:
 
-| Category | Count | Root Cause |
-|----------|-------|------------|
-| `depguard` | ~15 | Blocks all imports including standard libs |
-| `exhaustruct` | ~10 | Demands every struct field on Cobra, finding types |
-| `forbidigo` | ~8 | Blocks `fmt.Printf` in a CLI tool that prints |
-| `revive` | ~10 | Missing package/type comments |
-| `gochecknoglobals` | ~6 | Cobra flags require globals |
-| `err113` | ~3 | Dynamic errors via `errors.New()` |
-| `noinlineerr` | ~5 | Inline error handling preference |
-| `wrapcheck` | ~3 | Unwrapped external errors |
-| `mnd` | ~5 | Magic numbers |
-| `gosec` | ~3 | File permissions |
+| Category           | Count | Root Cause                                         |
+| ------------------ | ----- | -------------------------------------------------- |
+| `depguard`         | ~15   | Blocks all imports including standard libs         |
+| `exhaustruct`      | ~10   | Demands every struct field on Cobra, finding types |
+| `forbidigo`        | ~8    | Blocks `fmt.Printf` in a CLI tool that prints      |
+| `revive`           | ~10   | Missing package/type comments                      |
+| `gochecknoglobals` | ~6    | Cobra flags require globals                        |
+| `err113`           | ~3    | Dynamic errors via `errors.New()`                  |
+| `noinlineerr`      | ~5    | Inline error handling preference                   |
+| `wrapcheck`        | ~3    | Unwrapped external errors                          |
+| `mnd`              | ~5    | Magic numbers                                      |
+| `gosec`            | ~3    | File permissions                                   |
 
 **None of these were introduced by our work.** The config was copied from another project and needs relaxing.
 
 ### 2. Uncommitted Changes
 
 The deep integration session (commit `4cfba19`) did NOT include all files. Six files have uncommitted changes that need committing:
+
 - `internal/security_validator.go` — pipeline.Detector, Builder API
 - `internal/security_tool.go` — FindingError migration
 - `internal/security_validator_test.go` — updated tests
@@ -161,33 +163,33 @@ The deep integration session (commit `4cfba19`) did NOT include all files. Six f
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| # | Priority | Task | Effort | Impact |
-|---|----------|------|--------|--------|
-| 1 | P0 | **Commit uncommitted deep integration changes** | 2min | Uncommitted work at risk |
-| 2 | P0 | Fix `.golangci.yml` — relax CLI-inappropriate rules | 30min | Eliminates 80%+ warnings |
-| 3 | P0 | Remove unused `printSuccess`/`printError` from cmd_helpers | 5min | Dead code |
-| 4 | P1 | Add CLI tests for `cmd/template-security` | 2h | 0% → 80% coverage |
-| 5 | P1 | Wire `pipeline.New()` + `Run()` in validate command | 1h | Full pipeline orchestration |
-| 6 | P1 | Compose with go-finding govet + staticcheck detectors | 1h | Multi-tool pipeline |
-| 7 | P1 | Test `DetectFile()` convenience function | 30min | 0% → 100% coverage |
-| 8 | P1 | Add SARIF output test | 30min | Untested feature |
-| 9 | P1 | Use `finding.Merge()` in validate.go | 15min | Use library instead of custom |
-| 10 | P1 | Use `finding.SortBySeverity()` in PrintResults | 15min | Better output ordering |
-| 11 | P2 | Fix nil context in tests → `context.TODO()` | 5min | Correctness |
-| 12 | P2 | Add `--output` flag for file-based SARIF output | 30min | CI/CD file output |
-| 13 | P2 | Test `project_detector.go` | 1h | Untested complex code |
-| 14 | P2 | Convert `file://` URIs in SARIF output | 30min | SARIF compliance |
-| 15 | P2 | Update `README.md` with go-finding integration docs | 30min | Documentation |
-| 16 | P2 | Add `docs/adr/` for go-finding migration decision | 30min | Architecture docs |
-| 17 | P2 | Add `FEATURES.md` audit | 1h | Documentation |
-| 18 | P2 | Add `TODO_LIST.md` | 1h | Project management |
-| 19 | P3 | Add GitHub Actions SARIF upload step | 30min | CI/CD |
-| 20 | P3 | Add exit codes by severity | 30min | CLI usability |
-| 21 | P3 | Configurable validation rules via YAML | 2h | Extensibility |
-| 22 | P3 | Add goreleaser config | 1h | Distribution |
-| 23 | P3 | Add nix flake build | 1h | Build automation |
-| 24 | P3 | Update `CHANGELOG.md` | 15min | Changelog hygiene |
-| 25 | P3 | Clean up stale docs in `docs/status/` and `docs/planning/` | 30min | Housekeeping |
+| #   | Priority | Task                                                       | Effort | Impact                        |
+| --- | -------- | ---------------------------------------------------------- | ------ | ----------------------------- |
+| 1   | P0       | **Commit uncommitted deep integration changes**            | 2min   | Uncommitted work at risk      |
+| 2   | P0       | Fix `.golangci.yml` — relax CLI-inappropriate rules        | 30min  | Eliminates 80%+ warnings      |
+| 3   | P0       | Remove unused `printSuccess`/`printError` from cmd_helpers | 5min   | Dead code                     |
+| 4   | P1       | Add CLI tests for `cmd/template-security`                  | 2h     | 0% → 80% coverage             |
+| 5   | P1       | Wire `pipeline.New()` + `Run()` in validate command        | 1h     | Full pipeline orchestration   |
+| 6   | P1       | Compose with go-finding govet + staticcheck detectors      | 1h     | Multi-tool pipeline           |
+| 7   | P1       | Test `DetectFile()` convenience function                   | 30min  | 0% → 100% coverage            |
+| 8   | P1       | Add SARIF output test                                      | 30min  | Untested feature              |
+| 9   | P1       | Use `finding.Merge()` in validate.go                       | 15min  | Use library instead of custom |
+| 10  | P1       | Use `finding.SortBySeverity()` in PrintResults             | 15min  | Better output ordering        |
+| 11  | P2       | Fix nil context in tests → `context.TODO()`                | 5min   | Correctness                   |
+| 12  | P2       | Add `--output` flag for file-based SARIF output            | 30min  | CI/CD file output             |
+| 13  | P2       | Test `project_detector.go`                                 | 1h     | Untested complex code         |
+| 14  | P2       | Convert `file://` URIs in SARIF output                     | 30min  | SARIF compliance              |
+| 15  | P2       | Update `README.md` with go-finding integration docs        | 30min  | Documentation                 |
+| 16  | P2       | Add `docs/adr/` for go-finding migration decision          | 30min  | Architecture docs             |
+| 17  | P2       | Add `FEATURES.md` audit                                    | 1h     | Documentation                 |
+| 18  | P2       | Add `TODO_LIST.md`                                         | 1h     | Project management            |
+| 19  | P3       | Add GitHub Actions SARIF upload step                       | 30min  | CI/CD                         |
+| 20  | P3       | Add exit codes by severity                                 | 30min  | CLI usability                 |
+| 21  | P3       | Configurable validation rules via YAML                     | 2h     | Extensibility                 |
+| 22  | P3       | Add goreleaser config                                      | 1h     | Distribution                  |
+| 23  | P3       | Add nix flake build                                        | 1h     | Build automation              |
+| 24  | P3       | Update `CHANGELOG.md`                                      | 15min  | Changelog hygiene             |
+| 25  | P3       | Clean up stale docs in `docs/status/` and `docs/planning/` | 30min  | Housekeeping                  |
 
 ---
 
@@ -213,16 +215,16 @@ Coverage: 23.4% overall
 
 ## Dependency State
 
-| Dependency | Version | Role |
-|------------|---------|------|
-| `go-finding` | v0.3.0 | Core data model + pipeline |
-| `cobra` | v1.10.2 | CLI framework |
-| `viper` | v1.21.0 | Config loading |
-| `ginkgo/v2` | v2.28.3 | BDD acceptance tests |
-| `gomega` | v1.40.0 | Test matchers |
-| `testify` | v1.11.1 | Unit test assertions |
-| `fatih/color` | v1.19.0 | Terminal colors |
-| `go-branded-id` | REMOVED | — |
+| Dependency      | Version | Role                       |
+| --------------- | ------- | -------------------------- |
+| `go-finding`    | v0.3.0  | Core data model + pipeline |
+| `cobra`         | v1.10.2 | CLI framework              |
+| `viper`         | v1.21.0 | Config loading             |
+| `ginkgo/v2`     | v2.28.3 | BDD acceptance tests       |
+| `gomega`        | v1.40.0 | Test matchers              |
+| `testify`       | v1.11.1 | Unit test assertions       |
+| `fatih/color`   | v1.19.0 | Terminal colors            |
+| `go-branded-id` | REMOVED | —                          |
 
 ## Code Stats
 

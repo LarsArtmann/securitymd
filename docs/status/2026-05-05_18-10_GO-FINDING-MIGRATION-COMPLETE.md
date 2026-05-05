@@ -14,20 +14,21 @@ Successfully migrated template-SECURITY from custom validation types to `github.
 
 ### 1. go-finding Migration (THIS SESSION)
 
-| What | Before | After | Status |
-|------|--------|-------|--------|
-| Validation results | `SecurityValidationResult{Valid, Errors, Warnings, File}` | `*finding.Report` with `[]Finding` | ✅ Complete |
-| Validation errors/warnings | `[]string` | `finding.Finding` with `SeverityError`/`SeverityWarning`, `CategorySecurity`, machine-readable rule names | ✅ Complete |
-| CLI validate command | Manual string counting | Severity-based filtering via `finding.Report` | ✅ Complete |
-| JSON output | Custom map structure | Standard `finding.Report` JSON serialization | ✅ Complete |
-| PrintResults | Custom struct iteration | Report-based with severity classification | ✅ Complete |
-| Unit tests (8) | Old `SecurityValidationResult` assertions | `collectMessages(report, severity)` + `ReportIsValid()` | ✅ Complete |
-| Acceptance tests (9) | Old struct field assertions | `finding.SeverityError`/`finding.SeverityWarning` checks | ✅ Complete |
-| ID types | `id.ID[IDBrand, string]` from `go-branded-id` | Plain `type ID string` / `type PolicyID string` | ✅ Complete |
-| Renamed `IDID` → `ID` | Embarrassing `type IDID string` ("ID ID" nonsense) | Clean `type ID string` | ✅ Complete |
-| `go-branded-id` dependency | Required | Removed | ✅ Complete |
+| What                       | Before                                                    | After                                                                                                     | Status      |
+| -------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------- |
+| Validation results         | `SecurityValidationResult{Valid, Errors, Warnings, File}` | `*finding.Report` with `[]Finding`                                                                        | ✅ Complete |
+| Validation errors/warnings | `[]string`                                                | `finding.Finding` with `SeverityError`/`SeverityWarning`, `CategorySecurity`, machine-readable rule names | ✅ Complete |
+| CLI validate command       | Manual string counting                                    | Severity-based filtering via `finding.Report`                                                             | ✅ Complete |
+| JSON output                | Custom map structure                                      | Standard `finding.Report` JSON serialization                                                              | ✅ Complete |
+| PrintResults               | Custom struct iteration                                   | Report-based with severity classification                                                                 | ✅ Complete |
+| Unit tests (8)             | Old `SecurityValidationResult` assertions                 | `collectMessages(report, severity)` + `ReportIsValid()`                                                   | ✅ Complete |
+| Acceptance tests (9)       | Old struct field assertions                               | `finding.SeverityError`/`finding.SeverityWarning` checks                                                  | ✅ Complete |
+| ID types                   | `id.ID[IDBrand, string]` from `go-branded-id`             | Plain `type ID string` / `type PolicyID string`                                                           | ✅ Complete |
+| Renamed `IDID` → `ID`      | Embarrassing `type IDID string` ("ID ID" nonsense)        | Clean `type ID string`                                                                                    | ✅ Complete |
+| `go-branded-id` dependency | Required                                                  | Removed                                                                                                   | ✅ Complete |
 
 **Files changed (7):**
+
 - `go.mod` / `go.sum` — added `go-finding v0.3.0`, removed `go-branded-id v0.1.0`
 - `internal/security_validator.go` — core migration to `finding.Report`/`finding.Finding`
 - `internal/security_validator_test.go` — test migration
@@ -62,12 +63,12 @@ We added go-finding as a dependency and migrated the validator output, but:
 
 ### 2. Test Coverage — 24.2% overall
 
-| Package | Coverage | Notes |
-|---------|----------|-------|
-| `internal` | 35.2% | Validator is well-tested, but `security_tool.go` and `project_detector.go` have minimal coverage |
-| `internal/types` | N/A | No test files |
-| `cmd/template-security` | 0.0% | No tests at all |
-| `test/acceptance` | 100.0% | Good acceptance coverage |
+| Package                 | Coverage | Notes                                                                                            |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `internal`              | 35.2%    | Validator is well-tested, but `security_tool.go` and `project_detector.go` have minimal coverage |
+| `internal/types`        | N/A      | No test files                                                                                    |
+| `cmd/template-security` | 0.0%     | No tests at all                                                                                  |
+| `test/acceptance`       | 100.0%   | Good acceptance coverage                                                                         |
 
 ### 3. CLI Binary — Functional but Basic
 
@@ -102,18 +103,18 @@ We added go-finding as a dependency and migrated the validator output, but:
 
 The project has **88+ golangci-lint warnings** that were NOT introduced by this migration. Major categories:
 
-| Category | Count | Examples |
-|----------|-------|---------|
-| `depguard` | ~15 | Cobra, color, viper, internal imports "not allowed" |
-| `exhaustruct` | ~10 | Cobra.Command missing fields |
-| `revive` | ~10 | Missing package comments, exported type comments |
-| `forbidigo` | ~8 | `fmt.Printf` forbidden |
-| `gochecknoglobals` | ~6 | Global variables in cmd |
-| `err113` | ~3 | Dynamic errors via `errors.New()` |
-| `noinlineerr` | ~5 | Inline error handling |
-| `wrapcheck` | ~3 | Unwrapped external errors |
-| `mnd` | ~5 | Magic numbers |
-| `gosec` | ~3 | File permissions, file inclusion |
+| Category           | Count | Examples                                            |
+| ------------------ | ----- | --------------------------------------------------- |
+| `depguard`         | ~15   | Cobra, color, viper, internal imports "not allowed" |
+| `exhaustruct`      | ~10   | Cobra.Command missing fields                        |
+| `revive`           | ~10   | Missing package comments, exported type comments    |
+| `forbidigo`        | ~8    | `fmt.Printf` forbidden                              |
+| `gochecknoglobals` | ~6    | Global variables in cmd                             |
+| `err113`           | ~3    | Dynamic errors via `errors.New()`                   |
+| `noinlineerr`      | ~5    | Inline error handling                               |
+| `wrapcheck`        | ~3    | Unwrapped external errors                           |
+| `mnd`              | ~5    | Magic numbers                                       |
+| `gosec`            | ~3    | File permissions, file inclusion                    |
 
 **Root cause:** The `.golangci.yml` config is extremely strict and was likely copied from another project. Many rules are inappropriate for a CLI tool (e.g., `forbidigo` blocking `fmt.Printf`).
 
@@ -158,33 +159,33 @@ The project has **88+ golangci-lint warnings** that were NOT introduced by this 
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| # | Priority | Task | Effort | Impact |
-|---|----------|------|--------|--------|
-| 1 | P0 | Fix `.golangci.yml` — relax CLI-inappropriate rules | 30min | Eliminates 80%+ warnings |
-| 2 | P0 | Add CLI tests for `cmd/template-security` | 2h | 0% → 80% coverage gap closed |
-| 3 | P0 | Remove unused `printSuccess`/`printError` functions | 5min | Dead code elimination |
-| 4 | P1 | Add `-format sarif` flag using `report.WriteSARIF()` | 30min | CI/CD integration value |
-| 5 | P1 | Add `-severity` filter flag using `finding.BySeverityAtLeast()` | 30min | CLI usability |
-| 6 | P1 | Use `report.WriteJSON()` instead of manual JSON in validate.go | 30min | Code dedup |
-| 7 | P1 | Implement `pipeline.Detector` for `SecurityValidator` | 1h | Ecosystem integration |
-| 8 | P1 | Test `project_detector.go` | 1h | Untested complex code |
-| 9 | P1 | Migrate `SecurityError` to `finding.FindingError` | 1h | Consistency |
-| 10 | P1 | Use `finding.Builder` API in validator | 30min | Cleaner code |
-| 11 | P2 | Fix JSON tags in `types.go` (camelCase) | 15min | Lint compliance |
-| 12 | P2 | Add package comments to all packages | 15min | Lint compliance |
-| 13 | P2 | Add `go.Finding` category tags to all findings | 15min | Better filtering |
-| 14 | P2 | Add confidence scores to findings | 15min | Richer output |
-| 15 | P2 | Update `README.md` to mention go-finding integration | 15min | Documentation |
-| 16 | P2 | Update `SECURITY.md` template | 30min | Template quality |
-| 17 | P2 | Add `Makefile` or `flake.nix` build | 1h | Build automation |
-| 18 | P2 | Add GitHub Actions SARIF upload step | 30min | CI/CD |
-| 19 | P2 | Add configuration file for validation rules | 2h | Extensibility |
-| 20 | P3 | Add `docs/adr/` for go-finding migration decision | 30min | Architecture docs |
-| 21 | P3 | Add `FEATURES.md` — audit actual features | 1h | Documentation |
-| 22 | P3 | Add `TODO_LIST.md` — comprehensive task list | 1h | Project management |
-| 23 | P3 | Clean up stale docs in `docs/status/` and `docs/planning/` | 30min | Housekeeping |
-| 24 | P3 | Add goreleaser config for binary releases | 1h | Distribution |
-| 25 | P3 | Update `CHANGELOG.md` with go-finding migration entry | 15min | Changelog hygiene |
+| #   | Priority | Task                                                            | Effort | Impact                       |
+| --- | -------- | --------------------------------------------------------------- | ------ | ---------------------------- |
+| 1   | P0       | Fix `.golangci.yml` — relax CLI-inappropriate rules             | 30min  | Eliminates 80%+ warnings     |
+| 2   | P0       | Add CLI tests for `cmd/template-security`                       | 2h     | 0% → 80% coverage gap closed |
+| 3   | P0       | Remove unused `printSuccess`/`printError` functions             | 5min   | Dead code elimination        |
+| 4   | P1       | Add `-format sarif` flag using `report.WriteSARIF()`            | 30min  | CI/CD integration value      |
+| 5   | P1       | Add `-severity` filter flag using `finding.BySeverityAtLeast()` | 30min  | CLI usability                |
+| 6   | P1       | Use `report.WriteJSON()` instead of manual JSON in validate.go  | 30min  | Code dedup                   |
+| 7   | P1       | Implement `pipeline.Detector` for `SecurityValidator`           | 1h     | Ecosystem integration        |
+| 8   | P1       | Test `project_detector.go`                                      | 1h     | Untested complex code        |
+| 9   | P1       | Migrate `SecurityError` to `finding.FindingError`               | 1h     | Consistency                  |
+| 10  | P1       | Use `finding.Builder` API in validator                          | 30min  | Cleaner code                 |
+| 11  | P2       | Fix JSON tags in `types.go` (camelCase)                         | 15min  | Lint compliance              |
+| 12  | P2       | Add package comments to all packages                            | 15min  | Lint compliance              |
+| 13  | P2       | Add `go.Finding` category tags to all findings                  | 15min  | Better filtering             |
+| 14  | P2       | Add confidence scores to findings                               | 15min  | Richer output                |
+| 15  | P2       | Update `README.md` to mention go-finding integration            | 15min  | Documentation                |
+| 16  | P2       | Update `SECURITY.md` template                                   | 30min  | Template quality             |
+| 17  | P2       | Add `Makefile` or `flake.nix` build                             | 1h     | Build automation             |
+| 18  | P2       | Add GitHub Actions SARIF upload step                            | 30min  | CI/CD                        |
+| 19  | P2       | Add configuration file for validation rules                     | 2h     | Extensibility                |
+| 20  | P3       | Add `docs/adr/` for go-finding migration decision               | 30min  | Architecture docs            |
+| 21  | P3       | Add `FEATURES.md` — audit actual features                       | 1h     | Documentation                |
+| 22  | P3       | Add `TODO_LIST.md` — comprehensive task list                    | 1h     | Project management           |
+| 23  | P3       | Clean up stale docs in `docs/status/` and `docs/planning/`      | 30min  | Housekeeping                 |
+| 24  | P3       | Add goreleaser config for binary releases                       | 1h     | Distribution                 |
+| 25  | P3       | Update `CHANGELOG.md` with go-finding migration entry           | 15min  | Changelog hygiene            |
 
 ---
 
@@ -193,11 +194,13 @@ The project has **88+ golangci-lint warnings** that were NOT introduced by this 
 **Should `SecurityValidator` become a `pipeline.Detector` implementation (with `Name()` and `Detect(ctx) ([]finding.Finding, error)`), or should it stay as a higher-level abstraction that returns `*finding.Report`?**
 
 Arguments for `Detector`:
+
 - Pluggable into go-finding's pipeline (detect → triage → fix → verify)
 - Consistent with go-finding's ecosystem patterns
 - Could combine with govet/staticcheck detectors from go-finding
 
 Arguments against:
+
 - The validator doesn't "detect" issues in source code — it validates a Markdown file's structure
 - The pipeline's fix/verify loop doesn't apply to SECURITY.md validation
 - Adding pipeline dependency for a single-validator use case feels heavyweight
@@ -208,16 +211,16 @@ This is an architectural decision that affects the project's direction and I'd r
 
 ## Dependency State
 
-| Dependency | Version | Status |
-|------------|---------|--------|
-| `go-finding` | v0.3.0 | ✅ NEW — core data model |
-| `cobra` | v1.10.2 | ✅ CLI framework |
-| `viper` | v1.21.0 | ✅ Config loading |
-| `ginkgo/v2` | v2.28.3 | ✅ BDD acceptance tests |
-| `gomega` | v1.40.0 | ✅ Test assertions |
-| `testify` | v1.11.1 | ✅ Unit test assertions |
-| `fatih/color` | v1.19.0 | ✅ Terminal colors |
-| `go-branded-id` | — | ❌ REMOVED |
+| Dependency      | Version | Status                   |
+| --------------- | ------- | ------------------------ |
+| `go-finding`    | v0.3.0  | ✅ NEW — core data model |
+| `cobra`         | v1.10.2 | ✅ CLI framework         |
+| `viper`         | v1.21.0 | ✅ Config loading        |
+| `ginkgo/v2`     | v2.28.3 | ✅ BDD acceptance tests  |
+| `gomega`        | v1.40.0 | ✅ Test assertions       |
+| `testify`       | v1.11.1 | ✅ Unit test assertions  |
+| `fatih/color`   | v1.19.0 | ✅ Terminal colors       |
+| `go-branded-id` | —       | ❌ REMOVED               |
 
 ## Test Results
 
