@@ -60,8 +60,6 @@ We follow security best practices.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			// Create template in the expected location
 			templateDir := tt.config.OutputDir + "/../templates"
 			err := os.MkdirAll(templateDir, 0o750)

@@ -8,17 +8,19 @@ import (
 )
 
 func withTempFile(content string, callback func(path string)) {
-	tmpFile, err := os.CreateTemp("", "SECURITY.md")
+	tmpFile, err := os.CreateTemp("", "SECURITY-*.md")
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
-
-	if err := os.Remove(tmpFile.Name()); err != nil {
-		gomega.Expect(err).NotTo(gomega.HaveOccurred())
-	}
 
 	_, err = tmpFile.WriteString(content)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	err = tmpFile.Close()
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
+		}
+	}()
 
 	callback(tmpFile.Name())
 }
