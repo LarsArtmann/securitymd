@@ -6,7 +6,9 @@ import "time"
 type PolicyType string
 
 const (
-	PolicyTypeGitHub     PolicyType = "github"
+	// PolicyTypeGitHub represents a GitHub-style security policy.
+	PolicyTypeGitHub PolicyType = "github"
+	// PolicyTypeEnterprise represents an enterprise-style security policy.
 	PolicyTypeEnterprise PolicyType = "enterprise"
 )
 

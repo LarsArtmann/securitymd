@@ -1,3 +1,4 @@
+// Package internal provides tests for the internal package.
 package internal
 
 import (
@@ -11,6 +12,8 @@ import (
 )
 
 func assertContainsAll(t *testing.T, expected, actual []string, itemType string) {
+	t.Helper()
+
 	for _, expectedItem := range expected {
 		found := false
 
@@ -177,9 +180,11 @@ We follow security best practices.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			tmpDir := t.TempDir()
 			filename := tmpDir + "/SECURITY.md"
-			err := os.WriteFile(filename, []byte(tt.content), 0o644)
+			err := os.WriteFile(filename, []byte(tt.content), 0o600)
 			require.NoError(t, err)
 
 			report, err := validator.ValidateSECURITYMd(filename)
@@ -205,6 +210,8 @@ We follow security best practices.
 }
 
 func TestSecurityValidator_ValidateContentQuality(t *testing.T) {
+	t.Parallel()
+
 	validator := NewSecurityValidator()
 
 	tests := []struct {
@@ -235,7 +242,9 @@ func TestSecurityValidator_ValidateContentQuality(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			report := finding.NewReport(finding.ToolInfo{Name: toolName})
+			t.Parallel()
+
+			report := finding.NewReport(finding.ToolInfo{Name: toolName, Version: "dev"})
 			lines := strings.Split(tt.content, "\n")
 			validator.validateContentQuality("test.md", tt.content, lines, report)
 
@@ -250,9 +259,11 @@ func TestSecurityValidator_ValidateContentQuality(t *testing.T) {
 }
 
 func TestSecurityValidator_PrintResults(t *testing.T) {
+	t.Parallel()
+
 	validator := NewSecurityValidator()
 
-	report1 := finding.NewReport(finding.ToolInfo{Name: toolName})
+	report1 := finding.NewReport(finding.ToolInfo{Name: toolName, Version: "dev"})
 	report1.AddFinding(
 		finding.NewFinding(
 			"test",
@@ -264,7 +275,7 @@ func TestSecurityValidator_PrintResults(t *testing.T) {
 		),
 	)
 
-	report2 := finding.NewReport(finding.ToolInfo{Name: toolName})
+	report2 := finding.NewReport(finding.ToolInfo{Name: toolName, Version: "dev"})
 	report2.AddFinding(
 		finding.NewFinding(
 			"test",

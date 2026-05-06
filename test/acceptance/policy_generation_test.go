@@ -1,6 +1,8 @@
+// Package acceptance provides end-to-end acceptance tests for template-security.
 package acceptance
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -18,7 +20,7 @@ var _ = ginkgo.Describe("Security Policy Generation", ginkgo.Label("acceptance")
 	)
 
 	assertPolicyContains := func(expected string) {
-		err := tool.GeneratePolicy(nil, config)
+		err := tool.GeneratePolicy(context.TODO(), config)
 		expectNoError(err)
 
 		content, err := os.ReadFile(filepath.Join(outputDir, "SECURITY.md"))
@@ -60,16 +62,27 @@ _Last updated: {{.LastUpdated}}_
 
 		ginkgo.BeforeEach(func() {
 			templateDir := filepath.Join(outputDir, "..", "templates")
-			expectNoError(os.MkdirAll(templateDir, 0o755))
+
+			err := os.MkdirAll(templateDir, 0o755)
+			if err != nil {
+				expectNoError(err)
+			}
 
 			templateFile := filepath.Join(templateDir, "SECURITY.md")
-			expectNoError(os.WriteFile(templateFile, []byte(templateContent), 0o644))
 
-			expectNoError(os.Chdir(filepath.Join(outputDir, "..")))
+			err = os.WriteFile(templateFile, []byte(templateContent), 0o644)
+			if err != nil {
+				expectNoError(err)
+			}
+
+			err = os.Chdir(filepath.Join(outputDir, ".."))
+			if err != nil {
+				expectNoError(err)
+			}
 		})
 
 		ginkgo.It("creates a SECURITY.md file in the output directory", func() {
-			err := tool.GeneratePolicy(nil, config)
+			err := tool.GeneratePolicy(context.TODO(), config)
 			expectNoError(err)
 
 			outputFile := filepath.Join(outputDir, "SECURITY.md")
@@ -77,7 +90,7 @@ _Last updated: {{.LastUpdated}}_
 		})
 
 		ginkgo.It("includes the organization name, contact email, and version information", func() {
-			for _, tc := range []struct {
+			for _, testCase := range []struct {
 				name     string
 				expected string
 			}{
@@ -85,8 +98,8 @@ _Last updated: {{.LastUpdated}}_
 				{"contact email", "security@acme.com"},
 				{"version information", "Supported Versions"},
 			} {
-				ginkgo.By(tc.name, func() {
-					assertPolicyContains(tc.expected)
+				ginkgo.By(testCase.name, func() {
+					assertPolicyContains(testCase.expected)
 				})
 			}
 		})
@@ -99,17 +112,23 @@ _Last updated: {{.LastUpdated}}_
 				config.OutputDir = ginkgo.GinkgoT().TempDir()
 
 				templateDir := filepath.Join(config.OutputDir, "..", "templates")
-				expectNoError(os.MkdirAll(templateDir, 0o755))
-				expectNoError(
-					os.WriteFile(
-						filepath.Join(templateDir, "SECURITY.md"),
-						[]byte("# Test"),
-						0o644,
-					),
-				)
-				expectNoError(os.Chdir(filepath.Join(config.OutputDir, "..")))
+				if err := os.MkdirAll(templateDir, 0o750); err != nil {
+					expectNoError(err)
+				}
 
-				err := tool.GeneratePolicy(nil, config)
+				if err := os.WriteFile(
+					filepath.Join(templateDir, "SECURITY.md"),
+					[]byte("# Test"),
+					0o600,
+				); err != nil {
+					expectNoError(err)
+				}
+
+				if err := os.Chdir(filepath.Join(config.OutputDir, "..")); err != nil {
+					expectNoError(err)
+				}
+
+				err := tool.GeneratePolicy(context.TODO(), config)
 				expectNoError(err)
 			})
 		})

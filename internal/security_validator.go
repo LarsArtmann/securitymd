@@ -21,7 +21,9 @@ type SecurityValidator struct {
 // NewSecurityValidator creates a new security validator for the given file.
 // The filePath is used by Detect() to know which file to validate.
 func NewSecurityValidator() *SecurityValidator {
-	return &SecurityValidator{}
+	return &SecurityValidator{
+		filePath: "",
+	}
 }
 
 // WithFile sets the file path to validate. Returns a new validator.
@@ -87,12 +89,11 @@ func buildFinding(
 func (sv *SecurityValidator) ValidateSECURITYMd(
 	filePath string,
 ) (*finding.Report, error) {
-	report := finding.NewReport(finding.ToolInfo{Name: toolName})
+	report := finding.NewReport(finding.ToolInfo{Name: toolName, Version: "dev"})
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, finding.NewIOError("failed to read file", err).
-			WithPosition(finding.Pos(filePath, 0, 0))
+		return nil, fmt.Errorf("failed to read file %q: %w", filePath, err)
 	}
 
 	contentStr := string(content)
@@ -253,7 +254,7 @@ func DetectFile(ctx context.Context, filePath string) (*finding.Report, error) {
 		return nil, err
 	}
 
-	report := finding.NewReport(finding.ToolInfo{Name: toolName})
+	report := finding.NewReport(finding.ToolInfo{Name: toolName, Version: "dev"})
 	report.AddFindings(findings)
 	report.ComputeSummary()
 

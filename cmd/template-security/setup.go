@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 
@@ -8,6 +9,22 @@ import (
 	"github.com/LarsArtmann/template-SECURITY/internal/types"
 	"github.com/spf13/cobra"
 )
+
+// errInvalidPolicyType indicates an invalid policy type was provided.
+var errInvalidPolicyType = errors.New("invalid policy type")
+
+// ValidatePolicyType validates the policy type and returns an error if invalid.
+func ValidatePolicyType(policyType string) error {
+	if policyType != "github" && policyType != "enterprise" {
+		return fmt.Errorf(
+			"%w: %s (supported: github, enterprise)",
+			errInvalidPolicyType,
+			policyType,
+		)
+	}
+
+	return nil
+}
 
 var (
 	// orgName is a command-line flag for the organization name.
@@ -66,8 +83,8 @@ func newSetupCmd() *cobra.Command {
 		}
 
 		// Validate policy type
-		if policyType != "github" && policyType != "enterprise" {
-			return fmt.Errorf("invalid policy type: %s (supported: github, enterprise)", policyType)
+		if err := ValidatePolicyType(policyType); err != nil {
+			return err
 		}
 
 		// If no organization provided, try to detect it or use config

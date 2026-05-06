@@ -169,7 +169,7 @@ func (st *SecurityTool) GeneratePolicy(_ context.Context, config PolicyConfig) e
 		outputFile = strings.TrimSuffix(config.OutputDir, "/") + "/SECURITY.md"
 	}
 
-	err = os.WriteFile(outputFile, []byte(content), 0o644)
+	err = os.WriteFile(outputFile, []byte(content), 0o600)
 	if err != nil {
 		return finding.NewIOError(
 			"failed to write file "+outputFile,
@@ -214,7 +214,7 @@ func (st *SecurityTool) readTemplate(_ types.PolicyType) (string, error) {
 
 	content, err := os.ReadFile(templatePath)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read template: %w", err)
 	}
 
 	return string(content), nil
@@ -244,6 +244,7 @@ func (st *SecurityTool) buildVersions() []types.Version {
 			SupportedUntil:  now.AddDate(1, 0, 0),
 			Status:          types.StatusSupported,
 			IsLatest:        true,
+			IsPrevious:      false,
 		},
 	}
 }

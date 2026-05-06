@@ -28,6 +28,9 @@ var (
 // errPolicyValidation is returned when one or more policies failed validation.
 var errPolicyValidation = errors.New("one or more policies failed validation")
 
+// errFileNotFound indicates that the policy file was not found.
+var errFileNotFound = errors.New("policy file not found")
+
 func newValidateCmd() *cobra.Command {
 	cmd := newCommand(
 		"validate",
@@ -73,14 +76,20 @@ func validateSpecificFile(filename string, validator *internal.SecurityValidator
 	stat, err := os.Stat(filename)
 	if err != nil {
 		if outputFormat == outputFormatJSON || outputFormat == outputFormatSarif {
-			fmt.Fprintf(os.Stderr, "file not found: %s\n", filename)
+			if _, writeErr := fmt.Fprintf(
+				os.Stderr,
+				"file not found: %s\n",
+				filename,
+			); writeErr != nil {
+				color.Red("Failed to write error: %v", writeErr)
+			}
 
-			return fmt.Errorf("file not found: %s", filename)
+			return fmt.Errorf("%w: %s", errFileNotFound, filename)
 		}
 
 		color.Red("❌ File not found: %s", filename)
 
-		return fmt.Errorf("file not found: %s", filename)
+		return fmt.Errorf("%w: %s", errFileNotFound, filename)
 	}
 
 	_ = stat
@@ -160,7 +169,7 @@ func mergeReports(reports []*finding.Report) *finding.Report {
 		return reports[0]
 	}
 
-	merged := finding.NewReport(finding.ToolInfo{Name: "template-security"})
+	merged := finding.NewReport(finding.ToolInfo{Name: "template-security", Version: "dev"})
 
 	for _, r := range reports {
 		merged.AddFindings(r.Findings)
@@ -177,12 +186,18 @@ func outputReport(report *finding.Report) error {
 	switch outputFormat {
 	case outputFormatJSON:
 		err := report.WriteJSON(os.Stdout)
+		if err != nil {
+			return fmt.Errorf("failed to write JSON report: %w", err)
+		}
 
-		return err
+		return nil
 	case outputFormatSarif:
 		err := report.WriteSARIFFiltered(os.Stdout, minSev)
+		if err != nil {
+			return fmt.Errorf("failed to write SARIF report: %w", err)
+		}
 
-		return err
+		return nil
 	default:
 		return printTextReport(report)
 	}
@@ -202,7 +217,10 @@ func printTextReport(report *finding.Report) error {
 			icon = "❌"
 		}
 
-		fmt.Fprintf(os.Stdout, "  %s %s\n", icon, findingItem.Message)
+		_, err := fmt.Fprintf(os.Stdout, "  %s %s\n", icon, findingItem.Message)
+		if err != nil {
+			return fmt.Errorf("failed to write output: %w", err)
+		}
 	}
 
 	return nil

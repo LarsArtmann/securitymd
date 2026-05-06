@@ -1,3 +1,4 @@
+// Package acceptance provides the acceptance test suite.
 package acceptance
 
 import (

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -109,7 +110,7 @@ func (pd *ProjectDetector) DetectDomain() string {
 
 // detectFromGitRemote tries to detect git remote URL.
 func (pd *ProjectDetector) detectFromGitRemote() string {
-	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+	cmd := exec.CommandContext(context.Background(), "git", "config", "--get", "remote.origin.url")
 
 	output, err := cmd.Output()
 	if err != nil {

@@ -11,10 +11,11 @@ type RunEFunc func(*cobra.Command, []string) error
 
 func newCommand(use, short, long string, runE RunEFunc) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   use,
-		Short: short,
-		Long:  long,
-		RunE:  runE,
+		Use:               use,
+		Short:             short,
+		Long:              long,
+		RunE:              runE,
+		DisableAutoGenTag: true,
 	}
 
 	return cmd

@@ -1,6 +1,8 @@
+// Package internal provides tests for the internal package.
 package internal
 
 import (
+	"context"
 	"os"
 	"testing"
 	"time"
@@ -35,7 +37,7 @@ We follow security best practices.
 `
 
 	templatePath := tmpDir + "/SECURITY.md"
-	err := os.WriteFile(templatePath, []byte(templateContent), 0o644)
+	err := os.WriteFile(templatePath, []byte(templateContent), 0o600)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -58,23 +60,28 @@ We follow security best practices.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Create template in the expected location
 			templateDir := tt.config.OutputDir + "/../templates"
-			err := os.MkdirAll(templateDir, 0o755)
+			err := os.MkdirAll(templateDir, 0o750)
 			require.NoError(t, err)
 
 			templateFile := templateDir + "/SECURITY.md"
-			err = os.WriteFile(templateFile, []byte(templateContent), 0o644)
+			err = os.WriteFile(templateFile, []byte(templateContent), 0o600)
 			require.NoError(t, err)
 
 			// Change working directory temporarily
-			originalWD, _ := os.Getwd()
-			defer os.Chdir(originalWD)
-
-			err = os.Chdir(tt.config.OutputDir + "/..")
+			originalWD, err := os.Getwd()
 			require.NoError(t, err)
 
-			err = tool.GeneratePolicy(nil, tt.config)
+			t.Chdir(tt.config.OutputDir + "/..")
+			t.Cleanup(func() {
+				err := os.Chdir(originalWD)
+				require.NoError(t, err)
+			})
+
+			err = tool.GeneratePolicy(context.TODO(), tt.config)
 
 			if tt.expectError {
 				assert.Error(t, err)
@@ -100,6 +107,8 @@ We follow security best practices.
 }
 
 func TestSecurityTool_PrepareTemplateData(t *testing.T) {
+	t.Parallel()
+
 	tool := NewSecurityTool()
 
 	config := PolicyConfig{
@@ -123,6 +132,8 @@ func TestSecurityTool_PrepareTemplateData(t *testing.T) {
 }
 
 func TestSecurityTool_BuildVersions(t *testing.T) {
+	t.Parallel()
+
 	tool := NewSecurityTool()
 
 	versions := tool.buildVersions()
@@ -142,6 +153,8 @@ func TestSecurityTool_BuildVersions(t *testing.T) {
 }
 
 func TestSecurityTool_ProcessTemplate(t *testing.T) {
+	t.Parallel()
+
 	tool := NewSecurityTool()
 
 	templateContent := `# Security Policy for {{.Organization}}

@@ -1,3 +1,4 @@
+// Package acceptance provides tests for security policy validation.
 package acceptance
 
 import (
