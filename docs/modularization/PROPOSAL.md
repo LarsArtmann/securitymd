@@ -15,10 +15,10 @@ template-SECURITY is a Go CLI tool that validates and generates `SECURITY.md` fi
 
 ### What Changes
 
-| Before | After |
-|---|---|
-| 1 `go.mod` | 4 `go.mod` files + 1 `go.work` |
-| Flat `internal` package | 4 focused modules with clear DAG |
+| Before                   | After                                 |
+| ------------------------ | ------------------------------------- |
+| 1 `go.mod`               | 4 `go.mod` files + 1 `go.work`        |
+| Flat `internal` package  | 4 focused modules with clear DAG      |
 | All deps in one `go.mod` | Each module carries only its own deps |
 
 ### Expected Benefits
@@ -34,9 +34,9 @@ template-SECURITY is a Go CLI tool that validates and generates `SECURITY.md` fi
 
 ### Module Landscape
 
-| Module | Path | Internal Deps | External Deps (Direct) | Replace Directives | State |
-|---|---|---|---|---|---|
-| `github.com/LarsArtmann/template-SECURITY` | `/` (root) | N/A (single module) | cobra, viper, color, go-finding, ginkgo, gomega, testify | None | Monolith |
+| Module                                     | Path       | Internal Deps       | External Deps (Direct)                                   | Replace Directives | State    |
+| ------------------------------------------ | ---------- | ------------------- | -------------------------------------------------------- | ------------------ | -------- |
+| `github.com/LarsArtmann/template-SECURITY` | `/` (root) | N/A (single module) | cobra, viper, color, go-finding, ginkgo, gomega, testify | None               | Monolith |
 
 ### Package Dependency Graph
 
@@ -53,11 +53,11 @@ See [DEPENDENCY_GRAPH.md](./DEPENDENCY_GRAPH.md) for full analysis.
 
 ### Coupling Hotspots
 
-| Hotspot | Impact | Mitigation |
-|---|---|---|
-| `internal` flat package | All concerns share one namespace | Split into separate modules |
-| `viper` in `internal` | Forces config dep on all consumers | Isolate to generator module |
-| Dead types in `internal/types` | Misleading API surface | Remove dead types, keep only used ones |
+| Hotspot                                        | Impact                                        | Mitigation                                        |
+| ---------------------------------------------- | --------------------------------------------- | ------------------------------------------------- |
+| `internal` flat package                        | All concerns share one namespace              | Split into separate modules                       |
+| `viper` in `internal`                          | Forces config dep on all consumers            | Isolate to generator module                       |
+| Dead types in `internal/types`                 | Misleading API surface                        | Remove dead types, keep only used ones            |
 | `SecurityValidator.PrintResults` in `internal` | Output formatting mixed with validation logic | Move to CLI layer or separate presentation module |
 
 ---
@@ -66,13 +66,13 @@ See [DEPENDENCY_GRAPH.md](./DEPENDENCY_GRAPH.md) for full analysis.
 
 ### Module Definitions
 
-| # | Name & Path | Purpose | Deps (Prod) | Deps (Test) | Public API |
-|---|---|---|---|---|---|
-| 1 | `/core` | Domain types shared across all modules | None | None | `PolicyType`, `Version`, `VersionStatus`, `ID`, `PolicyID`, `Config`, `PolicyConfig`, `TemplateData` |
-| 2 | `/validator` | SECURITY.md validation and finding generation | `core`, `go-finding`, `go-finding/pipeline` | `testify` | `SecurityValidator`, `DetectFile`, `ReportIsValid` |
-| 3 | `/generator` | SECURITY.md template generation and config loading | `core`, `go-finding`, `viper` | `testify` | `SecurityTool`, `NewSecurityTool` |
-| 4 | `/detector` | Project name/org/domain detection from git, package.json, go.mod, etc. | None | (minimal) | `ProjectDetector`, `NewProjectDetector` |
-| 5 | `/` (root) | CLI entry point (`cmd/template-security`) | `core`, `validator`, `generator`, `detector`, `cobra`, `color`, `go-finding` | `ginkgo`, `gomega` | CLI binary |
+| #   | Name & Path  | Purpose                                                                | Deps (Prod)                                                                  | Deps (Test)        | Public API                                                                                           |
+| --- | ------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| 1   | `/core`      | Domain types shared across all modules                                 | None                                                                         | None               | `PolicyType`, `Version`, `VersionStatus`, `ID`, `PolicyID`, `Config`, `PolicyConfig`, `TemplateData` |
+| 2   | `/validator` | SECURITY.md validation and finding generation                          | `core`, `go-finding`, `go-finding/pipeline`                                  | `testify`          | `SecurityValidator`, `DetectFile`, `ReportIsValid`                                                   |
+| 3   | `/generator` | SECURITY.md template generation and config loading                     | `core`, `go-finding`, `viper`                                                | `testify`          | `SecurityTool`, `NewSecurityTool`                                                                    |
+| 4   | `/detector`  | Project name/org/domain detection from git, package.json, go.mod, etc. | None                                                                         | (minimal)          | `ProjectDetector`, `NewProjectDetector`                                                              |
+| 5   | `/` (root)   | CLI entry point (`cmd/template-security`)                              | `core`, `validator`, `generator`, `detector`, `cobra`, `color`, `go-finding` | `ginkgo`, `gomega` | CLI binary                                                                                           |
 
 ### DAG Verification
 
@@ -115,11 +115,11 @@ No cycles. No lateral dependencies.
 
 **Chosen: `go.work` at repo root**
 
-| Strategy | Decision | Rationale |
-|---|---|---|
-| `go.work` file | ✅ Selected | 4 modules in same repo, not published independently |
-| `replace` directives | ❌ Not used | Per-module replace is messy with 4+ modules |
-| Versioned imports | ❌ Not used | Not published to Go proxy |
+| Strategy             | Decision    | Rationale                                           |
+| -------------------- | ----------- | --------------------------------------------------- |
+| `go.work` file       | ✅ Selected | 4 modules in same repo, not published independently |
+| `replace` directives | ❌ Not used | Per-module replace is messy with 4+ modules         |
+| Versioned imports    | ❌ Not used | Not published to Go proxy                           |
 
 ### Rules
 
@@ -146,12 +146,12 @@ use (
 
 ## 5. Test Dependency Isolation
 
-| Module | Production Deps | Test-Only Deps |
-|---|---|---|
-| `core` | None | None |
-| `validator` | `core`, `go-finding`, `go-finding/pipeline` | `testify` |
-| `generator` | `core`, `go-finding`, `viper` | `testify` |
-| `detector` | None | None |
+| Module       | Production Deps                                                              | Test-Only Deps     |
+| ------------ | ---------------------------------------------------------------------------- | ------------------ |
+| `core`       | None                                                                         | None               |
+| `validator`  | `core`, `go-finding`, `go-finding/pipeline`                                  | `testify`          |
+| `generator`  | `core`, `go-finding`, `viper`                                                | `testify`          |
+| `detector`   | None                                                                         | None               |
 | root (`cmd`) | `core`, `validator`, `generator`, `detector`, `cobra`, `color`, `go-finding` | `ginkgo`, `gomega` |
 
 ### Testhelpers Strategy
@@ -168,15 +168,15 @@ No interface/implementation split is needed for this project. The modules are al
 
 ### Moves Required
 
-| From | To | What |
-|---|---|---|
-| `internal/types/types.go` | `core/` | `PolicyType`, `Version`, `VersionStatus` |
-| `internal/types/ids.go` | `core/` | `ID`, `PolicyID` |
-| `internal/security_tool.go` (types) | `core/` | `Config`, `PolicyConfig`, `TemplateData` |
-| `internal/security_validator.go` | `validator/` | `SecurityValidator`, `DetectFile`, `ReportIsValid`, helper funcs |
-| `internal/security_tool.go` (logic) | `generator/` | `SecurityTool`, `NewSecurityTool`, error vars, all methods |
-| `internal/project_detector.go` | `detector/` | `ProjectDetector` |
-| `cmd/template-security/*` | stays in root `cmd/` | No change |
+| From                                | To                   | What                                                             |
+| ----------------------------------- | -------------------- | ---------------------------------------------------------------- |
+| `internal/types/types.go`           | `core/`              | `PolicyType`, `Version`, `VersionStatus`                         |
+| `internal/types/ids.go`             | `core/`              | `ID`, `PolicyID`                                                 |
+| `internal/security_tool.go` (types) | `core/`              | `Config`, `PolicyConfig`, `TemplateData`                         |
+| `internal/security_validator.go`    | `validator/`         | `SecurityValidator`, `DetectFile`, `ReportIsValid`, helper funcs |
+| `internal/security_tool.go` (logic) | `generator/`         | `SecurityTool`, `NewSecurityTool`, error vars, all methods       |
+| `internal/project_detector.go`      | `detector/`          | `ProjectDetector`                                                |
+| `cmd/template-security/*`           | stays in root `cmd/` | No change                                                        |
 
 ### Types to Remove (Dead Code)
 
@@ -195,11 +195,11 @@ The following types in `internal/types/types.go` are defined but never used. The
 
 ## 7. Versioning Strategy
 
-| Strategy | Decision | Rationale |
-|---|---|---|
-| Shared version | ✅ Selected | Single team, tight coupling, single repo |
-| Independent semver | ❌ | Overkill for a small CLI tool |
-| Root-only versioning | ❌ | Same as shared version in practice |
+| Strategy             | Decision    | Rationale                                |
+| -------------------- | ----------- | ---------------------------------------- |
+| Shared version       | ✅ Selected | Single team, tight coupling, single repo |
+| Independent semver   | ❌          | Overkill for a small CLI tool            |
+| Root-only versioning | ❌          | Same as shared version in practice       |
 
 All modules share a single git tag (`v1.2.3`). If a module is ever extracted to its own repo, it can be re-versioned at that point.
 
@@ -225,28 +225,28 @@ Ordered steps, each independently executable:
 
 ## 9. Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Import path breaks across modules | Medium | High | Update all imports systematically; build after each step |
-| `viper` config loading breaks in generator | Low | Medium | Test config loading after extraction |
-| Test file package declarations need updating | Medium | Low | Tests move with their module |
-| `go.work` causes issues in CI | Low | High | Test `go mod tidy` without workspace |
-| Acceptance tests break due to import changes | Medium | Medium | Update acceptance test imports last |
-| Existing CI workflow breaks | Medium | Low | CI workflow is already broken (Go 1.21 vs 1.26.2) |
+| Risk                                         | Likelihood | Impact | Mitigation                                               |
+| -------------------------------------------- | ---------- | ------ | -------------------------------------------------------- |
+| Import path breaks across modules            | Medium     | High   | Update all imports systematically; build after each step |
+| `viper` config loading breaks in generator   | Low        | Medium | Test config loading after extraction                     |
+| Test file package declarations need updating | Medium     | Low    | Tests move with their module                             |
+| `go.work` causes issues in CI                | Low        | High   | Test `go mod tidy` without workspace                     |
+| Acceptance tests break due to import changes | Medium     | Medium | Update acceptance test imports last                      |
+| Existing CI workflow breaks                  | Medium     | Low    | CI workflow is already broken (Go 1.21 vs 1.26.2)        |
 
 ---
 
 ## 10. Build System Impact
 
-| Component | Change Required |
-|---|---|
-| `go.mod` (root) | Slim down to only CLI deps + sub-module requires |
-| `go.work` (new) | Create with all 5 modules |
-| `justfile` | Update build/test commands if they reference specific paths |
-| `.github/workflows/` | Update to use `go.work`, fix Go version |
-| `.golangci.yml` | May need path updates for lint targets |
-| `flake.nix` | Does not exist yet — create after modularization |
-| `scripts/` | Legacy shell scripts — out of scope for this modularization |
+| Component            | Change Required                                             |
+| -------------------- | ----------------------------------------------------------- |
+| `go.mod` (root)      | Slim down to only CLI deps + sub-module requires            |
+| `go.work` (new)      | Create with all 5 modules                                   |
+| `justfile`           | Update build/test commands if they reference specific paths |
+| `.github/workflows/` | Update to use `go.work`, fix Go version                     |
+| `.golangci.yml`      | May need path updates for lint targets                      |
+| `flake.nix`          | Does not exist yet — create after modularization            |
+| `scripts/`           | Legacy shell scripts — out of scope for this modularization |
 
 ---
 

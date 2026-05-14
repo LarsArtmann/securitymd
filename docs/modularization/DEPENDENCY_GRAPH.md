@@ -36,27 +36,27 @@ test/acceptance
 
 ## External Dependencies (Direct)
 
-| Package | Used By | Purpose | Production/Test |
-|---|---|---|---|
-| `github.com/spf13/cobra` | `cmd/template-security` | CLI framework | Production |
-| `github.com/spf13/viper` | `internal` | Config loading | Production |
-| `github.com/fatih/color` | `cmd/template-security`, `internal` | Colored output | Production |
-| `github.com/larsartmann/go-finding` | `internal`, `cmd/template-security` | Finding/report model | Production |
-| `github.com/larsartmann/go-finding/pipeline` | `internal` | Detector interface | Production |
-| `github.com/onsi/ginkgo/v2` | `test/acceptance` | BDD test framework | Test only |
-| `github.com/onsi/gomega` | `test/acceptance` | BDD matchers | Test only |
-| `github.com/stretchr/testify` | `internal` (unit tests) | Test assertions | Test only |
+| Package                                      | Used By                             | Purpose              | Production/Test |
+| -------------------------------------------- | ----------------------------------- | -------------------- | --------------- |
+| `github.com/spf13/cobra`                     | `cmd/template-security`             | CLI framework        | Production      |
+| `github.com/spf13/viper`                     | `internal`                          | Config loading       | Production      |
+| `github.com/fatih/color`                     | `cmd/template-security`, `internal` | Colored output       | Production      |
+| `github.com/larsartmann/go-finding`          | `internal`, `cmd/template-security` | Finding/report model | Production      |
+| `github.com/larsartmann/go-finding/pipeline` | `internal`                          | Detector interface   | Production      |
+| `github.com/onsi/ginkgo/v2`                  | `test/acceptance`                   | BDD test framework   | Test only       |
+| `github.com/onsi/gomega`                     | `test/acceptance`                   | BDD matchers         | Test only       |
+| `github.com/stretchr/testify`                | `internal` (unit tests)             | Test assertions      | Test only       |
 
 ## Coupling Analysis
 
 ### Concern Clusters within `internal`
 
-| Concern | Files | External Deps | Could Be Module? |
-|---|---|---|---|
-| Validation | `security_validator.go`, `security_validator_test.go` | `go-finding`, `go-finding/pipeline` | Yes — **validator** |
-| Policy Generation | `security_tool.go`, `security_tool_test.go` | `viper`, `go-finding` | Yes — **generator** |
-| Project Detection | `project_detector.go` | (stdlib only) | Yes — **detector** |
-| Domain Types | `types/types.go`, `types/ids.go` | (stdlib only — time) | Yes — **types (core)** |
+| Concern           | Files                                                 | External Deps                       | Could Be Module?       |
+| ----------------- | ----------------------------------------------------- | ----------------------------------- | ---------------------- |
+| Validation        | `security_validator.go`, `security_validator_test.go` | `go-finding`, `go-finding/pipeline` | Yes — **validator**    |
+| Policy Generation | `security_tool.go`, `security_tool_test.go`           | `viper`, `go-finding`               | Yes — **generator**    |
+| Project Detection | `project_detector.go`                                 | (stdlib only)                       | Yes — **detector**     |
+| Domain Types      | `types/types.go`, `types/ids.go`                      | (stdlib only — time)                | Yes — **types (core)** |
 
 ### Coupling Hotspots
 

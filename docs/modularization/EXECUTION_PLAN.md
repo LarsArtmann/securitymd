@@ -7,6 +7,7 @@ _Generated: 2026-05-14 | Status: Ready for Execution_
 ## Overview
 
 This plan breaks the modularization into 14 ordered tasks. Each task:
+
 - Takes 15–30 minutes
 - Leaves the project buildable and testable
 - Is independently revertable (single commit)
@@ -17,12 +18,12 @@ This plan breaks the modularization into 14 ordered tasks. Each task:
 
 ## Pareto Impact Tiers
 
-| Tier | Tasks | Impact |
-|---|---|---|
-| **1% → 51%** (Foundational) | T1, T2, T3, T4 | Remove dead code, extract core types, create module structure |
-| **4% → 64%** (High leverage) | T5, T6, T7, T8, T9 | Extract validator, generator, detector modules |
-| **20% → 80%** (Broad value) | T10, T11, T12 | Wire go.work, update CLI and acceptance tests |
-| **Remaining** (Polish) | T13, T14 | Verify full suite, update documentation |
+| Tier                         | Tasks              | Impact                                                        |
+| ---------------------------- | ------------------ | ------------------------------------------------------------- |
+| **1% → 51%** (Foundational)  | T1, T2, T3, T4     | Remove dead code, extract core types, create module structure |
+| **4% → 64%** (High leverage) | T5, T6, T7, T8, T9 | Extract validator, generator, detector modules                |
+| **20% → 80%** (Broad value)  | T10, T11, T12      | Wire go.work, update CLI and acceptance tests                 |
+| **Remaining** (Polish)       | T13, T14           | Verify full suite, update documentation                       |
 
 ---
 
@@ -33,6 +34,7 @@ This plan breaks the modularization into 14 ordered tasks. Each task:
 **Impact:** 1% → 51% | **Effort:** 10 min | **Depends on:** Nothing
 
 Remove unused types from `internal/types/types.go`:
+
 - `SecurityPolicy`, `ValidationResult`, `ValidationMessage` (and aliases `Error`, `Warning`)
 - `Template`, `TemplateVariable`
 - `Contact`, `ContactType`, `ContactTypeEmail`, `ContactTypeWeb`, `ContactTypeAPI`
@@ -41,6 +43,7 @@ Remove unused types from `internal/types/types.go`:
 Keep only: `PolicyType`, `PolicyTypeGitHub`, `PolicyTypeEnterprise`, `VersionStatus`, `StatusSupported`, `StatusDeprecated`, `StatusEOL`, `Version`
 
 **Verification:**
+
 ```bash
 go build ./...
 go test ./...
@@ -70,6 +73,7 @@ go vet ./...
 7. Remove `internal/types/` directory
 
 **Verification:**
+
 ```bash
 cd core && go build ./... && go vet ./...
 cd /home/lars/projects/template-SECURITY && go build ./... && go test ./...
@@ -96,6 +100,7 @@ cd /home/lars/projects/template-SECURITY && go build ./... && go test ./...
 6. Remove `internal/project_detector.go`
 
 **Verification:**
+
 ```bash
 cd detector && go build ./... && go vet ./...
 go build ./... && go test ./...
@@ -111,6 +116,7 @@ go build ./... && go test ./...
 
 1. Create `validator/` directory
 2. Create `validator/go.mod`:
+
    ```
    module github.com/LarsArtmann/template-SECURITY/validator
    go 1.26.2
@@ -122,6 +128,7 @@ go build ./... && go test ./...
 
    replace github.com/LarsArtmann/template-SECURITY/core => ../core
    ```
+
 3. Move `internal/security_validator.go` → `validator/security_validator.go`
 4. Move `internal/security_validator_test.go` → `validator/security_validator_test.go`
 5. Update package to `validator`
@@ -135,6 +142,7 @@ go build ./... && go test ./...
    - `test/acceptance/validation_test.go` — import `validator`
 
 **Verification:**
+
 ```bash
 cd validator && go build ./... && go test ./... && go vet ./...
 go mod tidy && go build ./...
@@ -150,6 +158,7 @@ go mod tidy && go build ./...
 
 1. Create `generator/` directory
 2. Create `generator/go.mod`:
+
    ```
    module github.com/LarsArtmann/template-SECURITY/generator
    go 1.26.2
@@ -162,6 +171,7 @@ go mod tidy && go build ./...
 
    replace github.com/LarsArtmann/template-SECURITY/core => ../core
    ```
+
 3. Move `internal/security_tool.go` → `generator/security_tool.go`
    - Exclude `Config`, `PolicyConfig`, `TemplateData` (already in `core`)
    - Exclude `ErrConfigNotFound`, `ErrInvalidConfig`, etc. — move these to `generator/` since they're generator-specific
@@ -174,6 +184,7 @@ go mod tidy && go build ./...
    - `test/acceptance/policy_generation_test.go` — import `generator` + `core`
 
 **Verification:**
+
 ```bash
 cd generator && go build ./... && go test ./... && go vet ./...
 go mod tidy && go build ./...
@@ -192,6 +203,7 @@ go mod tidy && go build ./...
 3. Run full build and test suite
 
 **Verification:**
+
 ```bash
 go build ./... && go test ./... && go vet ./...
 ```
@@ -205,6 +217,7 @@ go build ./... && go test ./... && go vet ./...
 **Impact:** 20% → 80% | **Effort:** 10 min | **Depends on:** T2, T3, T4, T5
 
 1. Create `go.work` at repo root:
+
    ```go
    go 1.26.2
 
@@ -216,11 +229,13 @@ go build ./... && go test ./... && go vet ./...
        ./detector
    )
    ```
+
 2. Remove all `replace` directives from individual `go.mod` files (since `go.work` handles local resolution)
 3. Run `go work sync`
 4. Run full build: `go build ./...`
 
 **Verification:**
+
 ```bash
 go work sync
 go build ./...
@@ -246,6 +261,7 @@ go test ./...
 4. Verify root still builds and tests pass
 
 **Verification:**
+
 ```bash
 go mod tidy
 go build ./...
@@ -263,15 +279,16 @@ go vet ./...
 
 Update all files in `cmd/template-security/`:
 
-| File | Old Import | New Import |
-|---|---|---|
-| `setup.go` | `"github.com/LarsArtmann/template-SECURITY/internal"` | `"github.com/LarsArtmann/template-SECURITY/generator"` + `"github.com/LarsArtmann/template-SECURITY/detector"` |
-| `setup.go` | `"github.com/LarsArtmann/template-SECURITY/internal/types"` | `"github.com/LarsArtmann/template-SECURITY/core"` |
-| `validate.go` | `"github.com/LarsArtmann/template-SECURITY/internal"` | `"github.com/LarsArtmann/template-SECURITY/validator"` |
-| `status.go` | (no internal imports) | No change |
-| `main.go` | (no internal imports) | No change |
+| File          | Old Import                                                  | New Import                                                                                                     |
+| ------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `setup.go`    | `"github.com/LarsArtmann/template-SECURITY/internal"`       | `"github.com/LarsArtmann/template-SECURITY/generator"` + `"github.com/LarsArtmann/template-SECURITY/detector"` |
+| `setup.go`    | `"github.com/LarsArtmann/template-SECURITY/internal/types"` | `"github.com/LarsArtmann/template-SECURITY/core"`                                                              |
+| `validate.go` | `"github.com/LarsArtmann/template-SECURITY/internal"`       | `"github.com/LarsArtmann/template-SECURITY/validator"`                                                         |
+| `status.go`   | (no internal imports)                                       | No change                                                                                                      |
+| `main.go`     | (no internal imports)                                       | No change                                                                                                      |
 
 Update all type references:
+
 - `internal.SecurityValidator` → `validator.SecurityValidator`
 - `internal.NewSecurityValidator` → `validator.NewSecurityValidator`
 - `internal.ReportIsValid` → `validator.ReportIsValid`
@@ -283,6 +300,7 @@ Update all type references:
 - `types.PolicyType(...)` → `core.PolicyType(...)`
 
 **Verification:**
+
 ```bash
 go build ./...
 go test ./...
@@ -298,17 +316,18 @@ go test ./...
 
 Update all files in `test/acceptance/`:
 
-| File | Old Import | New Import |
-|---|---|---|
-| `policy_generation_test.go` | `"github.com/LarsArtmann/template-SECURITY/internal"` | `"github.com/LarsArtmann/template-SECURITY/generator"` |
-| `policy_generation_test.go` | `"github.com/LarsArtmann/template-SECURITY/internal/types"` | `"github.com/LarsArtmann/template-SECURITY/core"` |
-| `validation_test.go` | `"github.com/LarsArtmann/template-SECURITY/internal"` | `"github.com/LarsArtmann/template-SECURITY/validator"` |
-| `test_helpers.go` | (no internal imports) | No change |
-| `security_policy_suite_test.go` | (no internal imports) | No change |
+| File                            | Old Import                                                  | New Import                                             |
+| ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------ |
+| `policy_generation_test.go`     | `"github.com/LarsArtmann/template-SECURITY/internal"`       | `"github.com/LarsArtmann/template-SECURITY/generator"` |
+| `policy_generation_test.go`     | `"github.com/LarsArtmann/template-SECURITY/internal/types"` | `"github.com/LarsArtmann/template-SECURITY/core"`      |
+| `validation_test.go`            | `"github.com/LarsArtmann/template-SECURITY/internal"`       | `"github.com/LarsArtmann/template-SECURITY/validator"` |
+| `test_helpers.go`               | (no internal imports)                                       | No change                                              |
+| `security_policy_suite_test.go` | (no internal imports)                                       | No change                                              |
 
 Update type references same as T9.
 
 **Verification:**
+
 ```bash
 go test ./test/acceptance/...
 ```
@@ -356,6 +375,7 @@ All checks must pass. If any fail, fix immediately before proceeding.
 3. Run `golangci-lint run ./...` to verify
 
 **Verification:**
+
 ```bash
 golangci-lint run ./...
 ```
@@ -377,6 +397,7 @@ Update the following files to reflect new module structure:
 5. **`go-arch-lint.yml`** — Update architecture lint rules for new module paths
 
 **Verification:**
+
 ```bash
 go build ./... && go test ./...
 ```
