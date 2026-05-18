@@ -1,295 +1,316 @@
 version: "2"
-
 run:
-  timeout: 5m
-  go: 1.26.1
-  build-tags:
-    - goexperiment.goroutineleakprofile
-    - goexperiment.jsonv2
-    - goexperiment.simd
-  modules-download-mode: readonly
-  allow-parallel-runners: true
-  allow-serial-runners: true
-  issues-exit-code: 1
-  tests: true
-
+    timeout: 5m
+    go: 1.26.2
+    build-tags:
+        - goexperiment.arenas
+        - goexperiment.goroutineleakprofile
+        - goexperiment.jsonv2
+        - goexperiment.runtimesecret
+        - goexperiment.simd
+    modules-download-mode: readonly
+    allow-parallel-runners: true
+    allow-serial-runners: true
+    issues-exit-code: 1
+    tests: true
 output:
-  formats: {}
-
+    formats: {}
 linters:
-  enable:
-    - arangolint
-    - asasalint
-    - asciicheck
-    - bidichk
-    - bodyclose
-    - canonicalheader
-    - containedctx
-    - contextcheck
-    - copyloopvar
-    - cyclop
-    - decorder
-    - dogsled
-    - dupl
-    - dupword
-    - durationcheck
-    - embeddedstructfieldcheck
-    - err113
-    - errcheck
-    - errchkjson
-    - errname
-    - errorlint
-    - exhaustive
-    - exhaustruct
-    - exptostd
-    - fatcontext
-    - forbidigo
-    - forcetypeassert
-    - funlen
-    - ginkgolinter
-    - gocheckcompilerdirectives
-    - gochecknoglobals
-    - gochecknoinits
-    - gochecksumtype
-    - gocognit
-    - goconst
-    - gocritic
-    - gocyclo
-    - godoclint
-    - godot
-    - godox
-    - goheader
-    - gomoddirectives
-    - gomodguard
-    - goprintffuncname
-    - gosec
-    - gosmopolitan
-    - govet
-    - grouper
-    - iface
-    - importas
-    - inamedparam
-    - ineffassign
-    - interfacebloat
-    - intrange
-    - iotamixing
-    - ireturn
-    - loggercheck
-    - maintidx
-    - makezero
-    - mirror
-    - misspell
-    - mnd
-    - modernize
-    - musttag
-    - nakedret
-    - nestif
-    - nilerr
-    - nilnesserr
-    - nilnil
-    - nlreturn
-    - noctx
-    - noinlineerr
-    - nolintlint
-    - nonamedreturns
-    - nosprintfhostport
-    - paralleltest
-    - perfsprint
-    - prealloc
-    - predeclared
-    - promlinter
-    - protogetter
-    - reassign
-    - recvcheck
-    - revive
-    - rowserrcheck
-    - sloglint
-    - spancheck
-    - sqlclosecheck
-    - staticcheck
-    - tagalign
-    - tagliatelle
-    - testableexamples
-    - testifylint
-    - thelper
-    - tparallel
-    - unconvert
-    - unparam
-    - unqueryvet
-    - unused
-    - usestdlibvars
-    - usetesting
-    - varnamelen
-    - wastedassign
-    - whitespace
-    - wrapcheck
-    - wsl_v5
-    - zerologlint
-  disable:
-    - funcorder
-    - depguard
-    - testpackage
-  settings:
-    forbidigo:
-      allow:
-        - fmt\.(F)?Print(ln)?$
-        - fmt\.Fprintf$
-        - ^os\.Stderr$
-        - ^os\.Stdout$
-    gochecknoglobals:
-      checks:
-        - startingWithUnderscore
-        - type:*service*func
-    exhaustruct:
-      exclude:
-        - ^cmd/template-security/
-        - ^internal/security_validator\.go$
-        - ^internal/security_tool\.go$
-    goprintffuncname:
-      skip-check:
-        - ^print(Info|Success|Warning|Error)$
-    revive:
-      confidence: 0.8
-    cyclop:
-      max-complexity: 15
-    gocognit:
-      min-complexity: 40
-    nestif:
-      max-depth: 7
-    varnamelen:
-      min-length: 3
-      ignore-type-asserts: true
-      ignore-map-index: true
-      ignore-channel-receive: true
-      ignore-declared-const: true
-    tagliatelle:
-      rules:
-        - key: json
-          values: [camel]
-    funlen:
-      lines: 80
-      statements: 70
-    gochecknoinits: true
-    godot:
-      scope: fields
-    testpackage:
-      skip-regexp: .*test/
-  exclusions:
-    rules:
-      # gochecknoglobals - cmd flags are intentional (need 2 conditions)
-      - linters: [gochecknoglobals]
-        path: ^cmd/
-        text: .
-      # forbidigo - CLI output uses fmt print
-      - linters: [forbidigo]
-        path: ^cmd/
-      # forbidigo - PrintResults uses fmt.Printf
-      - linters: [forbidigo]
-        path: ^internal/security_validator\.go$
-      - linters: [forbidigo]
-        path: ^internal/security_tool\.go$
-      # exhaustruct - cobra commands don't need all fields
-      - linters: [exhaustruct]
-        path: ^cmd/
-      # exhaustruct - test files use partial structs
-      - linters: [exhaustruct]
-        path: test/
-      # godoclint - multiple package docs are intentional
-      - linters: [godoclint]
-        path: test/
-      # paralleltest - acceptance tests are integration tests
-      - linters: [paralleltest]
-        path: test/
-      # usetesting - os.Chdir cleanup is intentional in some tests
-      - linters: [usetesting]
-        path: test/
-      # funlen - long test functions are acceptable
-      - linters: [funlen]
-        path: test/
-      - linters: [funlen]
-        path: ^internal/
-        text: .
-      # gocognit - complex CLI/internal logic is acceptable
-      - linters: [gocognit]
-        path: ^cmd/
-        text: .
-      - linters: [gocognit]
-        path: ^internal/
-        text: .
-      # nestif - complex parsing logic is acceptable
-      - linters: [nestif]
-        path: ^internal/
-        text: .
-      # mnd - magic numbers in constants are acceptable
-      - linters: [mnd]
-        path: ^internal/
-        text: .
-      - linters: [mnd]
-        path: test/
-        text: .
-      # gosec G304/G301/G306 - test files use temp dirs
-      - linters: [gosec]
-        path: test/
-        text: G304|G301|G306
-      # gosec G304 - internal files are validated
-      - linters: [gosec]
-        path: ^internal/security_validator\.go$
-        text: G304
-      - linters: [gosec]
-        path: ^internal/project_detector\.go$
-        text: G304
-      # revive package-comments - internal/test packages
-      - linters: [revive]
-        path: ^internal/
-        text: package-comments
-      - linters: [revive]
-        path: ^test/
-        text: package-comments
-      # noinlineerr - inline errors are acceptable
-      - linters: [noinlineerr]
-        path: ^cmd/
-        text: .
-      - linters: [noinlineerr]
-        path: ^internal/
-        text: .
-      - linters: [noinlineerr]
-        path: test/
-        text: .
-      # nlreturn - newlines at end of blocks are acceptable
-      - linters: [nlreturn]
-        path: ^cmd/
-        text: .
-      - linters: [nlreturn]
-        path: ^internal/
-        text: .
-      - linters: [nlreturn]
-        path: test/
-        text: .
-      # copyloopvar - variable shadowing is acceptable
-      - linters: [copyloopvar]
-        path: ^internal/
-        text: .
-      - linters: [copyloopvar]
-        path: test/
-        text: .
-      # varnamelen - short variable names are acceptable in test/cmd
-      - linters: [varnamelen]
-        path: test/
-        text: .
-      - linters: [varnamelen]
-        path: ^cmd/
-        text: .
-    paths:
-      - ^cmd/
-      - ^internal/
-      - test/
-
+    enable:
+        - arangolint
+        - asasalint
+        - asciicheck
+        - bidichk
+        - bodyclose
+        - canonicalheader
+        - containedctx
+        - contextcheck
+        - copyloopvar
+        - cyclop
+        - decorder
+        - dogsled
+        - dupl
+        - dupword
+        - durationcheck
+        - embeddedstructfieldcheck
+        - err113
+        - errcheck
+        - errchkjson
+        - errname
+        - errorlint
+        - exhaustive
+        - exhaustruct
+        - exptostd
+        - fatcontext
+        - forbidigo
+        - forcetypeassert
+        - funlen
+        - ginkgolinter
+        - gocheckcompilerdirectives
+        - gochecknoglobals
+        - gochecknoinits
+        - gochecksumtype
+        - gocognit
+        - goconst
+        - gocritic
+        - gocyclo
+        - godoclint
+        - godot
+        - godox
+        - goheader
+        - gomoddirectives
+        - gomodguard_v2
+        - goprintffuncname
+        - gosec
+        - gosmopolitan
+        - govet
+        - grouper
+        - iface
+        - importas
+        - inamedparam
+        - ineffassign
+        - interfacebloat
+        - intrange
+        - iotamixing
+        - ireturn
+        - loggercheck
+        - maintidx
+        - makezero
+        - mirror
+        - misspell
+        - mnd
+        - modernize
+        - musttag
+        - nakedret
+        - nestif
+        - nilerr
+        - nilnesserr
+        - nilnil
+        - nlreturn
+        - noctx
+        - noinlineerr
+        - nolintlint
+        - nonamedreturns
+        - nosprintfhostport
+        - paralleltest
+        - perfsprint
+        - prealloc
+        - predeclared
+        - promlinter
+        - protogetter
+        - reassign
+        - recvcheck
+        - revive
+        - rowserrcheck
+        - sloglint
+        - spancheck
+        - sqlclosecheck
+        - staticcheck
+        - tagalign
+        - tagliatelle
+        - testableexamples
+        - testifylint
+        - thelper
+        - tparallel
+        - unconvert
+        - unparam
+        - unqueryvet
+        - unused
+        - usestdlibvars
+        - usetesting
+        - varnamelen
+        - wastedassign
+        - whitespace
+        - wrapcheck
+        - wsl_v5
+        - zerologlint
+    settings:
+        cyclop:
+            max-complexity: 15
+        exhaustruct:
+            exclude:
+                - ^cmd/template-security/
+                - ^internal/security_validator\.go$
+                - ^internal/security_tool\.go$
+        forbidigo:
+            allow:
+                - fmt\.(F)?Print(ln)?$
+                - fmt\.Fprintf$
+                - ^os\.Stderr$
+                - ^os\.Stdout$
+        funlen:
+            lines: 80
+            statements: 70
+        gochecknoglobals:
+            checks:
+                - startingWithUnderscore
+                - type:*service*func
+        gochecknoinits: true
+        gocognit:
+            min-complexity: 40
+        gocritic:
+            disabled-checks:
+                - dupImport
+                - ifElseChain
+                - octalLiteral
+                - whyNoLint
+        godot:
+            scope: fields
+        goprintffuncname:
+            skip-check:
+                - ^print(Info|Success|Warning|Error)$
+        ireturn:
+            allow:
+                - error
+                - empty
+                - anon
+                - stdlib
+                - generic
+        nestif:
+            max-depth: 7
+        revive:
+            confidence: 0.8
+        tagliatelle:
+            rules:
+                - key: json
+                  values:
+                    - camel
+        testpackage:
+            skip-regexp: .*test/
+        varnamelen:
+            ignore-channel-receive: true
+            ignore-declared-const: true
+            ignore-map-index: true
+            ignore-type-asserts: true
+            min-length: 3
+    exclusions:
+        generated: lax
+        rules:
+            - path: ^cmd/
+              text: .
+              linters:
+                - gochecknoglobals
+            - path: ^cmd/
+              linters:
+                - forbidigo
+            - path: ^internal/security_validator\.go$
+              linters:
+                - forbidigo
+            - path: ^internal/security_tool\.go$
+              linters:
+                - forbidigo
+            - path: ^cmd/
+              linters:
+                - exhaustruct
+            - path: test/
+              linters:
+                - exhaustruct
+            - path: test/
+              linters:
+                - godoclint
+            - path: test/
+              linters:
+                - paralleltest
+            - path: test/
+              linters:
+                - usetesting
+            - path: test/
+              linters:
+                - funlen
+            - path: ^internal/
+              text: .
+              linters:
+                - funlen
+            - path: ^cmd/
+              text: .
+              linters:
+                - gocognit
+            - path: ^internal/
+              text: .
+              linters:
+                - gocognit
+            - path: ^internal/
+              text: .
+              linters:
+                - nestif
+            - path: ^internal/
+              text: .
+              linters:
+                - mnd
+            - path: test/
+              text: .
+              linters:
+                - mnd
+            - path: test/
+              text: G304|G301|G306
+              linters:
+                - gosec
+            - path: ^internal/security_validator\.go$
+              text: G304
+              linters:
+                - gosec
+            - path: ^internal/project_detector\.go$
+              text: G304
+              linters:
+                - gosec
+            - path: ^internal/
+              text: package-comments
+              linters:
+                - revive
+            - path: ^test/
+              text: package-comments
+              linters:
+                - revive
+            - path: ^cmd/
+              text: .
+              linters:
+                - noinlineerr
+            - path: ^internal/
+              text: .
+              linters:
+                - noinlineerr
+            - path: test/
+              text: .
+              linters:
+                - noinlineerr
+            - path: ^cmd/
+              text: .
+              linters:
+                - nlreturn
+            - path: ^internal/
+              text: .
+              linters:
+                - nlreturn
+            - path: test/
+              text: .
+              linters:
+                - nlreturn
+            - path: ^internal/
+              text: .
+              linters:
+                - copyloopvar
+            - path: test/
+              text: .
+              linters:
+                - copyloopvar
+            - path: test/
+              text: .
+              linters:
+                - varnamelen
+            - path: ^cmd/
+              text: .
+              linters:
+                - varnamelen
+        paths:
+            - ^cmd/
+            - ^internal/
+            - test/
 formatters:
-  enable:
-    - gci
-    - goimports
-    - gofumpt
-    - golines
-
-issues:
-  exclude-rules: []
+    enable:
+        - gci
+        - goimports
+        - gofumpt
+        - golines
+    exclusions:
+        generated: lax
+issues: {}
