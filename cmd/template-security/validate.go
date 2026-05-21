@@ -205,7 +205,8 @@ func outputReport(report *finding.Report) error {
 
 func printTextReport(report *finding.Report) error {
 	minSev := parseSeverity(minimumSeverity)
-	filtered := finding.Filter(report.Findings,
+	filtered := finding.Filter(
+		report.Findings,
 		finding.BySeverityAtLeast(minSev),
 		finding.NotSuppressed,
 	)
