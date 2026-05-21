@@ -223,12 +223,21 @@ func (st *SecurityTool) readTemplate(_ types.PolicyType) (string, error) {
 func (st *SecurityTool) processTemplate(templateContent string, data TemplateData) (string, error) {
 	tmpl, err := template.New("security").Parse(templateContent)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse template: %w", err)
+		return "", fmt.Errorf(
+			"failed to parse template (content length %d): %w",
+			len(templateContent),
+			err,
+		)
 	}
 
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, data); err != nil {
-		return "", fmt.Errorf("failed to execute template: %w", err)
+		return "", fmt.Errorf(
+			"failed to execute template for org=%q email=%q: %w",
+			data.Organization,
+			data.ContactEmail,
+			err,
+		)
 	}
 
 	return buf.String(), nil

@@ -79,7 +79,15 @@ func buildFinding(
 		WithConfidence(1.0).
 		Build()
 	if err != nil {
-		return result, fmt.Errorf("failed to build finding: %w", err)
+		return result, fmt.Errorf(
+			"failed to build finding {rule:%q file:%q line:%d message:%q severity:%v}: %w",
+			rule,
+			file,
+			line,
+			message,
+			severity,
+			err,
+		)
 	}
 
 	return result, nil
