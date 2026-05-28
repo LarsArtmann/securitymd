@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.26.2
+  go: 1.26.3
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -150,12 +150,11 @@ linters:
       min-complexity: 40
     gocritic:
       disabled-checks:
-        - dupImport
         - ifElseChain
-        - octalLiteral
-        - whyNoLint
     godot:
       scope: fields
+    gomoddirectives:
+      replace-local: true
     goprintffuncname:
       skip-check:
         - ^print(Info|Success|Warning|Error)$
@@ -301,16 +300,36 @@ linters:
         text: .
         linters:
           - varnamelen
+      - path: _test\.go
+        linters:
+          - exhaustruct
+          - testpackage
+          - gochecknoglobals
+          - funlen
+          - cyclop
+          - goconst
+      - path: _test\.go
+        text: unused
+        linters:
+          - unused
     paths:
+      - \.gen\.go$
       - ^cmd/
       - ^internal/
+      - _templ\.go$
       - test/
+      - vendor/
 formatters:
   enable:
     - gci
     - goimports
     - gofumpt
     - golines
+  settings:
+    golines:
+      max-len: 120
   exclusions:
     generated: lax
+    paths:
+      - _templ\.go$
 issues: {}
