@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/fatih/color v1.19.0
-	github.com/larsartmann/go-finding v0.4.2
+	github.com/larsartmann/go-finding v0.4.3
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	github.com/spf13/cobra v1.10.2
@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/LarsArtmann/gogenfilter/v3 v3.0.3-0.20260527072437-63f00cf54986 // indirect
+	github.com/LarsArtmann/gogenfilter/v3 v3.0.3-0.20260603092628-6c28a428a37d // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
