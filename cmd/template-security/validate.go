@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -192,7 +193,7 @@ func outputReport(report *finding.Report) error {
 
 		return nil
 	case outputFormatSarif:
-		err := report.WriteSARIFFiltered(os.Stdout, minSev)
+		err := report.WriteSARIFFiltered(context.Background(), os.Stdout, minSev)
 		if err != nil {
 			return fmt.Errorf("failed to write SARIF report: %w", err)
 		}
