@@ -23,11 +23,13 @@ linters:
     - bidichk
     - bodyclose
     - canonicalheader
+    - clickhouselint
     - containedctx
     - contextcheck
     - copyloopvar
     - cyclop
     - decorder
+    - depguard
     - dogsled
     - dupl
     - dupword
@@ -110,6 +112,7 @@ linters:
     - tagliatelle
     - testableexamples
     - testifylint
+    - testpackage
     - thelper
     - tparallel
     - unconvert
@@ -127,6 +130,12 @@ linters:
   settings:
     cyclop:
       max-complexity: 15
+    depguard:
+      rules:
+        main:
+          allow:
+            - $gostd
+            - $module
     exhaustruct:
       exclude:
         - ^cmd/template-security/
