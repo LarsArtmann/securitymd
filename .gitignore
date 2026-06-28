@@ -55,3 +55,5 @@ node_modules/
 *.db
 Copy/paste detection report
 /report/jscpd-report.json
+# Nix build output
+/result
