@@ -4,7 +4,8 @@ go 1.26.4
 
 require (
 	github.com/fatih/color v1.19.0
-	github.com/larsartmann/go-finding v1.0.0
+	github.com/larsartmann/go-finding v1.2.0
+	github.com/larsartmann/go-finding/pipeline v0.0.0-20260708075930-c0f900f9ea0a
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.1
 	github.com/spf13/cobra v1.10.2
@@ -44,6 +45,6 @@ require (
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
-	golang.org/x/tools v0.46.0 // indirect
+	golang.org/x/tools v0.47.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

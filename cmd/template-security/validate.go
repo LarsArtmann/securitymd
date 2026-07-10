@@ -173,7 +173,7 @@ func mergeReports(reports []*finding.Report) *finding.Report {
 	merged := finding.NewReport(finding.ToolInfo{Name: "template-security", Version: "dev"})
 
 	for _, r := range reports {
-		merged.AddFindings(r.Findings)
+		merged.AddFindings(r.FindingsSnapshot())
 	}
 
 	merged.ComputeSummary()
@@ -193,7 +193,7 @@ func outputReport(report *finding.Report) error {
 
 		return nil
 	case outputFormatSarif:
-		err := report.WriteSARIFFiltered(context.Background(), os.Stdout, minSev)
+		err := report.WriteSARIFWithOpts(context.Background(), os.Stdout, finding.WithMinSeverity(minSev))
 		if err != nil {
 			return fmt.Errorf("failed to write SARIF report: %w", err)
 		}
@@ -207,7 +207,7 @@ func outputReport(report *finding.Report) error {
 func printTextReport(report *finding.Report) error {
 	minSev := parseSeverity(minimumSeverity)
 	filtered := finding.Filter(
-		report.Findings,
+		report.FindingsSnapshot(),
 		finding.BySeverityAtLeast(minSev),
 		finding.NotSuppressed,
 	)

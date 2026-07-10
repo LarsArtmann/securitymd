@@ -49,7 +49,7 @@ func (sv *SecurityValidator) Detect(ctx context.Context) ([]finding.Finding, err
 		return nil, err
 	}
 
-	return report.Findings, nil
+	return report.FindingsSnapshot(), nil
 }
 
 // lineChecker is a helper to find lines matching any of the patterns.
@@ -72,7 +72,7 @@ func buildFinding(
 	file string,
 	line int,
 ) (finding.Finding, error) {
-	result, err := finding.NewBuilder(rule, toolName, message, severity, finding.Pos(file, line, 0)).
+	result, err := finding.NewBuilder(finding.RuleName(rule), toolName, message, severity, finding.Pos(finding.FilePath(file), line, 0)).
 		WithCategory(finding.CategorySecurity).
 		WithTags(finding.TagSecurity).
 		WithFixStrategy(finding.FixStrategySuggest).
@@ -249,7 +249,7 @@ func hasVersionInformation(lines []string) bool {
 
 // ReportIsValid returns true if the report has no error-severity findings.
 func ReportIsValid(report *finding.Report) bool {
-	return len(finding.Filter(report.Findings, finding.BySeverity(finding.SeverityError))) == 0
+	return len(finding.Filter(report.FindingsSnapshot(), finding.BySeverity(finding.SeverityError))) == 0
 }
 
 // DetectFile is a convenience function that creates a validator for a single file,
@@ -288,8 +288,8 @@ func (sv *SecurityValidator) PrintResults(reports []*finding.Report) {
 
 	for _, report := range reports {
 		file := "<unknown>"
-		if len(report.Findings) > 0 {
-			file = report.Findings[0].Position.File
+		if len(report.FindingsSnapshot()) > 0 {
+			file = string(report.FindingsSnapshot()[0].Position.File)
 		}
 
 		valid := ReportIsValid(report)
@@ -301,7 +301,7 @@ func (sv *SecurityValidator) PrintResults(reports []*finding.Report) {
 
 		fmt.Printf("%s %s\n", status, file)
 
-		for _, f := range report.Findings {
+		for _, f := range report.FindingsSnapshot() {
 			if f.Severity == finding.SeverityError {
 				fmt.Printf("  ❌ Error: %s\n", f.Message)
 			} else {
@@ -309,7 +309,7 @@ func (sv *SecurityValidator) PrintResults(reports []*finding.Report) {
 			}
 		}
 
-		if len(report.Findings) > 0 {
+		if len(report.FindingsSnapshot()) > 0 {
 			fmt.Println()
 		}
 	}

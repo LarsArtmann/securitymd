@@ -39,7 +39,7 @@ func assertContainsAll(t *testing.T, expected, actual []string, itemType string)
 func collectMessages(report *finding.Report, severity finding.Severity) []string {
 	var messages []string
 
-	for _, f := range report.Findings {
+	for _, f := range report.FindingsSnapshot() {
 		if f.Severity == severity {
 			messages = append(messages, f.Message)
 		}
