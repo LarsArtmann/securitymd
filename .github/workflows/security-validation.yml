@@ -4,199 +4,217 @@ on:
   push:
     branches: [main, master, develop]
     paths:
-      - "SECURITY.md"
-      - "security-policy.md"
-      - "templates/**"
-      - "internal/security_tool.go"
-      - "internal/security_validator.go"
+    - "SECURITY.md"
+    - "security-policy.md"
+    - "templates/**"
+    - "internal/security_tool.go"
+    - "internal/security_validator.go"
+    paths-ignore:
+    - '**/*.md'
+    - docs/**
+    - LICENSE
+    - .gitignore
+    - '**/*.svg'
+    - '**/*.png'
   pull_request:
     branches: [main, master]
     paths:
-      - "SECURITY.md"
-      - "security-policy.md"
-      - "templates/**"
+    - "SECURITY.md"
+    - "security-policy.md"
+    - "templates/**"
 
+    paths-ignore:
+    - '**/*.md'
+    - docs/**
+    - LICENSE
+    - .gitignore
+    - '**/*.svg'
+    - '**/*.png'
 jobs:
   validate-security-policy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.21"
 
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
 
-      - name: Install dependencies
-        run: |
-          go mod download
+    - name: Install dependencies
+      run: |
+        go mod download
 
-      - name: Build template-security
-        run: |
-          make build || just build || go build -o bin/template-security ./cmd/template-security
+    - name: Build template-security
+      run: |
+        make build || just build || go build -o bin/template-security ./cmd/template-security
 
-      - name: Validate SECURITY.md
-        run: |
-          if [ -f "SECURITY.md" ]; then
-            echo "🔍 Validating SECURITY.md..."
-            ./bin/template-security validate --file SECURITY.md
-            
-            if [ $? -ne 0 ]; then
-              echo "❌ SECURITY.md validation failed"
-              echo ""
-              echo "Please fix the following issues:"
-              echo "1. Missing required sections (Security Policy, Reporting a Vulnerability, etc.)"
-              echo "2. Incomplete contact information" 
-              echo "3. Template variables not replaced"
-              echo ""
-              echo "See the validation output above for details."
-              exit 1
-            fi
-            
-            echo "✅ SECURITY.md validation passed"
-          else
-            echo "⚠️  SECURITY.md not found - skipping validation"
-          fi
-
-      - name: Validate security-policy.md (if exists)
-        run: |
-          if [ -f "security-policy.md" ]; then
-            echo "🔍 Validating security-policy.md..."
-            ./bin/template-security validate --file security-policy.md
-            
-            if [ $? -ne 0 ]; then
-              echo "❌ security-policy.md validation failed"
-              exit 1
-            fi
-            
-            echo "✅ security-policy.md validation passed"
-          fi
-
-      - name: Check for common issues
-        run: |
-          echo "🔍 Checking for common security policy issues..."
-
-          # Check for unresolved template variables
-          if grep -r "{{.*}}" SECURITY.md security-policy.md 2>/dev/null; then
-            echo "❌ Found unresolved template variables in security files"
+    - name: Validate SECURITY.md
+      run: |
+        if [ -f "SECURITY.md" ]; then
+          echo "🔍 Validating SECURITY.md..."
+          ./bin/template-security validate --file SECURITY.md
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ SECURITY.md validation failed"
+            echo ""
+            echo "Please fix the following issues:"
+            echo "1. Missing required sections (Security Policy, Reporting a Vulnerability, etc.)"
+            echo "2. Incomplete contact information" 
+            echo "3. Template variables not replaced"
+            echo ""
+            echo "See the validation output above for details."
             exit 1
           fi
+          
+          echo "✅ SECURITY.md validation passed"
+        else
+          echo "⚠️  SECURITY.md not found - skipping validation"
+        fi
 
-          # Check for placeholder text
-          if grep -r "example\.com" SECURITY.md security-policy.md 2>/dev/null; then
-            echo "❌ Found placeholder text in security files"
-            echo "Please replace example.com with your actual domain"
+    - name: Validate security-policy.md (if exists)
+      run: |
+        if [ -f "security-policy.md" ]; then
+          echo "🔍 Validating security-policy.md..."
+          ./bin/template-security validate --file security-policy.md
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ security-policy.md validation failed"
             exit 1
           fi
+          
+          echo "✅ security-policy.md validation passed"
+        fi
 
-          # Check if SECURITY.md has minimum content
-          if [ -f "SECURITY.md" ]; then
-            lines=$(wc -l < SECURITY.md)
-            if [ "$lines" -lt 20 ]; then
-              echo "❌ SECURITY.md is too short ($lines lines, minimum 20 required)"
+    - name: Check for common issues
+      run: |
+        echo "🔍 Checking for common security policy issues..."
+
+        # Check for unresolved template variables
+        if grep -r "{{.*}}" SECURITY.md security-policy.md 2>/dev/null; then
+          echo "❌ Found unresolved template variables in security files"
+          exit 1
+        fi
+
+        # Check for placeholder text
+        if grep -r "example\.com" SECURITY.md security-policy.md 2>/dev/null; then
+          echo "❌ Found placeholder text in security files"
+          echo "Please replace example.com with your actual domain"
+          exit 1
+        fi
+
+        # Check if SECURITY.md has minimum content
+        if [ -f "SECURITY.md" ]; then
+          lines=$(wc -l < SECURITY.md)
+          if [ "$lines" -lt 20 ]; then
+            echo "❌ SECURITY.md is too short ($lines lines, minimum 20 required)"
+            exit 1
+          fi
+          
+          # Check for required sections
+          required_sections=("Security Policy" "Reporting a Vulnerability" "Supported Versions")
+          for section in "${required_sections[@]}"; do
+            if ! grep -q "$section" SECURITY.md; then
+              echo "❌ Missing required section: $section"
               exit 1
             fi
-            
-            # Check for required sections
-            required_sections=("Security Policy" "Reporting a Vulnerability" "Supported Versions")
-            for section in "${required_sections[@]}"; do
-              if ! grep -q "$section" SECURITY.md; then
-                echo "❌ Missing required section: $section"
-                exit 1
-              fi
-            done
-            
-            # Check for contact information
-            if ! grep -q "@" SECURITY.md; then
-              echo "❌ Missing contact email in SECURITY.md"
-              exit 1
+          done
+          
+          # Check for contact information
+          if ! grep -q "@" SECURITY.md; then
+            echo "❌ Missing contact email in SECURITY.md"
+            exit 1
+          fi
+          
+          echo "✅ SECURITY.md content quality checks passed"
+        fi
+
+    - name: Generate validation report
+      if: always()
+      run: |
+        echo "## 🔒 Security Policy Validation Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ -f "SECURITY.md" ]; then
+          echo "### ✅ SECURITY.md Found" >> $GITHUB_STEP_SUMMARY
+          echo "- File size: $(wc -l < SECURITY.md) lines" >> $GITHUB_STEP_SUMMARY
+          echo "- Last modified: $(stat -c %y SECURITY.md)" >> $GITHUB_STEP_SUMMARY
+          
+          # Check sections
+          echo "- Required sections:" >> $GITHUB_STEP_SUMMARY
+          sections=("Security Policy" "Reporting a Vulnerability" "Supported Versions" "Security Practices")
+          for section in "${sections[@]}"; do
+            if grep -q "$section" SECURITY.md; then
+              echo "  - ✅ $section" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "  - ❌ $section" >> $GITHUB_STEP_SUMMARY
             fi
-            
-            echo "✅ SECURITY.md content quality checks passed"
-          fi
+          done
+        else
+          echo "### ⚠️  SECURITY.md Not Found" >> $GITHUB_STEP_SUMMARY
+          echo "Consider adding a SECURITY.md file to your repository." >> $GITHUB_STEP_SUMMARY
+        fi
 
-      - name: Generate validation report
-        if: always()
-        run: |
-          echo "## 🔒 Security Policy Validation Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "*Validation completed at $(date)*" >> $GITHUB_STEP_SUMMARY
 
-          if [ -f "SECURITY.md" ]; then
-            echo "### ✅ SECURITY.md Found" >> $GITHUB_STEP_SUMMARY
-            echo "- File size: $(wc -l < SECURITY.md) lines" >> $GITHUB_STEP_SUMMARY
-            echo "- Last modified: $(stat -c %y SECURITY.md)" >> $GITHUB_STEP_SUMMARY
-            
-            # Check sections
-            echo "- Required sections:" >> $GITHUB_STEP_SUMMARY
-            sections=("Security Policy" "Reporting a Vulnerability" "Supported Versions" "Security Practices")
-            for section in "${sections[@]}"; do
-              if grep -q "$section" SECURITY.md; then
-                echo "  - ✅ $section" >> $GITHUB_STEP_SUMMARY
-              else
-                echo "  - ❌ $section" >> $GITHUB_STEP_SUMMARY
-              fi
-            done
-          else
-            echo "### ⚠️  SECURITY.md Not Found" >> $GITHUB_STEP_SUMMARY
-            echo "Consider adding a SECURITY.md file to your repository." >> $GITHUB_STEP_SUMMARY
-          fi
+    - name: Comment on PR (if validation failed)
+      if: failure() && github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo, number } = context.issue;
 
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "*Validation completed at $(date)*" >> $GITHUB_STEP_SUMMARY
+          github.rest.issues.createComment({
+            issue_number: number,
+            owner: owner,
+            repo: repo,
+            body: `## 🔒 Security Policy Validation Failed
 
-      - name: Comment on PR (if validation failed)
-        if: failure() && github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { owner, repo, number } = context.issue;
+          The security policy validation failed. Please address the following issues:
 
-            github.rest.issues.createComment({
-              issue_number: number,
-              owner: owner,
-              repo: repo,
-              body: `## 🔒 Security Policy Validation Failed
+          ### Common Issues to Fix:
 
-            The security policy validation failed. Please address the following issues:
+          1. **Missing Required Sections**
+             - Ensure SECURITY.md includes: "Security Policy", "Reporting a Vulnerability", "Supported Versions"
 
-            ### Common Issues to Fix:
+          2. **Unresolved Template Variables**
+             - Replace all {{variables}} with actual values
+             - Check for remaining {{ORGANIZATION}}, {{CONTACT_EMAIL}}, etc.
 
-            1. **Missing Required Sections**
-               - Ensure SECURITY.md includes: "Security Policy", "Reporting a Vulnerability", "Supported Versions"
+          3. **Contact Information**
+             - Add a valid email address for security reports
+             - Include response time expectations
 
-            2. **Unresolved Template Variables**
-               - Replace all {{variables}} with actual values
-               - Check for remaining {{ORGANIZATION}}, {{CONTACT_EMAIL}}, etc.
+          4. **Content Quality**
+             - SECURITY.md should be at least 20 lines
+             - Include specific security practices
+             - Add version support information
 
-            3. **Contact Information**
-               - Add a valid email address for security reports
-               - Include response time expectations
+          ### How to Fix:
 
-            4. **Content Quality**
-               - SECURITY.md should be at least 20 lines
-               - Include specific security practices
-               - Add version support information
+          1. Run locally: \`./bin/template-security validate\`
+          2. Update SECURITY.md with missing information
+          3. Commit and push changes
 
-            ### How to Fix:
+          For help, see: [GitHub Security Policies](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository)
 
-            1. Run locally: \`./bin/template-security validate\`
-            2. Update SECURITY.md with missing information
-            3. Commit and push changes
-
-            For help, see: [GitHub Security Policies](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository)
-
-            ---
-            *This comment was automatically generated by security policy validation*`
-            });
+          ---
+          *This comment was automatically generated by security policy validation*`
+          });
+    timeout-minutes: 15
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
