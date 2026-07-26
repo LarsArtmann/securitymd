@@ -174,23 +174,23 @@ func (pd *ProjectDetector) detectDomainFromGitRemote() string {
 
 	// Extract domain from HTTPS URL
 	if after, ok := strings.CutPrefix(gitURL, "https://"); ok {
-		gitURL = after
-		if parts := strings.Split(gitURL, "/"); len(parts) > 0 {
-			return parts[0] // github.com/ORG/repo -> parts[0] is github.com
-		}
+		return firstPathPart(after)
 	}
 
 	// Extract domain from SSH URL
-	if strings.Contains(gitURL, "@") {
-		if parts := strings.Split(gitURL, "@"); len(parts) > 1 {
-			domainPart := parts[1]
-			if colonParts := strings.Split(domainPart, ":"); len(colonParts) > 0 {
-				return colonParts[0] // git@github.com:ORG/repo -> github.com
-			}
-		}
+	if _, after, ok := strings.Cut(gitURL, "@"); ok {
+		return firstPathPart(after)
 	}
 
 	return ""
+}
+
+func firstPathPart(value string) string {
+	if part, _, ok := strings.Cut(value, "/"); ok {
+		return part
+	}
+
+	return value
 }
 
 // detectFromPackageJSON tries to detect project name from package.json.
