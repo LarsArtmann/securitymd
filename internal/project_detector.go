@@ -25,6 +25,43 @@ func lastPartFromEnd(s, sep string, n int) string {
 	return ""
 }
 
+// loadFileResult holds a file's contents and tracks whether the file was
+// readable. Callers should use Value() to obtain the string, which yields
+// the empty string when the file was unreadable.
+type loadFileResult struct {
+	content string
+	ok      bool
+}
+
+// Value returns the file's contents, or the empty string when unreadable.
+func (r loadFileResult) Value() string {
+	if !r.ok {
+		return ""
+	}
+
+	return r.content
+}
+
+// loadFile reads the file at path and packages the result.
+func loadFile(path string) loadFileResult {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return loadFileResult{}
+	}
+
+	return loadFileResult{content: string(content), ok: true}
+}
+
+// firstPathPart returns the portion of value before the first "/" separator,
+// or the whole value when no separator is present.
+func firstPathPart(value string) string {
+	if part, _, ok := strings.Cut(value, "/"); ok {
+		return part
+	}
+
+	return value
+}
+
 // NewProjectDetector creates a new project detector.
 func NewProjectDetector() *ProjectDetector {
 	return &ProjectDetector{}
@@ -122,13 +159,10 @@ func (pd *ProjectDetector) detectFromGitRemote() string {
 
 // detectOrgFromGitRemote tries to extract organization from git remote.
 func (pd *ProjectDetector) detectOrgFromGitRemote() string {
-	gitURL := pd.detectFromGitRemote()
+	gitURL := strings.TrimSpace(pd.detectFromGitRemote())
 	if gitURL == "" {
 		return ""
 	}
-
-	// Handle different URL formats
-	gitURL = strings.TrimSpace(gitURL)
 
 	// Remove .git suffix
 	gitURL = strings.TrimSuffix(gitURL, ".git")
@@ -165,44 +199,24 @@ func (pd *ProjectDetector) detectOrgFromGitRemote() string {
 
 // detectDomainFromGitRemote tries to extract domain from git remote.
 func (pd *ProjectDetector) detectDomainFromGitRemote() string {
-	gitURL := pd.detectFromGitRemote()
-	if gitURL == "" {
-		return ""
-	}
-
-	gitURL = strings.TrimSpace(gitURL)
-
 	// Extract domain from HTTPS URL
-	if after, ok := strings.CutPrefix(gitURL, "https://"); ok {
+	if after, ok := strings.CutPrefix(strings.TrimSpace(pd.detectFromGitRemote()), "https://"); ok {
 		return firstPathPart(after)
 	}
 
 	// Extract domain from SSH URL
-	if _, after, ok := strings.Cut(gitURL, "@"); ok {
+	if _, after, ok := strings.Cut(strings.TrimSpace(pd.detectFromGitRemote()), "@"); ok {
 		return firstPathPart(after)
 	}
 
 	return ""
 }
 
-func firstPathPart(value string) string {
-	if part, _, ok := strings.Cut(value, "/"); ok {
-		return part
-	}
-
-	return value
-}
-
 // detectFromPackageJSON tries to detect project name from package.json.
 func (pd *ProjectDetector) detectFromPackageJSON() string {
-	content, err := os.ReadFile("package.json")
-	if err != nil {
-		return ""
-	}
-
 	// Simple string parsing for now
 	// In a real implementation, use JSON parsing
-	contentStr := string(content)
+	contentStr := loadFile("package.json").Value()
 
 	// Look for "name": "project-name"
 	start := strings.Index(contentStr, "\"name\"")
@@ -237,12 +251,7 @@ func (pd *ProjectDetector) detectFromPackageJSON() string {
 
 // detectOrgFromPackageJSON tries to detect organization from package.json.
 func (pd *ProjectDetector) detectOrgFromPackageJSON() string {
-	content, err := os.ReadFile("package.json")
-	if err != nil {
-		return ""
-	}
-
-	contentStr := string(content)
+	contentStr := loadFile("package.json").Value()
 
 	// Try to detect from author field
 	if strings.Contains(contentStr, "\"author\"") {
@@ -287,12 +296,7 @@ func (pd *ProjectDetector) detectOrgFromPackageJSON() string {
 
 // detectFromGoMod tries to detect project name from go.mod.
 func (pd *ProjectDetector) detectFromGoMod() string {
-	content, err := os.ReadFile("go.mod")
-	if err != nil {
-		return ""
-	}
-
-	contentStr := string(content)
+	contentStr := loadFile("go.mod").Value()
 	lines := strings.SplitSeq(contentStr, "\n")
 
 	for line := range lines {
@@ -311,12 +315,7 @@ func (pd *ProjectDetector) detectFromGoMod() string {
 
 // detectNameFromTomlFile extracts the project name from a TOML file.
 func (pd *ProjectDetector) detectNameFromTomlFile(filename string) string {
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		return ""
-	}
-
-	contentStr := string(content)
+	contentStr := loadFile(filename).Value()
 	lines := strings.SplitSeq(contentStr, "\n")
 
 	for line := range lines {
