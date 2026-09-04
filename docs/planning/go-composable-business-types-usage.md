@@ -1,7 +1,7 @@
 # Go-Composable-Business-Types Integration Plan
 
-**Date:** 2025-03-18  
-**Library:** `github.com/larsartmann/go-composable-business-types/id`  
+**Date:** 2025-03-18\
+**Library:** `github.com/larsartmann/go-composable-business-types/id`\
 **Purpose:** Type-safe, branded identifiers for the template-SECURITY project
 
 ---

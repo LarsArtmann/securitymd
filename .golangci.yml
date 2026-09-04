@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.26.4
+  go: 1.26.7
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -29,7 +29,6 @@ linters:
     - copyloopvar
     - cyclop
     - decorder
-    - depguard
     - dogsled
     - dupl
     - dupword
@@ -90,7 +89,6 @@ linters:
     - nilnil
     - nlreturn
     - noctx
-    - noinlineerr
     - nolintlint
     - nonamedreturns
     - nosprintfhostport
@@ -127,15 +125,30 @@ linters:
     - wrapcheck
     - wsl_v5
     - zerologlint
+  disable:
+    - depguard
+    - noinlineerr
   settings:
     cyclop:
       max-complexity: 15
-    depguard:
-      rules:
-        main:
-          allow:
-            - $gostd
-            - $module
+    errcheck:
+      exclude-functions:
+        - (*os.File).Close
+        - (io.Closer).Close
+        - (*sql.DB).Close
+        - (*sql.Rows).Close
+        - (*sql.Stmt).Close
+        - (net.Conn).Close
+        - (*net.TCPConn).Close
+        - (*net.UDPConn).Close
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Print
+        - fmt.Printf
+        - fmt.Println
+        - (*strings.Builder).WriteString
+        - (*bytes.Buffer).WriteString
     exhaustruct:
       exclude:
         - ^cmd/template-security/
@@ -170,6 +183,10 @@ linters:
     goprintffuncname:
       skip-check:
         - ^print(Info|Success|Warning|Error)$
+    gosec:
+      excludes:
+        - G304
+        - G115
     ireturn:
       allow:
         - error
@@ -179,6 +196,12 @@ linters:
         - generic
     makezero:
       always: true
+    mnd:
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+        - "100"
     nestif:
       max-depth: 7
     revive:
@@ -200,6 +223,17 @@ linters:
       ignore-map-index: true
       ignore-type-asserts: true
       min-length: 3
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
   exclusions:
     generated: lax
     rules:

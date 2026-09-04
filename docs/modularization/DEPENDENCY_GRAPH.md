@@ -92,26 +92,26 @@ test/acceptance
 ## Proposed Module Dependency Graph (After Modularization)
 
 ```
-                    ┌─────────────┐
-                    │   /core     │  (domain types: PolicyType, Version, ID)
-                    │   types     │  Zero external deps
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────────┐
-              │            │                │
-    ┌─────────▼──────┐  ┌──▼───────────┐  ┌─▼──────────────┐
-    │  /validator    │  │  /generator  │  │  /detector     │
-    │  validation    │  │  policy gen  │  │  project info  │
-    │  go-finding    │  │  viper       │  │  (stdlib)      │
-    │  pipeline      │  │  go-finding  │  │                │
-    └────────────────┘  └──────────────┘  └────────────────┘
-              │            │                │
-              └────────────┼────────────────┘
-                           │
-                ┌──────────▼──────────┐
-                │  /cmd               │  (CLI: cobra, color, go-finding)
-                │  template-security  │
-                └─────────────────────┘
+                ┌─────────────┐
+                │   /core     │  (domain types: PolicyType, Version, ID)
+                │   types     │  Zero external deps
+                └──────┬──────┘
+                       │
+          ┌────────────┼────────────────┐
+          │            │                │
+┌─────────▼──────┐  ┌──▼───────────┐  ┌─▼──────────────┐
+│  /validator    │  │  /generator  │  │  /detector     │
+│  validation    │  │  policy gen  │  │  project info  │
+│  go-finding    │  │  viper       │  │  (stdlib)      │
+│  pipeline      │  │  go-finding  │  │                │
+└────────────────┘  └──────────────┘  └────────────────┘
+          │            │                │
+          └────────────┼────────────────┘
+                       │
+            ┌──────────▼──────────┐
+            │  /cmd               │  (CLI: cobra, color, go-finding)
+            │  template-security  │
+            └─────────────────────┘
 ```
 
 ### DAG Verification

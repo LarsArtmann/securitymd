@@ -2,9 +2,9 @@
 
 ## 🎉 Migration Complete: Shell Scripts → Go with template-CLI SDK
 
-**Status**: ✅ **COMPLETED SUCCESSFULLY**  
-**Date**: 2025-12-11 20:27 CET  
-**Version**: v2.0.0 (Go Implementation)  
+**Status**: ✅ **COMPLETED SUCCESSFULLY**\
+**Date**: 2025-12-11 20:27 CET\
+**Version**: v2.0.0 (Go Implementation)\
 **Migration Type**: Shell Scripts → Go Application with template-CLI SDK
 
 ---
@@ -390,6 +390,6 @@ ENTRYPOINT ["template-security"]
 
 ---
 
-_Report generated: 2025-12-11 20:27 CET_  
-_Migration completed: Successfully_  
+_Report generated: 2025-12-11 20:27 CET_\
+_Migration completed: Successfully_\
 _Next review: 2025-12-18 (one week post-migration check)_

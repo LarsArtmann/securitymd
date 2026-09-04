@@ -130,47 +130,47 @@ The project is a focused CLI tool with clean separation between CLI (`cmd/`) and
 
 ### 1% → 51% Impact (Do First)
 
-| #   | Task                                            | Impact                    | Effort | File(s)              |
-| --- | ----------------------------------------------- | ------------------------- | ------ | -------------------- |
-| 1   | Delete dead types in `internal/types/`          | Removes split brain       | 15min  | `types.go`, `ids.go` |
-| 2   | Fix CI workflow (Go version, remove make)       | Enables CI                | 15min  | `.github/workflows/` |
-| 3   | Delete dead error sentinels in security_tool.go | Removes confusion         | 10min  | `security_tool.go`   |
-| 4   | Delete `.go-arch-lint.yml`                      | Removes misleading config | 5min   | `.go-arch-lint.yml`  |
-| 5   | Delete empty dirs (`report/`, `reports/`)       | Clean tree                | 2min   | dirs                 |
+| # | Task                                            | Impact                    | Effort | File(s)              |
+| - | ----------------------------------------------- | ------------------------- | ------ | -------------------- |
+| 1 | Delete dead types in `internal/types/`          | Removes split brain       | 15min  | `types.go`, `ids.go` |
+| 2 | Fix CI workflow (Go version, remove make)       | Enables CI                | 15min  | `.github/workflows/` |
+| 3 | Delete dead error sentinels in security_tool.go | Removes confusion         | 10min  | `security_tool.go`   |
+| 4 | Delete `.go-arch-lint.yml`                      | Removes misleading config | 5min   | `.go-arch-lint.yml`  |
+| 5 | Delete empty dirs (`report/`, `reports/`)       | Clean tree                | 2min   | dirs                 |
 
 ### 4% → 64% Impact (Do Second)
 
-| #   | Task                                                                 | Impact             | Effort | File(s)                  |
-| --- | -------------------------------------------------------------------- | ------------------ | ------ | ------------------------ |
-| 6   | Add CLI tests for validate command                                   | 0→50% cmd coverage | 60min  | `cmd/template-security/` |
-| 7   | Remove `t.Parallel()` from `detectFromPackageJSON` test file         | Already done       | 0min   | —                        |
-| 8   | Fix `readTemplate()` to use config `TemplateDir`                     | Correctness        | 20min  | `security_tool.go`       |
-| 9   | Cache `detectFromGitRemote()` result                                 | Performance        | 15min  | `project_detector.go`    |
-| 10  | Convert `level` string → `finding.Severity` in checkRequiredSections | Type safety        | 10min  | `security_validator.go`  |
+| #  | Task                                                                 | Impact             | Effort | File(s)                  |
+| -- | -------------------------------------------------------------------- | ------------------ | ------ | ------------------------ |
+| 6  | Add CLI tests for validate command                                   | 0→50% cmd coverage | 60min  | `cmd/template-security/` |
+| 7  | Remove `t.Parallel()` from `detectFromPackageJSON` test file         | Already done       | 0min   | —                        |
+| 8  | Fix `readTemplate()` to use config `TemplateDir`                     | Correctness        | 20min  | `security_tool.go`       |
+| 9  | Cache `detectFromGitRemote()` result                                 | Performance        | 15min  | `project_detector.go`    |
+| 10 | Convert `level` string → `finding.Severity` in checkRequiredSections | Type safety        | 10min  | `security_validator.go`  |
 
 ### 20% → 80% Impact (Do Third)
 
-| #   | Task                                                                        | Impact                 | Effort | File(s)                    |
-| --- | --------------------------------------------------------------------------- | ---------------------- | ------ | -------------------------- |
-| 11  | Refactor package globals → struct-based command state                       | Testability            | 45min  | `validate.go`, `setup.go`  |
-| 12  | Add ProjectDetector tests                                                   | Coverage               | 60min  | `project_detector_test.go` |
-| 13  | Fix `time.ParseDuration("1y")` — use `time.ParseDuration` or just `AddDate` | Correctness            | 10min  | `security_tool.go`         |
-| 14  | Fix `withTempFile` pattern in test helpers                                  | Already done           | 0min   | —                          |
-| 15  | Update `CHANGELOG.md`                                                       | Documentation          | 30min  | `CHANGELOG.md`             |
-| 16  | Clean up stale docs (archive 2025-12-11 status reports)                     | Reduces confusion      | 15min  | `docs/status/`             |
-| 17  | Delete stale `docs/planning/go-composable-business-types-usage.md`          | Removes dead reference | 2min   | docs                       |
+| #  | Task                                                                        | Impact                 | Effort | File(s)                    |
+| -- | --------------------------------------------------------------------------- | ---------------------- | ------ | -------------------------- |
+| 11 | Refactor package globals → struct-based command state                       | Testability            | 45min  | `validate.go`, `setup.go`  |
+| 12 | Add ProjectDetector tests                                                   | Coverage               | 60min  | `project_detector_test.go` |
+| 13 | Fix `time.ParseDuration("1y")` — use `time.ParseDuration` or just `AddDate` | Correctness            | 10min  | `security_tool.go`         |
+| 14 | Fix `withTempFile` pattern in test helpers                                  | Already done           | 0min   | —                          |
+| 15 | Update `CHANGELOG.md`                                                       | Documentation          | 30min  | `CHANGELOG.md`             |
+| 16 | Clean up stale docs (archive 2025-12-11 status reports)                     | Reduces confusion      | 15min  | `docs/status/`             |
+| 17 | Delete stale `docs/planning/go-composable-business-types-usage.md`          | Removes dead reference | 2min   | docs                       |
 
 ### Remaining (80%+ Impact Items)
 
-| #   | Task                                                        | Impact                | Effort | File(s)                 |
-| --- | ----------------------------------------------------------- | --------------------- | ------ | ----------------------- |
-| 18  | Replace hand-rolled JSON parsing in `detectFromPackageJSON` | Robustness            | 30min  | `project_detector.go`   |
-| 19  | Add SARIF output test                                       | Coverage              | 30min  | `validate_test.go`      |
-| 20  | Add JSON output test                                        | Coverage              | 30min  | `validate_test.go`      |
-| 21  | Fix `hasActualContent()` "example" exclusion                | Correctness           | 10min  | `security_validator.go` |
-| 22  | Create project-level `AGENTS.md`                            | Documentation         | 30min  | `AGENTS.md`             |
-| 23  | Migrate justfile → flake.nix                                | Per AGENTS.md mandate | 120min | `flake.nix`             |
-| 24  | Add goreleaser                                              | Release automation    | 60min  | `.goreleaser.yml`       |
-| 25  | Delete legacy shell scripts                                 | Clean tree            | 10min  | `scripts/`              |
-| 26  | Wire `pipeline.New()` + `Run()` for full pipeline           | Feature               | 60min  | `internal/`             |
-| 27  | Add enterprise template                                     | Feature completeness  | 45min  | `templates/`            |
+| #  | Task                                                        | Impact                | Effort | File(s)                 |
+| -- | ----------------------------------------------------------- | --------------------- | ------ | ----------------------- |
+| 18 | Replace hand-rolled JSON parsing in `detectFromPackageJSON` | Robustness            | 30min  | `project_detector.go`   |
+| 19 | Add SARIF output test                                       | Coverage              | 30min  | `validate_test.go`      |
+| 20 | Add JSON output test                                        | Coverage              | 30min  | `validate_test.go`      |
+| 21 | Fix `hasActualContent()` "example" exclusion                | Correctness           | 10min  | `security_validator.go` |
+| 22 | Create project-level `AGENTS.md`                            | Documentation         | 30min  | `AGENTS.md`             |
+| 23 | Migrate justfile → flake.nix                                | Per AGENTS.md mandate | 120min | `flake.nix`             |
+| 24 | Add goreleaser                                              | Release automation    | 60min  | `.goreleaser.yml`       |
+| 25 | Delete legacy shell scripts                                 | Clean tree            | 10min  | `scripts/`              |
+| 26 | Wire `pipeline.New()` + `Run()` for full pipeline           | Feature               | 60min  | `internal/`             |
+| 27 | Add enterprise template                                     | Feature completeness  | 45min  | `templates/`            |

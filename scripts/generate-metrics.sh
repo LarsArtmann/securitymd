@@ -4,7 +4,7 @@ set -euo pipefail
 # Security Metrics Generation Script
 # Generates security metrics and compliance dashboards
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Colors for output
@@ -15,48 +15,48 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 log_info() {
-    echo -e "${BLUE}ℹ${NC} $1"
+	echo -e "${BLUE}ℹ${NC} $1"
 }
 
 log_success() {
-    echo -e "${GREEN}✓${NC} $1"
+	echo -e "${GREEN}✓${NC} $1"
 }
 
 log_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
+	echo -e "${YELLOW}⚠${NC} $1"
 }
 
 generate_security_metrics() {
-    local output_format="${1:-text}"
-    local timestamp=$(date -Iseconds)
-    
-    log_info "Generating security metrics..."
-    
-    # Count security policies
-    local policy_count=$(find "$PROJECT_DIR" -name "*.md" -type f | wc -l | tr -d ' ')
-    
-    # Check for key security documents
-    local has_security_md=0
-    local has_incident_response=0
-    local has_privacy_policy=0
-    local has_enterprise_policy=0
-    
-    [[ -f "$PROJECT_DIR/SECURITY.md" ]] && has_security_md=1
-    [[ -f "$PROJECT_DIR/incident-response.md" ]] && has_incident_response=1
-    [[ -f "$PROJECT_DIR/privacy-policy.md" ]] && has_privacy_policy=1
-    [[ -f "$PROJECT_DIR/security-policy.md" ]] && has_enterprise_policy=1
-    
-    # Compliance scores (simplified)
-    local gdpr_score=$((has_privacy_policy * 80 + has_security_md * 20))
-    local soc2_score=$((has_security_md * 30 + has_incident_response * 40 + has_enterprise_policy * 30))
-    local iso27001_score=$((has_enterprise_policy * 35 + has_incident_response * 35 + has_security_md * 30))
-    
-    # Security maturity score
-    local maturity_score=$(((has_security_md + has_incident_response + has_privacy_policy + has_enterprise_policy) * 25))
-    
-    case "$output_format" in
-        "json")
-            cat << EOF
+	local output_format="${1:-text}"
+	local timestamp=$(date -Iseconds)
+
+	log_info "Generating security metrics..."
+
+	# Count security policies
+	local policy_count=$(find "$PROJECT_DIR" -name "*.md" -type f | wc -l | tr -d ' ')
+
+	# Check for key security documents
+	local has_security_md=0
+	local has_incident_response=0
+	local has_privacy_policy=0
+	local has_enterprise_policy=0
+
+	[[ -f "$PROJECT_DIR/SECURITY.md" ]] && has_security_md=1
+	[[ -f "$PROJECT_DIR/incident-response.md" ]] && has_incident_response=1
+	[[ -f "$PROJECT_DIR/privacy-policy.md" ]] && has_privacy_policy=1
+	[[ -f "$PROJECT_DIR/security-policy.md" ]] && has_enterprise_policy=1
+
+	# Compliance scores (simplified)
+	local gdpr_score=$((has_privacy_policy * 80 + has_security_md * 20))
+	local soc2_score=$((has_security_md * 30 + has_incident_response * 40 + has_enterprise_policy * 30))
+	local iso27001_score=$((has_enterprise_policy * 35 + has_incident_response * 35 + has_security_md * 30))
+
+	# Security maturity score
+	local maturity_score=$(((has_security_md + has_incident_response + has_privacy_policy + has_enterprise_policy) * 25))
+
+	case "$output_format" in
+	"json")
+		cat <<EOF
 {
   "generated": "$timestamp",
   "security_policies": {
@@ -80,9 +80,9 @@ generate_security_metrics() {
   ]
 }
 EOF
-            ;;
-        "prometheus")
-            cat << EOF
+		;;
+	"prometheus")
+		cat <<EOF
 # HELP security_policies_total Total number of security policies
 # TYPE security_policies_total gauge
 security_policies_total $policy_count
@@ -108,9 +108,9 @@ security_maturity_score $maturity_score
 # TYPE security_metrics_last_update gauge
 security_metrics_last_update $(date +%s)
 EOF
-            ;;
-        *)
-            cat << EOF
+		;;
+	*)
+		cat <<EOF
 🔒 Security Metrics Report
 Generated: $timestamp
 
@@ -131,54 +131,54 @@ Generated: $timestamp
 💡 Recommendations:
 $(get_recommendations $has_security_md $has_incident_response $has_privacy_policy $has_enterprise_policy | sed 's/,/\n   /g' | sed 's/"//g')
 EOF
-            ;;
-    esac
+		;;
+	esac
 }
 
 get_maturity_level() {
-    local score=$1
-    
-    if [[ $score -ge 75 ]]; then
-        echo "Advanced"
-    elif [[ $score -ge 50 ]]; then
-        echo "Intermediate"
-    elif [[ $score -ge 25 ]]; then
-        echo "Basic"
-    else
-        echo "Initial"
-    fi
+	local score=$1
+
+	if [[ $score -ge 75 ]]; then
+		echo "Advanced"
+	elif [[ $score -ge 50 ]]; then
+		echo "Intermediate"
+	elif [[ $score -ge 25 ]]; then
+		echo "Basic"
+	else
+		echo "Initial"
+	fi
 }
 
 get_recommendations() {
-    local has_security_md=$1
-    local has_incident_response=$2
-    local has_privacy_policy=$3
-    local has_enterprise_policy=$4
-    local recommendations=()
-    
-    [[ $has_security_md -eq 0 ]] && recommendations+=('"Generate SECURITY.md with: just github-security"')
-    [[ $has_incident_response -eq 0 ]] && recommendations+=('"Create incident response plan"')
-    [[ $has_privacy_policy -eq 0 ]] && recommendations+=('"Develop privacy policy for GDPR compliance"')
-    [[ $has_enterprise_policy -eq 0 ]] && recommendations+='"Generate enterprise security policy"'
-    
-    if [[ ${#recommendations[@]} -eq 0 ]]; then
-        recommendations+=('"All critical policies are in place - consider advanced security measures"')
-    fi
-    
-    local IFS=','
-    echo "${recommendations[*]}"
+	local has_security_md=$1
+	local has_incident_response=$2
+	local has_privacy_policy=$3
+	local has_enterprise_policy=$4
+	local recommendations=()
+
+	[[ $has_security_md -eq 0 ]] && recommendations+=('"Generate SECURITY.md with: just github-security"')
+	[[ $has_incident_response -eq 0 ]] && recommendations+=('"Create incident response plan"')
+	[[ $has_privacy_policy -eq 0 ]] && recommendations+=('"Develop privacy policy for GDPR compliance"')
+	[[ $has_enterprise_policy -eq 0 ]] && recommendations+='"Generate enterprise security policy"'
+
+	if [[ ${#recommendations[@]} -eq 0 ]]; then
+		recommendations+=('"All critical policies are in place - consider advanced security measures"')
+	fi
+
+	local IFS=','
+	echo "${recommendations[*]}"
 }
 
 generate_executive_report() {
-    local output_file="${PROJECT_DIR}/executive-security-report-$(date +%Y%m%d).pdf"
-    
-    log_info "Generating executive security report..."
-    
-    # This would typically generate a PDF using a tool like wkhtmltopdf or pandoc
-    # For now, we'll create a markdown version
-    local markdown_file="${output_file%.pdf}.md"
-    
-    cat > "$markdown_file" << EOF
+	local output_file="${PROJECT_DIR}/executive-security-report-$(date +%Y%m%d).pdf"
+
+	log_info "Generating executive security report..."
+
+	# This would typically generate a PDF using a tool like wkhtmltopdf or pandoc
+	# For now, we'll create a markdown version
+	local markdown_file="${output_file%.pdf}.md"
+
+	cat >"$markdown_file" <<EOF
 # Executive Security Report
 
 **Generated:** $(date +%B %d, %Y)  
@@ -237,42 +237,42 @@ Based on current assessment, recommend investment in:
 
 *This report should be reviewed quarterly and updated as our security program matures.*
 EOF
-    
-    log_success "Executive report generated: $markdown_file"
-    log_info "To convert to PDF: pandoc \"$markdown_file\" -o \"$output_file\""
+
+	log_success "Executive report generated: $markdown_file"
+	log_info "To convert to PDF: pandoc \"$markdown_file\" -o \"$output_file\""
 }
 
 main() {
-    local format="text"
-    local executive_mode=false
-    
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --format)
-                format="$2"
-                shift 2
-                ;;
-            --executive)
-                executive_mode=true
-                shift
-                ;;
-            -h|--help)
-                echo "Usage: $0 [--format FORMAT] [--executive]"
-                echo "Formats: text, json, prometheus"
-                exit 0
-                ;;
-            *)
-                log_error "Unknown option: $1"
-                exit 1
-                ;;
-        esac
-    done
-    
-    if [[ "$executive_mode" == "true" ]]; then
-        generate_executive_report
-    else
-        generate_security_metrics "$format"
-    fi
+	local format="text"
+	local executive_mode=false
+
+	while [[ $# -gt 0 ]]; do
+		case $1 in
+		--format)
+			format="$2"
+			shift 2
+			;;
+		--executive)
+			executive_mode=true
+			shift
+			;;
+		-h | --help)
+			echo "Usage: $0 [--format FORMAT] [--executive]"
+			echo "Formats: text, json, prometheus"
+			exit 0
+			;;
+		*)
+			log_error "Unknown option: $1"
+			exit 1
+			;;
+		esac
+	done
+
+	if [[ "$executive_mode" == "true" ]]; then
+		generate_executive_report
+	else
+		generate_security_metrics "$format"
+	fi
 }
 
 main "$@"

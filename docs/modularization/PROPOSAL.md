@@ -66,13 +66,13 @@ See [DEPENDENCY_GRAPH.md](./DEPENDENCY_GRAPH.md) for full analysis.
 
 ### Module Definitions
 
-| #   | Name & Path  | Purpose                                                                | Deps (Prod)                                                                  | Deps (Test)        | Public API                                                                                           |
-| --- | ------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
-| 1   | `/core`      | Domain types shared across all modules                                 | None                                                                         | None               | `PolicyType`, `Version`, `VersionStatus`, `ID`, `PolicyID`, `Config`, `PolicyConfig`, `TemplateData` |
-| 2   | `/validator` | SECURITY.md validation and finding generation                          | `core`, `go-finding`, `go-finding/pipeline`                                  | `testify`          | `SecurityValidator`, `DetectFile`, `ReportIsValid`                                                   |
-| 3   | `/generator` | SECURITY.md template generation and config loading                     | `core`, `go-finding`, `viper`                                                | `testify`          | `SecurityTool`, `NewSecurityTool`                                                                    |
-| 4   | `/detector`  | Project name/org/domain detection from git, package.json, go.mod, etc. | None                                                                         | (minimal)          | `ProjectDetector`, `NewProjectDetector`                                                              |
-| 5   | `/` (root)   | CLI entry point (`cmd/template-security`)                              | `core`, `validator`, `generator`, `detector`, `cobra`, `color`, `go-finding` | `ginkgo`, `gomega` | CLI binary                                                                                           |
+| # | Name & Path  | Purpose                                                                | Deps (Prod)                                                                  | Deps (Test)        | Public API                                                                                           |
+| - | ------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| 1 | `/core`      | Domain types shared across all modules                                 | None                                                                         | None               | `PolicyType`, `Version`, `VersionStatus`, `ID`, `PolicyID`, `Config`, `PolicyConfig`, `TemplateData` |
+| 2 | `/validator` | SECURITY.md validation and finding generation                          | `core`, `go-finding`, `go-finding/pipeline`                                  | `testify`          | `SecurityValidator`, `DetectFile`, `ReportIsValid`                                                   |
+| 3 | `/generator` | SECURITY.md template generation and config loading                     | `core`, `go-finding`, `viper`                                                | `testify`          | `SecurityTool`, `NewSecurityTool`                                                                    |
+| 4 | `/detector`  | Project name/org/domain detection from git, package.json, go.mod, etc. | None                                                                         | (minimal)          | `ProjectDetector`, `NewProjectDetector`                                                              |
+| 5 | `/` (root)   | CLI entry point (`cmd/template-security`)                              | `core`, `validator`, `generator`, `detector`, `cobra`, `color`, `go-finding` | `ginkgo`, `gomega` | CLI binary                                                                                           |
 
 ### DAG Verification
 
@@ -87,26 +87,26 @@ No cycles. No lateral dependencies.
 ### Dependency Diagram
 
 ```
-                    ┌─────────────┐
-                    │    core     │
-                    │  (types)    │
-                    └──────┬──────┘
-                           │
-         ┌─────────────────┼──────────────────┐
-         │                 │                  │
-  ┌──────▼──────┐  ┌───────▼───────┐  ┌──────▼──────┐
-  │  validator  │  │   generator   │  │  detector   │
-  │  go-finding │  │  viper        │  │  (stdlib)   │
-  │  pipeline   │  │  go-finding   │  │             │
-  └──────┬──────┘  └───────┬───────┘  └──────┬──────┘
-         │                 │                  │
-         └─────────┬───────┴──────────────────┘
-                   │
-         ┌─────────▼──────────┐
-         │  cmd               │
-         │  cobra, color      │
-         │  go-finding        │
-         └────────────────────┘
+                  ┌─────────────┐
+                  │    core     │
+                  │  (types)    │
+                  └──────┬──────┘
+                         │
+       ┌─────────────────┼──────────────────┐
+       │                 │                  │
+┌──────▼──────┐  ┌───────▼───────┐  ┌──────▼──────┐
+│  validator  │  │   generator   │  │  detector   │
+│  go-finding │  │  viper        │  │  (stdlib)   │
+│  pipeline   │  │  go-finding   │  │             │
+└──────┬──────┘  └───────┬───────┘  └──────┬──────┘
+       │                 │                  │
+       └─────────┬───────┴──────────────────┘
+                 │
+       ┌─────────▼──────────┐
+       │  cmd               │
+       │  cobra, color      │
+       │  go-finding        │
+       └────────────────────┘
 ```
 
 ---
