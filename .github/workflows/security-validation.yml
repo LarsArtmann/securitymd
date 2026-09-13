@@ -64,19 +64,19 @@ jobs:
           if [ -f "SECURITY.md" ]; then
             echo "🔍 Validating SECURITY.md..."
             ./bin/template-security validate --file SECURITY.md
-            
+
             if [ $? -ne 0 ]; then
               echo "❌ SECURITY.md validation failed"
               echo ""
               echo "Please fix the following issues:"
               echo "1. Missing required sections (Security Policy, Reporting a Vulnerability, etc.)"
-              echo "2. Incomplete contact information" 
+              echo "2. Incomplete contact information"
               echo "3. Template variables not replaced"
               echo ""
               echo "See the validation output above for details."
               exit 1
             fi
-            
+
             echo "✅ SECURITY.md validation passed"
           else
             echo "⚠️  SECURITY.md not found - skipping validation"
@@ -87,12 +87,12 @@ jobs:
           if [ -f "security-policy.md" ]; then
             echo "🔍 Validating security-policy.md..."
             ./bin/template-security validate --file security-policy.md
-            
+
             if [ $? -ne 0 ]; then
               echo "❌ security-policy.md validation failed"
               exit 1
             fi
-            
+
             echo "✅ security-policy.md validation passed"
           fi
 
@@ -120,7 +120,7 @@ jobs:
               echo "❌ SECURITY.md is too short ($lines lines, minimum 20 required)"
               exit 1
             fi
-            
+
             # Check for required sections
             required_sections=("Security Policy" "Reporting a Vulnerability" "Supported Versions")
             for section in "${required_sections[@]}"; do
@@ -129,13 +129,13 @@ jobs:
                 exit 1
               fi
             done
-            
+
             # Check for contact information
             if ! grep -q "@" SECURITY.md; then
               echo "❌ Missing contact email in SECURITY.md"
               exit 1
             fi
-            
+
             echo "✅ SECURITY.md content quality checks passed"
           fi
 
@@ -149,7 +149,7 @@ jobs:
             echo "### ✅ SECURITY.md Found" >> $GITHUB_STEP_SUMMARY
             echo "- File size: $(wc -l < SECURITY.md) lines" >> $GITHUB_STEP_SUMMARY
             echo "- Last modified: $(stat -c %y SECURITY.md)" >> $GITHUB_STEP_SUMMARY
-            
+
             # Check sections
             echo "- Required sections:" >> $GITHUB_STEP_SUMMARY
             sections=("Security Policy" "Reporting a Vulnerability" "Supported Versions" "Security Practices")

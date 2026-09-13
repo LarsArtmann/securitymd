@@ -4,9 +4,9 @@ go 1.26.7
 
 require (
 	github.com/fatih/color v1.19.0
-	github.com/larsartmann/go-finding v1.8.0
-	github.com/larsartmann/go-finding/pipeline v1.8.0
-	github.com/onsi/ginkgo/v2 v2.32.0
+	github.com/larsartmann/go-finding v1.10.0
+	github.com/larsartmann/go-finding/pipeline v1.10.0
+	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.43.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	github.com/LarsArtmann/gogenfilter/v3 v3.4.0 // indirect
+	github.com/LarsArtmann/gogenfilter/v3 v3.6.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -42,10 +42,10 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
