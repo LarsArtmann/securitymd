@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	github.com/LarsArtmann/gogenfilter/v3 v3.6.0 // indirect
+	github.com/LarsArtmann/gogenfilter/v3 v3.6.1 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
