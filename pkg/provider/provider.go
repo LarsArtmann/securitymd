@@ -13,8 +13,8 @@ package provider
 import (
 	"context"
 
-	"github.com/larsartmann/go-finding/toolsdk"
 	"github.com/LarsArtmann/securitymd/pkg/policy"
+	"github.com/larsartmann/go-finding/toolsdk"
 )
 
 // optionContactEmail lets a repo override the generated policy's contact
@@ -53,9 +53,9 @@ var Provider = toolsdk.Register(toolsdk.Spec{
 		"docs/SECURITY.md",
 	}, triggerManifests...),
 	Options: []toolsdk.Option{{
-		Name:        optionContactEmail,
-		Kind:        toolsdk.OptionKindString,
-		Default:     "",
+		Name:    optionContactEmail,
+		Kind:    toolsdk.OptionKindString,
+		Default: "",
 		Description: "Security contact email baked into a generated SECURITY.md (optional; " +
 			"default points to GitHub private vulnerability reporting)",
 	}},

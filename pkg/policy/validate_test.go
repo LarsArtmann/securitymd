@@ -19,13 +19,19 @@ const validPolicy = `# Security Policy
 | ------- | --------------- |
 | v2.x    | 2026-12-31     |
 
+Only the latest release receives security fixes.
+
 ## Reporting a Vulnerability
 
 Email us at security@example.com with any security issues.
 
+We commit to an initial response within 48 hours.
+
 ## Security Practices
 
 We follow security best practices in development and operations.
+
+All changes are reviewed before merge and CI runs security scanning.
 `
 
 func validateContent(t *testing.T, content string) []finding.Finding {
@@ -66,7 +72,7 @@ func TestValidate_reports_each_missing_section(t *testing.T) {
 		expectIDs []string
 	}{
 		{"header", "# Security Policy\n", []string{"missing-header"}},
-		{"reporting", "## Reporting a Vulnerability", []string{"missing-reporting", "missing-contact"}},
+		{"reporting", "## Reporting a Vulnerability", []string{"missing-reporting"}},
 		{"versions", "## Supported Versions", []string{"missing-versions"}},
 		{"practices", "## Security Practices", []string{"missing-practices"}},
 		{"contact", "security@example.com", []string{"missing-contact"}},

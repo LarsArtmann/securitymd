@@ -46,6 +46,8 @@ var _ = ginkgo.Describe("SECURITY.md validation", ginkgo.Label("acceptance"), fu
 | ------- | --------------- |
 | v2.x    | 2026-12-31     |
 
+Only the latest release receives security fixes.
+
 ## Reporting a Vulnerability
 
 Email security@example.com for any security issue; we respond within 48 hours.
@@ -53,6 +55,8 @@ Email security@example.com for any security issue; we respond within 48 hours.
 ## Security Practices
 
 All changes are reviewed, dependencies scanned, releases signed.
+
+We rotate credentials and audit access quarterly across all systems.
 `
 
 	ginkgo.It("passes a compliant policy", func() {
