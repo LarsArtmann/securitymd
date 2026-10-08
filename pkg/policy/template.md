@@ -2,9 +2,9 @@
 
 ## Supported Versions
 
-| Version          | Supported         |
-| ---------------- | ----------------- |
-| {{.VersionCell}} | ✅ Current        |
+| Version          | Supported  |
+| ---------------- | ---------- |
+| {{.VersionCell}} | ✅ Current |
 
 Only the latest release receives security fixes. Please update to the latest
 version before reporting issues found in older releases.
@@ -16,7 +16,7 @@ Please do **not** open public issues for security problems. Report privately ins
 {{- if .ContactEmail}}
 
 - **Email**: {{.ContactEmail}}
-{{- end}}
+  {{- end}}
 - **GitHub Security Advisory**: https://github.com/{{.Organization}}/{{.Repository}}/security/advisories/new
 
 ### What to include
@@ -28,10 +28,10 @@ Please do **not** open public issues for security problems. Report privately ins
 
 ### Response commitments
 
-| Phase            | Timeline        |
-| ---------------- | --------------- |
-| Initial response | Within 48 hours |
-| Triage           | Within 72 hours |
+| Phase            | Timeline                    |
+| ---------------- | --------------------------- |
+| Initial response | Within 48 hours             |
+| Triage           | Within 72 hours             |
 | Disclosure       | Coordinated, within 90 days |
 
 ## Security Practices

@@ -91,6 +91,7 @@ reports/
 vendor/
 go.work
 go.work.sum
+/securitymd
 
 ## Nix
 result-*

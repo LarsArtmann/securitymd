@@ -53,24 +53,24 @@ Discovery order: `SECURITY.md`, `.github/SECURITY.md`, `docs/SECURITY.md`.
 
 ### Required sections (error)
 
-| Rule                 | Check                                                              |
-| -------------------- | ------------------------------------------------------------------ |
-| `missing-file`       | No policy found in any candidate location (fix: generate one)      |
-| `missing-header`     | Missing `# Security Policy` header                                 |
-| `missing-reporting`  | Missing "Reporting a Vulnerability" (or equivalent) section        |
-| `missing-versions`   | Missing "Supported Versions" section                               |
-| `missing-practices`  | Missing "Security Practices" section                               |
-| `missing-contact`    | No contact channel: email, GitHub advisory link, or security.txt   |
-| `unresolved-template`| Leftover `{{.Variable}}` template placeholders (line-precise)      |
-| `no-content`         | Placeholder-only content, nothing substantive                      |
+| Rule                  | Check                                                            |
+| --------------------- | ---------------------------------------------------------------- |
+| `missing-file`        | No policy found in any candidate location (fix: generate one)    |
+| `missing-header`      | Missing `# Security Policy` header                               |
+| `missing-reporting`   | Missing "Reporting a Vulnerability" (or equivalent) section      |
+| `missing-versions`    | Missing "Supported Versions" section                             |
+| `missing-practices`   | Missing "Security Practices" section                             |
+| `missing-contact`     | No contact channel: email, GitHub advisory link, or security.txt |
+| `unresolved-template` | Leftover `{{.Variable}}` template placeholders (line-precise)    |
+| `no-content`          | Placeholder-only content, nothing substantive                    |
 
 ### Quality checks (warning)
 
-| Rule                  | Check                                             |
-| --------------------- | ------------------------------------------------- |
-| `missing-response-time`| No response-time commitment for reports         |
-| `too-short`           | Under 20 lines                                    |
-| `no-version-info`     | No version information anywhere                   |
+| Rule                    | Check                                   |
+| ----------------------- | --------------------------------------- |
+| `missing-response-time` | No response-time commitment for reports |
+| `too-short`             | Under 20 lines                          |
+| `no-version-info`       | No version information anywhere         |
 
 Exit codes: `0` clean · `1` error-severity findings · `2` operational failure.
 
