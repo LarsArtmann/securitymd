@@ -10,7 +10,7 @@ import (
 	"time"
 
 	atomicwrite "github.com/larsartmann/go-atomic-write"
-	"github.com/larsartmann/linter-autoconfigure-sdk/autoconfigure"
+	autoconfigure "github.com/larsartmann/linter-autoconfigure-sdk"
 )
 
 //go:embed template.md
@@ -77,13 +77,7 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 		}, nil
 	}
 
-	content, err := renderTemplate(templateData{
-		Organization: identity.Organization,
-		Repository:   identity.Repository,
-		ContactEmail: opts.ContactEmail,
-		VersionCell:  versionCell(dir),
-		LastUpdated:  time.Now().Format("2006-01-02"),
-	})
+	content, err := renderForIdentity(dir, identity, opts.ContactEmail)
 	if err != nil {
 		return GenerateResult{}, fmt.Errorf("render SECURITY.md template for %s/%s: %w",
 			identity.Organization, identity.Repository, err)
@@ -116,6 +110,18 @@ type templateData struct {
 	ContactEmail string
 	VersionCell  string
 	LastUpdated  string
+}
+
+// renderForIdentity renders the embedded template for a known repo identity.
+// Shared by Generate (write path) and the missing-file finding preview.
+func renderForIdentity(dir string, identity RepoIdentity, contactEmail string) (string, error) {
+	return renderTemplate(templateData{
+		Organization: identity.Organization,
+		Repository:   identity.Repository,
+		ContactEmail: contactEmail,
+		VersionCell:  versionCell(dir),
+		LastUpdated:  time.Now().Format("2006-01-02"),
+	})
 }
 
 // versionCell fills the Supported Versions table: the latest git tag when
