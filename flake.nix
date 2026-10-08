@@ -1,5 +1,5 @@
 {
-  description = "Security policy template for Go";
+  description = "securitymd — SECURITY.md policy linter and generator";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -52,10 +52,10 @@
 
           devShells = {
             default = pkgs.mkShell {
-              name = "template-security-dev";
+              name = "securitymd-dev";
 
               packages = [
-                pkgs.go_1_26
+                pkgs.go_1_27
                 pkgs.golangci-lint
                 pkgs.gopls
                 pkgs.delve
@@ -69,7 +69,7 @@
 
             ci = pkgs.mkShellNoCC {
               packages = [
-                pkgs.go_1_26
+                pkgs.go_1_27
                 pkgs.golangci-lint
               ];
 
