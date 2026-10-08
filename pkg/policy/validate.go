@@ -87,7 +87,7 @@ func Validate(filePath string) ([]finding.Finding, error) {
 
 	lines := strings.Split(string(content), "\n")
 
-	var findings []finding.Finding
+	findings := make([]finding.Finding, 0, len(sectionRules)+4)
 
 	findings = append(findings, validateSections(filePath, lines)...)
 	findings = append(findings, validateContentQuality(filePath, lines)...)
@@ -126,14 +126,14 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 		}
 	}
 
-	for i, line := range lines {
+	for lineIndex, line := range lines {
 		if !strings.Contains(line, "{{") || !strings.Contains(line, "}}") {
 			continue
 		}
 
 		f, err := buildFinding("unresolved-template",
 			"Unresolved template variable: "+strings.TrimSpace(line),
-			finding.SeverityError, filePath, i+1, "")
+			finding.SeverityError, filePath, lineIndex+1)
 		if err == nil {
 			findings = append(findings, f)
 		}
@@ -175,16 +175,16 @@ func buildFinding(
 		pos = finding.Pos(finding.FilePath(filePath), line, 1)
 	}
 
-	f, err := finding.NewBuilder(rule, ToolName, message, severity, pos).
+	built, err := finding.NewBuilder(rule, ToolName, message, severity, pos).
 		WithCategory(finding.CategorySecurity).
 		WithTags(finding.TagSecurity).
 		WithFixStrategy(finding.FixStrategySuggest).
 		Build()
 	if err != nil {
-		return f, fmt.Errorf("build finding {rule:%q file:%q line:%d}: %w", rule, filePath, line, err)
+		return built, fmt.Errorf("build finding {rule:%q file:%q line:%d}: %w", rule, filePath, line, err)
 	}
 
-	return f, nil
+	return built, nil
 }
 
 // containsAnyFold reports whether any line contains any pattern,

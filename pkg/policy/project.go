@@ -21,7 +21,8 @@ func (r RepoIdentity) IsComplete() bool {
 // git origin remote. Supports HTTPS and SSH GitHub URLs; returns an
 // incomplete identity when the remote is missing or unparseable.
 func DetectRepoIdentity(dir string) RepoIdentity {
-	cmd := exec.Command("git", "-C", dir, "config", "--get", "remote.origin.url") // #nosec G204 // fixed argv; dir is the caller's repository path
+	// #nosec G204 -- fixed argv; dir is the caller's repository path
+	cmd := exec.Command("git", "-C", dir, "config", "--get", "remote.origin.url")
 
 	output, err := cmd.Output()
 	if err != nil {
@@ -57,7 +58,8 @@ func parseGitRemote(remote string) RepoIdentity {
 // LatestTag returns the most recent git tag of the directory (e.g. "v1.2.3"),
 // or "" when no tag exists. Best-effort: failures degrade to the empty string.
 func LatestTag(dir string) string {
-	cmd := exec.Command("git", "-C", dir, "describe", "--tags", "--abbrev=0") // #nosec G204 // fixed argv; dir is the caller's repository path
+	// #nosec G204 -- fixed argv; dir is the caller's repository path
+	cmd := exec.Command("git", "-C", dir, "describe", "--tags", "--abbrev=0")
 
 	output, err := cmd.Output()
 	if err != nil {

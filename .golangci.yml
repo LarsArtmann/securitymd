@@ -151,10 +151,10 @@ linters:
         - (*bytes.Buffer).WriteString
     exhaustruct_v5:
       ignore-patterns:
-        - \.GenerateResult$
-        - \.GenerateOptions$
-        - \.RepoIdentity$
-        - toolsdk\.Spec$
+        - ^github\.com/LarsArtmann/securitymd/pkg/policy\.GenerateResult$
+        - ^github\.com/LarsArtmann/securitymd/pkg/policy\.GenerateOptions$
+        - ^github\.com/LarsArtmann/securitymd/pkg/policy\.RepoIdentity$
+        - ^github\.com/larsartmann/go-finding/toolsdk\.Spec$
     forbidigo:
       allow:
         - fmt\.(F)?Print(ln)?$

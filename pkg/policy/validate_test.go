@@ -109,9 +109,10 @@ func TestValidate_flags_unresolved_template_variables_with_line(t *testing.T) {
 	findings := validateContent(t, "# Security Policy\n\nContact {{.ContactEmail}} for issues.\n")
 
 	var unresolved []finding.Finding
-	for _, f := range findings {
-		if f.Rule == "unresolved-template" {
-			unresolved = append(unresolved, f)
+
+	for _, candidate := range findings {
+		if candidate.Rule == "unresolved-template" {
+			unresolved = append(unresolved, candidate)
 		}
 	}
 
