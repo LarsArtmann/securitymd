@@ -66,7 +66,7 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 
 	identity := RepoIdentity{Organization: opts.Organization, Repository: opts.Repository}
 	if !identity.IsComplete() {
-		identity = DetectRepoIdentity(dir)
+		identity = DetectRepoIdentity(ctx, dir)
 	}
 
 	if !identity.IsComplete() {
@@ -77,7 +77,7 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 		}, nil
 	}
 
-	content, err := renderForIdentity(dir, identity, opts.ContactEmail)
+	content, err := renderForIdentity(ctx, dir, identity, opts.ContactEmail)
 	if err != nil {
 		return GenerateResult{}, fmt.Errorf("render SECURITY.md template for %s/%s: %w",
 			identity.Organization, identity.Repository, err)
@@ -114,20 +114,20 @@ type templateData struct {
 
 // renderForIdentity renders the embedded template for a known repo identity.
 // Shared by Generate (write path) and the missing-file finding preview.
-func renderForIdentity(dir string, identity RepoIdentity, contactEmail string) (string, error) {
+func renderForIdentity(ctx context.Context, dir string, identity RepoIdentity, contactEmail string) (string, error) {
 	return renderTemplate(templateData{
 		Organization: identity.Organization,
 		Repository:   identity.Repository,
 		ContactEmail: contactEmail,
-		VersionCell:  versionCell(dir),
+		VersionCell:  versionCell(ctx, dir),
 		LastUpdated:  time.Now().Format("2006-01-02"),
 	})
 }
 
 // versionCell fills the Supported Versions table: the latest git tag when
 // available, an honest placeholder otherwise.
-func versionCell(dir string) string {
-	if tag := LatestTag(dir); tag != "" {
+func versionCell(ctx context.Context, dir string) string {
+	if tag := LatestTag(ctx, dir); tag != "" {
 		return tag
 	}
 

@@ -28,7 +28,7 @@ func Detect(ctx context.Context) ([]finding.Finding, error) {
 
 	path, found := autoconfigure.FirstExisting(dir, CandidateLocations...)
 	if !found {
-		f, err := missingFileFinding(dir)
+		f, err := missingFileFinding(ctx, dir)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func Report(ctx context.Context) (*finding.Report, error) {
 	return report, nil
 }
 
-func missingFileFinding(dir string) (finding.Finding, error) {
+func missingFileFinding(ctx context.Context, dir string) (finding.Finding, error) {
 	builder := finding.NewBuilder(
 		RuleMissingFile,
 		ToolName,
@@ -74,7 +74,7 @@ func missingFileFinding(dir string) (finding.Finding, error) {
 	// A direct fix needs its content: when the repo identity is derivable the
 	// finding carries exactly what Generate would write. Otherwise the fix
 	// stays suggest-only (the user must supply --organization/--repository).
-	if preview, ok := renderPolicyPreview(dir); ok {
+	if preview, ok := renderPolicyPreview(ctx, dir); ok {
 		builder = builder.WithFixStrategy(finding.FixStrategyDirect).WithAfterCode(preview)
 	} else {
 		builder = builder.WithFixStrategy(finding.FixStrategySuggest)
@@ -90,13 +90,13 @@ func missingFileFinding(dir string) (finding.Finding, error) {
 
 // renderPolicyPreview best-effort renders what Generate would write into dir;
 // ok=false when the repo identity cannot be derived or rendering fails.
-func renderPolicyPreview(dir string) (string, bool) {
-	identity := DetectRepoIdentity(dir)
+func renderPolicyPreview(ctx context.Context, dir string) (string, bool) {
+	identity := DetectRepoIdentity(ctx, dir)
 	if !identity.IsComplete() {
 		return "", false
 	}
 
-	content, err := renderForIdentity(dir, identity, "")
+	content, err := renderForIdentity(ctx, dir, identity, "")
 	if err != nil {
 		return "", false
 	}

@@ -1,149 +1,104 @@
-# Template Security 🔒
+# securitymd 🔒
 
 > **Ensure your GitHub repository has a compliant SECURITY.md**
 
-A CLI tool that validates and generates `SECURITY.md` files. Checks for required sections (vulnerability reporting, supported versions, security practices, contact info), ensures content quality, and generates compliant templates for GitHub repositories.
+A CLI tool and [BuildFlow](https://github.com/LarsArtmann/BuildFlow) provider that validates and generates `SECURITY.md` files. Detects a missing policy, checks an existing one for the sections GitHub expects, and generates a compliant policy from an embedded template — never overwriting a file you wrote by hand.
 
 ## Features
 
-- **Validate** existing SECURITY.md files against GitHub standards
-- **Generate** new SECURITY.md files from templates
-- **Upsert** improvements to existing policies
+- **Validate** existing SECURITY.md files against GitHub's expected sections
+- **Generate** new SECURITY.md files from an embedded canonical template
+- **Never overwrites** an existing policy — generation is additive only
+- **BuildFlow provider** via [go-finding toolsdk](https://github.com/larsartmann/go-finding): detect → repair → verify as a first-class DAG tool
+- **go-finding findings** with stable rule IDs, SARIF/JSON output, fix strategies
 
 ## 🚀 Quick Start
 
 ```bash
-# Install
-go install github.com/LarsArtmann/template-SECURITY/cmd/template-security@latest
+# Install (once the repo is renamed/published under LarsArtmann/securitymd)
+go install github.com/LarsArtmann/securitymd/cmd/securitymd@latest
 
-# Validate existing SECURITY.md
-template-security validate
+# Validate the current repository's policy
+securitymd validate
 
-# Generate new SECURITY.md if missing
-template-security setup --type github
+# Generate a SECURITY.md if none exists
+securitymd setup
 
-# Validate specific file
-template-security validate --file SECURITY.md
+# Generate with explicit identity and contact email
+securitymd setup --organization AcmeCorp --repository widget --email security@acme.com
+
+# Show compliance status
+securitymd status
+```
+
+With BuildFlow (blank import already wired in `tools/providers/sdk_imports.go`):
+
+```bash
+buildflow -s securitymd              # detect: missing or non-compliant policy
+buildflow -s securitymd --fix        # repair: generate the policy when absent
+```
+
+Per-repo contact override:
+
+```yaml
+# .buildflow.yml
+tool_options:
+  securitymd:
+    contact-email: security@example.com
 ```
 
 ## ✅ What We Validate
 
-### Required Sections
+Discovery order: `SECURITY.md`, `.github/SECURITY.md`, `docs/SECURITY.md`.
 
-- ✅ Security Policy header
-- ✅ Reporting a Vulnerability section
-- ✅ Supported Versions information
-- ✅ Security Practices description
-- ✅ Contact email address
-- ✅ Response time commitments
+### Required sections (error)
 
-### Quality Checks
+| Rule                 | Check                                                              |
+| -------------------- | ------------------------------------------------------------------ |
+| `missing-file`       | No policy found in any candidate location (fix: generate one)      |
+| `missing-header`     | Missing `# Security Policy` header                                 |
+| `missing-reporting`  | Missing "Reporting a Vulnerability" (or equivalent) section        |
+| `missing-versions`   | Missing "Supported Versions" section                               |
+| `missing-practices`  | Missing "Security Practices" section                               |
+| `missing-contact`    | No contact channel: email, GitHub advisory link, or security.txt   |
+| `unresolved-template`| Leftover `{{.Variable}}` template placeholders (line-precise)      |
+| `no-content`         | Placeholder-only content, nothing substantive                      |
 
-- ✅ Minimum content length (>20 lines)
-- ✅ No unresolved template variables
-- ✅ Substantive content (not just placeholders)
-- ✅ Version information included
-- ✅ Actual email addresses present
+### Quality checks (warning)
 
-### Example Validation Output
+| Rule                  | Check                                             |
+| --------------------- | ------------------------------------------------- |
+| `missing-response-time`| No response-time commitment for reports         |
+| `too-short`           | Under 20 lines                                    |
+| `no-version-info`     | No version information anywhere                   |
+
+Exit codes: `0` clean · `1` error-severity findings · `2` operational failure.
+
+## Generation
+
+The embedded template renders from your git remote (organization/repository), the latest git tag (best effort), and an optional contact email. Without an email the policy points reporters at GitHub private vulnerability reporting (`https://github.com/ORG/REPO/security/advisories/new`) — no fabricated addresses.
+
+Writes are atomic and idempotent (`go-atomic-write`). If any candidate policy already exists, `setup` refuses and says so.
+
+## Architecture
+
+```
+cmd/securitymd/        # CLI (cobra): validate, setup, status
+pkg/policy/            # Core: detection candidates, content rules, embedded
+                       # template, git identity, atomic generation
+pkg/provider/          # toolsdk.Spec: BuildFlow self-registration
+test/acceptance/       # Ginkgo BDD acceptance tests
+```
+
+- Findings: `github.com/larsartmann/go-finding` (no parallel issue model)
+- Provider contract: `github.com/larsartmann/go-finding/toolsdk`
+- Helpers: `linter-autoconfigure-sdk` (`FirstExisting`, `WorkingDir`)
+- Atomic writes: `go-atomic-write`
+
+## Development
 
 ```bash
-$ template-security validate
-
-🔍 Validating security policy: SECURITY.md
-
-✅ SECURITY.md - All checks passed
-  ✅ Security Policy header found
-  ✅ Reporting a Vulnerability section present
-  ✅ Supported Versions included
-  ✅ Security Practices described
-  ✅ Contact email found
-  ✅ Response time specified
-
-📊 Validation Summary:
-✅ All policies passed validation
+go build ./...          # Build
+go test ./...           # Unit + BDD acceptance tests
+golangci-lint run       # 90+ linters, zero issues expected
 ```
-
-## 🔧 Commands
-
-### `validate`
-
-Check if SECURITY.md exists and meets standards
-
-```bash
-# Validate all security files
-template-security validate
-
-# Validate specific file
-template-security validate --file SECURITY.md
-```
-
-### `setup`
-
-Generate new SECURITY.md if missing
-
-```bash
-# Generate GitHub-style SECURITY.md
-template-security setup --type github
-
-# Generate enterprise security policy
-template-security setup --type enterprise
-```
-
-### `status`
-
-Show current security file status
-
-```bash
-template-security status
-```
-
-## 📋 Validation Standards
-
-Based on [GitHub's security policy guidelines](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository) and industry best practices:
-
-1. **Clear reporting process** with specific contact information
-2. **Defined scope** of what's in-bounds for security testing
-3. **Response commitments** with specific timelines
-4. **Safe harbor provisions** for security researchers
-5. **Version support information** for users
-
-## 🔄 CI/CD Integration
-
-Add to your workflow:
-
-```yaml
-# .github/workflows/security-validation.yml
-name: Security Policy Validation
-
-on:
-  pull_request:
-    paths:
-      - "SECURITY.md"
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install template-security
-        run: go install github.com/LarsArtmann/template-SECURITY/cmd/template-security@latest
-      - name: Validate SECURITY.md
-        run: template-security validate
-```
-
-## 🚨 What We DON'T Do
-
-- ❌ Generate comprehensive enterprise security frameworks
-- ❌ Manage bug bounty programs
-- ❌ Handle incident response automation
-- ❌ Create compliance documentation (GDPR, SOC2, etc.)
-- ❌ Provide security scanning or monitoring
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-**Made with 🔒 to improve security disclosure practices**

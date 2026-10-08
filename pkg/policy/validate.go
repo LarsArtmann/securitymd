@@ -87,7 +87,7 @@ func Validate(filePath string) ([]finding.Finding, error) {
 
 	lines := strings.Split(string(content), "\n")
 
-	findings := make([]finding.Finding, 0, len(sectionRules)+4)
+	findings := make([]finding.Finding, 0, len(sectionRules))
 
 	findings = append(findings, validateSections(filePath, lines)...)
 	findings = append(findings, validateContentQuality(filePath, lines)...)
