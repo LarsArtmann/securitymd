@@ -87,9 +87,3 @@ func TestDetect_finds_policy_in_github_dir(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, findings, "a compliant .github/SECURITY.md must be discovered and pass")
 }
-
-func TestDetectNamed_carries_tool_name(t *testing.T) {
-	t.Parallel()
-
-	assert.Equal(t, "securitymd", DetectNamed().Name())
-}

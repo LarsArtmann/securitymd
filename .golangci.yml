@@ -151,9 +151,10 @@ linters:
         - (*bytes.Buffer).WriteString
     exhaustruct_v5:
       ignore-patterns:
-        - ^cmd/template-security/
-        - ^internal/security_validator\.go$
-        - ^internal/security_tool\.go$
+        - \.GenerateResult$
+        - \.GenerateOptions$
+        - \.RepoIdentity$
+        - toolsdk\.Spec$
     forbidigo:
       allow:
         - fmt\.(F)?Print(ln)?$
@@ -261,12 +262,6 @@ linters:
       - path: ^cmd/
         linters:
           - forbidigo
-      - path: ^internal/security_validator\.go$
-        linters:
-          - forbidigo
-      - path: ^internal/security_tool\.go$
-        linters:
-          - forbidigo
       - path: ^cmd/
         linters:
           - exhaustruct
@@ -285,26 +280,10 @@ linters:
       - path: test/
         linters:
           - funlen
-      - path: ^internal/
-        text: .
-        linters:
-          - funlen
       - path: ^cmd/
         text: .
         linters:
           - gocognit
-      - path: ^internal/
-        text: .
-        linters:
-          - gocognit
-      - path: ^internal/
-        text: .
-        linters:
-          - nestif
-      - path: ^internal/
-        text: .
-        linters:
-          - mnd
       - path: test/
         text: .
         linters:
@@ -313,18 +292,6 @@ linters:
         text: G304|G301|G306
         linters:
           - gosec
-      - path: ^internal/security_validator\.go$
-        text: G304
-        linters:
-          - gosec
-      - path: ^internal/project_detector\.go$
-        text: G304
-        linters:
-          - gosec
-      - path: ^internal/
-        text: package-comments
-        linters:
-          - revive
       - path: ^test/
         text: package-comments
         linters:
@@ -333,10 +300,6 @@ linters:
         text: .
         linters:
           - noinlineerr
-      - path: ^internal/
-        text: .
-        linters:
-          - noinlineerr
       - path: test/
         text: .
         linters:
@@ -345,18 +308,10 @@ linters:
         text: .
         linters:
           - nlreturn
-      - path: ^internal/
-        text: .
-        linters:
-          - nlreturn
       - path: test/
         text: .
         linters:
           - nlreturn
-      - path: ^internal/
-        text: .
-        linters:
-          - copyloopvar
       - path: test/
         text: .
         linters:
@@ -393,7 +348,6 @@ linters:
     paths:
       - \.gen\.go$
       - ^cmd/
-      - ^internal/
       - _templ\.go$
       - test/
       - vendor/

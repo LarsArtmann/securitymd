@@ -1,13 +1,14 @@
 package provider
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
 
 func runGit(dir string, args ...string) error {
-	cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
+	cmd := exec.CommandContext(context.Background(), "git", append([]string{"-C", dir}, args...)...)
 	cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_SYSTEM=/dev/null")
 
 	if out, err := cmd.CombinedOutput(); err != nil {

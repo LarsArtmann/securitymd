@@ -44,12 +44,9 @@ func Detect(ctx context.Context) ([]finding.Finding, error) {
 	return findings, nil
 }
 
-// DetectNamed returns the detector under the tool's canonical name, ready for
-// toolsdk.Spec.Detect.
-func DetectNamed() finding.Detector {
-	return finding.NamedDetectorFunc(string(ToolName), Detect)
-}
-
+// DetectNamed is intentionally absent: the provider builds its detector via
+// finding.NamedDetectorFunc directly to keep the interface return out of this
+// package's API.
 // Report wraps Detect's findings in a finding.Report for the CLI's JSON and
 // SARIF outputs.
 func Report(ctx context.Context) (*finding.Report, error) {

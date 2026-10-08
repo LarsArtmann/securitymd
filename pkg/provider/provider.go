@@ -12,8 +12,10 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/LarsArtmann/securitymd/pkg/policy"
+	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-finding/toolsdk"
 )
 
@@ -26,7 +28,7 @@ const optionContactEmail = "contact-email"
 // triggerManifests are the project indicators that activate securitymd: any
 // repository carrying a dependency manifest, a nix flake, or CI workflows
 // deserves a security policy.
-var triggerManifests = []string{
+var triggerManifests = []string{ //nolint:gochecknoglobals // declarative trigger table, read-only after init
 	"**/go.mod",
 	"package.json",
 	"Cargo.toml",
@@ -59,14 +61,14 @@ var Provider = toolsdk.Register(toolsdk.Spec{
 		Description: "Security contact email baked into a generated SECURITY.md (optional; " +
 			"default points to GitHub private vulnerability reporting)",
 	}},
-	Detect: policy.DetectNamed(),
+	Detect: finding.NamedDetectorFunc(string(policy.ToolName), policy.Detect),
 	Repair: toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {
 		result, err := policy.Generate(ctx, policy.GenerateOptions{
 			ContactEmail: contactEmailFromContext(ctx),
 			DryRun:       toolsdk.DryRunFromContext(ctx),
 		})
 		if err != nil {
-			return toolsdk.RepairResult{}, err
+			return toolsdk.RepairResult{}, fmt.Errorf("securitymd repair: %w", err)
 		}
 
 		return toolsdk.RepairResult{Description: result.Description}, nil

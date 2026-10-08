@@ -60,7 +60,7 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 	if existing, found := autoconfigure.FirstExisting(dir, CandidateLocations...); found {
 		return GenerateResult{
 			Path:        existing,
-			Description: fmt.Sprintf("%s already exists — securitymd never overwrites an existing policy", existing),
+			Description: existing + " already exists — securitymd never overwrites an existing policy",
 		}, nil
 	}
 
@@ -88,7 +88,7 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 	if opts.DryRun {
 		return GenerateResult{
 			Path:        target,
-			Description: fmt.Sprintf("dry-run: would create %s", target),
+			Description: "dry-run: would create " + target,
 		}, nil
 	}
 

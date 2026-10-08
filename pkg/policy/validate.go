@@ -18,7 +18,7 @@ type sectionRule struct {
 	patterns []string
 }
 
-var sectionRules = []sectionRule{
+var sectionRules = []sectionRule{ //nolint:gochecknoglobals // declarative rule table keyed by stable IDs; read-only after init
 	{
 		rule:     "missing-header",
 		message:  "Missing '# Security Policy' header",
@@ -96,14 +96,14 @@ func Validate(filePath string) ([]finding.Finding, error) {
 }
 
 func validateSections(filePath string, lines []string) []finding.Finding {
-	var findings []finding.Finding
+	findings := make([]finding.Finding, 0, len(sectionRules))
 
 	for _, rule := range sectionRules {
 		if containsAnyFold(lines, rule.patterns) {
 			continue
 		}
 
-		f, err := buildFinding(rule.rule, rule.message, rule.severity, filePath, 0, "")
+		f, err := buildFinding(rule.rule, rule.message, rule.severity, filePath, 0)
 		if err != nil {
 			continue
 		}
@@ -120,7 +120,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	if len(lines) < minLines {
 		f, err := buildFinding("too-short",
 			fmt.Sprintf("SECURITY.md seems too short (< %d lines)", minLines),
-			finding.SeverityWarning, filePath, 0, "")
+			finding.SeverityWarning, filePath, 0)
 		if err == nil {
 			findings = append(findings, f)
 		}
@@ -142,7 +142,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	if !hasSubstantiveContent(lines, minLineLength) {
 		f, err := buildFinding("no-content",
 			"SECURITY.md lacks substantive content",
-			finding.SeverityError, filePath, 0, "")
+			finding.SeverityError, filePath, 0)
 		if err == nil {
 			findings = append(findings, f)
 		}
@@ -151,7 +151,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	if !hasVersionInformation(lines) {
 		f, err := buildFinding("no-version-info",
 			"No version information found",
-			finding.SeverityWarning, filePath, 0, "")
+			finding.SeverityWarning, filePath, 0)
 		if err == nil {
 			findings = append(findings, f)
 		}
@@ -161,31 +161,25 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 }
 
 // buildFinding creates a finding with the tool's consistent defaults:
-// security category, suggest strategy for content findings. Line 0 becomes a
-// file-level position — never a fabricated line number.
+// security category, suggest strategy. Line 0 becomes a file-level position —
+// never a fabricated line number.
 func buildFinding(
 	rule finding.RuleName,
 	message string,
 	severity finding.Severity,
 	filePath string,
 	line int,
-	suggestion string,
 ) (finding.Finding, error) {
 	pos := finding.FilePos(finding.FilePath(filePath))
 	if line > 0 {
 		pos = finding.Pos(finding.FilePath(filePath), line, 1)
 	}
 
-	builder := finding.NewBuilder(rule, ToolName, message, severity, pos).
+	f, err := finding.NewBuilder(rule, ToolName, message, severity, pos).
 		WithCategory(finding.CategorySecurity).
 		WithTags(finding.TagSecurity).
-		WithFixStrategy(finding.FixStrategySuggest)
-
-	if suggestion != "" {
-		builder = builder.WithSuggestion(suggestion)
-	}
-
-	f, err := builder.Build()
+		WithFixStrategy(finding.FixStrategySuggest).
+		Build()
 	if err != nil {
 		return f, fmt.Errorf("build finding {rule:%q file:%q line:%d}: %w", rule, filePath, line, err)
 	}

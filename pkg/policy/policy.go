@@ -15,7 +15,7 @@ const ToolName finding.ToolName = "securitymd"
 // CandidateLocations lists the SECURITY.md locations GitHub recognizes, in
 // priority order. The first entry is the canonical write target when none
 // exists.
-var CandidateLocations = []string{
+var CandidateLocations = []string{ //nolint:gochecknoglobals // fixed discovery order, read-only after init
 	"SECURITY.md",
 	".github/SECURITY.md",
 	"docs/SECURITY.md",
