@@ -66,7 +66,7 @@ func Report(ctx context.Context) (*finding.Report, error) {
 }
 
 func missingFileFinding(dir string) (finding.Finding, error) {
-	f, err := finding.NewBuilder(
+	builder := finding.NewBuilder(
 		RuleMissingFile,
 		ToolName,
 		"No SECURITY.md found (looked in "+dir+" for "+strings.Join(CandidateLocations, ", ")+")",
@@ -75,12 +75,37 @@ func missingFileFinding(dir string) (finding.Finding, error) {
 	).
 		WithCategory(finding.CategorySecurity).
 		WithTags(finding.TagSecurity).
-		WithFixStrategy(finding.FixStrategyDirect).
-		WithSuggestion("Run `securitymd setup` (or `buildflow --fix` with the securitymd provider) to generate one").
-		Build()
+		WithSuggestion("Run `securitymd setup` (or `buildflow --fix` with the securitymd provider) to generate one")
+
+	// A direct fix needs its content: when the repo identity is derivable the
+	// finding carries exactly what Generate would write. Otherwise the fix
+	// stays suggest-only (the user must supply --organization/--repository).
+	if preview, ok := renderPolicyPreview(dir); ok {
+		builder = builder.WithFixStrategy(finding.FixStrategyDirect).WithAfterCode(preview)
+	} else {
+		builder = builder.WithFixStrategy(finding.FixStrategySuggest)
+	}
+
+	f, err := builder.Build()
 	if err != nil {
 		return f, fmt.Errorf("build missing-file finding: %w", err)
 	}
 
 	return f, nil
+}
+
+// renderPolicyPreview best-effort renders what Generate would write into dir;
+// ok=false when the repo identity cannot be derived or rendering fails.
+func renderPolicyPreview(dir string) (string, bool) {
+	identity := DetectRepoIdentity(dir)
+	if !identity.IsComplete() {
+		return "", false
+	}
+
+	content, err := renderForIdentity(dir, identity, "")
+	if err != nil {
+		return "", false
+	}
+
+	return content, true
 }

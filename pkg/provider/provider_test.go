@@ -1,0 +1,126 @@
+package provider
+
+import (
+	"path/filepath"
+	"testing"
+
+	"github.com/larsartmann/go-finding"
+	"github.com/larsartmann/go-finding/toolsdk"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// The spec must be registered (package var side effect) and valid: this is
+// the exact contract BuildFlow's ToolsFromSDK conversion enforces.
+func TestProvider_registered_and_shaped(t *testing.T) {
+	t.Parallel()
+
+	require.NotNil(t, Provider)
+	assert.Equal(t, "securitymd", Provider.Name)
+	assert.NotEmpty(t, Provider.Description)
+	assert.NotNil(t, Provider.Detect)
+	assert.NotNil(t, Provider.Repair, "securitymd must repair a missing policy by generating it")
+	assert.NotNil(t, Provider.Trigger.Files,
+		"the trigger must gate on project manifests, not run everywhere")
+	assert.Contains(t, Provider.Trigger.Files, "SECURITY.md")
+
+	require.NoError(t, Provider.ValidateOptions(toolsdk.OptionValues{}))
+	require.ErrorIs(t,
+		Provider.ValidateOptions(toolsdk.OptionValues{"unknown-knob": true}),
+		toolsdk.ErrUnknownOption)
+}
+
+func TestProvider_detect_then_repair_then_verify(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	ctx := finding.WithWorkingDir(t.Context(), dir)
+
+	// Detect: missing file is an error finding.
+	findings, err := Provider.Detect.Detect(ctx)
+	require.NoError(t, err)
+	require.Len(t, findings, 1)
+	assert.Equal(t, finding.RuleName("missing-file"), findings[0].Rule)
+
+	// Repair: generates the policy (identity from options-less context needs
+	// a git remote, which temp dirs lack — so pass the org/repo via the
+	// generate path indirectly is not possible; repair must skip honestly).
+	result, err := Provider.Repair.Repair(ctx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Description, "organization/repository",
+		"without a derivable identity, repair must explain rather than fabricate")
+
+	// Verify the anti-lie loop end-to-end with a real git remote.
+	gitRepo := t.TempDir()
+	require.NoError(t, runGit(gitRepo, "init"))
+	require.NoError(t, runGit(gitRepo, "remote", "add", "origin",
+		"https://github.com/AcmeCorp/widget.git"))
+
+	gitCtx := finding.WithWorkingDir(t.Context(), gitRepo)
+
+	findings, err = Provider.Detect.Detect(gitCtx)
+	require.NoError(t, err)
+	require.Len(t, findings, 1)
+
+	result, err = Provider.Repair.Repair(gitCtx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Description, "created")
+
+	// Verify: BuildFlow re-runs Detect and measures the delta itself.
+	findings, err = Provider.Detect.Detect(gitCtx)
+	require.NoError(t, err)
+	assert.Empty(t, findings, "after repair, detection must be clean (the verify step)")
+}
+
+func TestProvider_repair_respects_dry_run(t *testing.T) {
+	t.Parallel()
+
+	gitRepo := t.TempDir()
+	require.NoError(t, runGit(gitRepo, "init"))
+	require.NoError(t, runGit(gitRepo, "remote", "add", "origin",
+		"https://github.com/AcmeCorp/widget.git"))
+
+	ctx := finding.WithWorkingDir(toolsdk.WithDryRun(t.Context(), true), gitRepo)
+
+	result, err := Provider.Repair.Repair(ctx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Description, "dry-run")
+	assert.NoFileExists(t, filepath.Join(gitRepo, "SECURITY.md"))
+}
+
+func TestProvider_repair_never_touches_existing_policy(t *testing.T) {
+	t.Parallel()
+
+	gitRepo := t.TempDir()
+	require.NoError(t, runGit(gitRepo, "init"))
+	require.NoError(t, runGit(gitRepo, "remote", "add", "origin",
+		"https://github.com/AcmeCorp/widget.git"))
+
+	existing := filepath.Join(gitRepo, "SECURITY.md")
+	require.NoError(t, writeFile(existing, "# Hand-written policy\n"))
+
+	ctx := finding.WithWorkingDir(t.Context(), gitRepo)
+
+	result, err := Provider.Repair.Repair(ctx)
+	require.NoError(t, err)
+	assert.Contains(t, result.Description, "never overwrites")
+	assert.Equal(t, "# Hand-written policy\n", mustRead(existing))
+}
+
+func TestProvider_contact_email_option_flows_into_repair(t *testing.T) {
+	t.Parallel()
+
+	gitRepo := t.TempDir()
+	require.NoError(t, runGit(gitRepo, "init"))
+	require.NoError(t, runGit(gitRepo, "remote", "add", "origin",
+		"https://github.com/AcmeCorp/widget.git"))
+
+	ctx := finding.WithWorkingDir(
+		toolsdk.WithOptions(t.Context(), toolsdk.OptionValues{"contact-email": "security@acme.com"}),
+		gitRepo,
+	)
+
+	_, err := Provider.Repair.Repair(ctx)
+	require.NoError(t, err)
+	assert.Contains(t, mustRead(filepath.Join(gitRepo, "SECURITY.md")), "security@acme.com")
+}

@@ -19,7 +19,7 @@ const (
 
 // errPolicyFindings is returned when error-severity findings remain: exit
 // code 1 means "findings", not "crash".
-var errPolicyFindings = errors.New("one or more policies failed validation")
+var errPolicyFindings = errors.New("SECURITY.md validation failed: error-severity findings remain (see above)")
 
 var (
 	outputFormat    string

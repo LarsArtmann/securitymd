@@ -26,6 +26,7 @@ contact channel, response commitments), and generates a compliant policy
 from the embedded template — never overwriting an existing file.`,
 		Version:           fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date),
 		DisableAutoGenTag: true,
+		SilenceUsage:      true,
 	}
 
 	rootCmd.AddCommand(newSetupCmd())
