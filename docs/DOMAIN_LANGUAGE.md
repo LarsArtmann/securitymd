@@ -1,73 +1,28 @@
 # Domain Language
 
-A **Unified Language** for `.` — shared across Customer, Product Owner, Developer, and AI.
-Inspired by Domain-Driven Design (DDD) Ubiquitous Language.
-
-Every term below should mean the **same thing** to everyone who reads it.
-If a word means something different to a developer than to a customer, define it here.
+Ubiquitous language for **securitymd**. Same terms mean the same thing in code, docs, and conversations.
 
 ## Glossary
 
-| Term         | Definition               | Context                        |
-| ------------ | ------------------------ | ------------------------------ |
-| .            | The project/product name | What we call this system       |
-| Example Term | A placeholder definition | Replace with your actual terms |
-
-## Entities
-
-Objects with identity and lifecycle (e.g., User, Order, Account).
-
-<!-- Add your entities here:
 | Term | Definition | Context |
-|------|-----------|---------|
-| User | A person who interacts with the system | Customer-facing |
--->
+| ---- | ---------- | ------- |
+| Policy | A repository's `SECURITY.md` file — the artifact this tool owns | "Validate the policy", "generate a policy" |
+| Candidate location | One of `SECURITY.md`, `.github/SECURITY.md`, `docs/SECURITY.md` — first existing wins | `pkg/policy.CandidateLocations` |
+| Rule | A single validation check with a stable kebab ID (`missing-file`, `missing-header`, `too-short`, …) | Findings, suppressions, and configs key on rule IDs |
+| Finding | A `finding.Finding` emitted by detect/validate — the only output currency of the tool | go-finding data model |
+| Missing-file finding | The error-severity finding for an absent policy; carries a rendered preview as `AfterCode` when identity is derivable | Drives BuildFlow `--fix` |
+| Repair | Creating a missing policy via `Generate` — create-only, never overwrites an existing (human-written) policy | toolsdk Repairer |
+| Generate | Rendering the embedded template with identity + optional contact email | `pkg/policy.Generate` |
+| Identity | `RepoIdentity{Organization, Repository}` parsed from `git remote origin` | `pkg/policy.DetectRepoIdentity` |
+| Contact | Where vulnerability reports go: GitHub advisory link always, email only when provided | No fabricated `security@domain` addresses — deliberate |
+| Version cell | The "Supported Versions" table row: latest git tag, or "Latest release" | Best-effort via `git describe` |
+| Dry run | Render and report without writing | CLI `--dry-run`, toolsdk dry-run context |
+| Provider | The toolsdk self-registration (`securitymd`) that BuildFlow consumes via blank import | `pkg/provider.Provider` |
 
-## Value Objects
+## Bounded contexts
 
-Immutable objects defined by attributes (e.g., Email, Money, Address).
-
-<!-- Add your value objects here:
-| Term | Definition | Context |
-|------|-----------|---------|
-| Email | A validated email address | Unique identifier for users |
--->
-
-## Events
-
-Things that happen in the domain (e.g., UserRegistered, PaymentProcessed).
-
-<!-- Add your events here:
-| Term | Definition | Context |
-|------|-----------|---------|
-| UserRegistered | A new user completed signup | Triggers welcome email |
--->
-
-## Commands
-
-Actions the system can perform (e.g., CreateUser, ProcessPayment).
-
-<!-- Add your commands here:
-| Term | Definition | Context |
-|------|-----------|---------|
-| CreateUser | Registers a new user account | Admin action |
--->
-
-## Bounded Contexts
-
-Subsystems with distinct vocabulary (e.g., Billing vs. Shipping).
-
-<!-- Define contexts where the same word means different things:
 | Context | Description |
-|---------|------------|
-| Billing | Handles payments and invoices |
--->
-
----
-
-> **How to use this file:**
->
-> - Keep terms concise — one clear sentence per definition
-> - Update when new domain concepts emerge
-> - Use these terms consistently in code, docs, and conversations
-> - When in doubt about a word's meaning, check here first
+| ------- | ----------- |
+| `pkg/policy` | Domain core: validation rules, generation, detection, git identity |
+| `pkg/provider` | Integration: toolsdk Spec exposing the core to BuildFlow |
+| `cmd/securitymd` | CLI surface over the same core (validate, setup, status) |

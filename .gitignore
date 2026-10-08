@@ -1,25 +1,12 @@
-# Template Security - Generated Files and Temporary Data
+# securitymd — generated files and temporary data
 
 # Temporary files
 tmp/
 *.tmp
-.last-validation
-
-# Generated reports
-reports/temp/
-security-report-*.pdf
-compliance-*.json
-metrics-*.json
 
 # User-specific files
 .env
 .env.local
-.security-config.yaml.local
-
-# Generated policies (users should commit these)
-# SECURITY.md
-# incident-response.md
-# privacy-policy.md
 
 # Operating system files
 .DS_Store
@@ -45,16 +32,16 @@ logs/
 *.zip
 *.tar.gz
 *.rar
+
 # Dependencies
 node_modules/
+
 # Test coverage
 /coverage
-# Build artifacts
-/template-SECURITY
+
 # Sensitive files
 *.db
-Copy/paste detection report
-/report/jscpd-report.json
+
 # Nix build output
 /result
 

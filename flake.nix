@@ -41,9 +41,12 @@
         {
           treefmt = {
             projectRootFile = "go.mod";
+            # goimports is deliberately absent: nixpkgs gotools bundles Go
+            # 1.26 while go.mod requires 1.27, so the sandboxed check tries to
+            # download a newer toolchain and fails (no network). Import
+            # correctness is enforced by golangci-lint outside the sandbox.
             programs = {
               gofumpt.enable = true;
-              goimports.enable = true;
               nixfmt.enable = true;
             };
           };
@@ -64,6 +67,7 @@
               ];
 
               GOWORK = "off";
+              GOTOOLCHAIN = "local";
               GOPRIVATE = "github.com/LarsArtmann/*,github.com/larsartmann/*";
             };
 
@@ -74,6 +78,7 @@
               ];
 
               GOWORK = "off";
+              GOTOOLCHAIN = "local";
               GOPRIVATE = "github.com/LarsArtmann/*,github.com/larsartmann/*";
             };
           };
