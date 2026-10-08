@@ -23,5 +23,7 @@ _Open items only. Source: harvest of `docs/status/2026-10-08_23-40_securitymd-re
 
 ## BuildFlow-side
 
+- [ ] Once the concurrent `execution/` file-split sweep in BuildFlow lands (2026-10-09, still running at pipeline_1300+): verify `nix build .` green and re-run `buildflow -s securitymd --fix` e2e with the nix-built binary. The securitymd FOD resolution itself is already proven (deps phase passes; vendorHash invariant, gotcha #230).
+- [ ] BuildFlow gotcha-anchor warnings (GOTCHAS.md:124/207 → `execution/pipeline.go:432/530`) need re-anchoring to the post-split files — belongs to the split sweep's follow-up.
 - [ ] Guard test: assert `securitymd` tool_options validation error message text (report #34)
-- [ ] Run `docs --check` after any provider-count change and fix table drift (report #32; first run done 2026-10-09 — re-run after publishes)
+- [ ] Run `docs --check` after any provider-count change and fix table drift (report #32; clean at 0 fail as of 2026-10-09)
