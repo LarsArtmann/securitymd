@@ -79,7 +79,7 @@ func parseSuppressionComment(rest string) (rules []string, reason string, ok boo
 	}
 
 	ruleList := strings.TrimSpace(rest[:closing])
-	reason = strings.TrimSpace(rest[closing+1:])
+	reason = trimCommentTerminator(rest[closing+1:])
 	if ruleList == "" || reason == "" {
 		return nil, "", false
 	}
@@ -97,4 +97,11 @@ func parseSuppressionComment(rest string) (rules []string, reason string, ok boo
 	}
 
 	return rules, reason, true
+}
+
+// trimCommentTerminator strips the HTML comment's closing "-->" so that
+// `<!-- securitymd:ignore(rule) -->` is a reason-less (inert) comment, not a
+// suppression whose reason is "-->".
+func trimCommentTerminator(reason string) string {
+	return strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(reason), "-->"))
 }

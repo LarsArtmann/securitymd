@@ -77,6 +77,40 @@
             ],
             "go-finding/toolName": "securitymd"
           }
+        },
+        {
+          "ruleId": "unresolved-template",
+          "level": "error",
+          "message": {
+            "text": "Unresolved template variable: Please email {{.ContactEmail}} with any security issues."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "<REPO>/SECURITY.md"
+                },
+                "region": {
+                  "startLine": 13,
+                  "startColumn": 1,
+                  "endLine": 0,
+                  "endColumn": 0
+                }
+              }
+            }
+          ],
+          "rank": 100,
+          "properties": {
+            "go-finding/category": "security",
+            "go-finding/confidence": 1,
+            "go-finding/fixStrategy": "suggest",
+            "go-finding/id": "securitymd:unresolved-template:<REPO>/SECURITY.md:13:1",
+            "go-finding/severity": "error",
+            "go-finding/tags": [
+              "security"
+            ],
+            "go-finding/toolName": "securitymd"
+          }
         }
       ]
     }
