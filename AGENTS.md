@@ -31,15 +31,17 @@ pkg/policy/            # core: validate.go, generate.go, detect.go, suppress.go,
 pkg/provider/          # toolsdk self-registration (Spec with Detect + Repair, contact-email + severity-overrides options)
 cmd/securitymd/        # cobra CLI: validate, setup, status
 pkg/policy/testdata/   # SARIF/JSON goldens (refresh: go test ./pkg/policy -run TestReport_golden -update) + policy/*.md canonical fixtures
-scripts/               # only the fleet sweep script is current; the rest is pre-rebuild legacy
+scripts/               # fleet-securitymd-sweep.sh only (legacy scripts fully removed)
 test/acceptance/       # Ginkgo BDD specs
 ```
 
 - **Detect**: WorkingDir from ctx → first existing of `SECURITY.md`, `.github/SECURITY.md`, `docs/SECURITY.md` → missing-file finding (severity error, FixStrategyDirect with rendered AfterCode when git identity derivable) or `Validate()`
 - **Repair**: `Generate()` — create-only, **never overwrites a human-written policy** (`--force` regenerates in place with a timestamped `.bak`); skip-with-reason when org/repo not derivable; dry-run aware; `--location root|.github|docs` picks the canonical write target and `validate --location` reorders candidate detection
-- Interactive `setup`: prompts for org/repo ONLY when stdin is a TTY and no remote/flags provide identity — never in CI (piped stdin stays non-interactive, pinned by test)
+- Interactive `setup`: prompts for org/repo ONLY when stdin is a REAL terminal and no remote/flags provide identity — never in CI (pinned by the contract test). GOTCHA: a `ModeCharDevice` check classifies `/dev/null` as a terminal and crashed headless runs with a prompt-EOF exit 2; TTY detection must go through `go-isatty`
 - `--location root|.github|docs`: canonical write target for `setup`, preferred detection order for `validate` and `status` (candidate-order override; invalid values are operational failures, exit 2)
 - **Exit-code contract (README-pinned)**: 0 clean · 1 error-severity findings (`errPolicyFindings`) · 2 operational failure. The gate is THRESHOLD-based (`BySeverityAtLeast(error)`) — `finding.BySeverity` is EQUALITY and silently passes `critical` findings; never use it for gates. Pinned end-to-end by the subprocess contract test
+- **Suppression grammar**: `securitymd:ignore(rule[,rule2]) [until YYYY-MM-DD] reason` — reason required, malformed date inert, `until` grants the whole given UTC day (`ExpiresAt` = next midnight); an expired directive attaches NOTHING anywhere (JSON, SARIF, gate) so every consumer agrees the debt is due
+- **Provider emits ACTIVE findings only** (`policy.ActiveFindings`): BuildFlow's findings gate counts the provider result and its `filterFindingsAtOrAbove` ignores suppression metadata (verified at source 2026-10-09), so suppression must be stripped at this repo's boundary — the CLI's JSON/SARIF keep the full evidence set
 - **Template**: embedded via `go:embed` (`pkg/policy/template.md`). Dogfood invariant is pinned by a test: the rendered template must pass its own validator
 - **Contact default**: GitHub advisory link always; email only when explicitly provided (CLI `--email` / provider `contact-email` option). Deliberate — no fabricated `security@domain` addresses. Changing this fleet-wide is a Lars decision, not a code change
 - Stable kebab rule IDs (`missing-file`, `missing-header`, `unresolved-template`, …) — suppressions and configs key on them
@@ -64,7 +66,7 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 
 - Unit: `pkg/**/*_test.go`, testify, table-driven, `t.Parallel()`; SARIF/JSON goldens in `pkg/policy/testdata/golden/` (path entropy normalized; refresh with `-update` when the output contract intentionally changes)
 - **Fixture single source**: ALL compliant/flawed policy texts come from `pkg/policy/testdata/policy/*.md` via `policyFixture`/`compliantPolicy`/`flawedPolicy`/`policyWithoutResponseTime` (fixtures_test.go) — unit, golden, suppression, severity, and acceptance tests share the same bytes; never re-inline a policy string
-- **CLI contract test** (`cmd/securitymd/contract_test.go`): re-execs the test binary via `TestMain` + `SECURITYMD_CONTRACT_CHILD=1` so `main()` runs for real and the exit code is what a shell sees; 12 scenarios pin README's exit table (findings vs operational vs escape hatches). New CLI behavior that changes exit codes MUST get a scenario here
+- **CLI contract test** (`cmd/securitymd/contract_test.go`): re-execs the test binary via `TestMain` + `SECURITYMD_CONTRACT_CHILD=1` so `main()` runs for real and the exit code is what a shell sees; 16 scenarios pin README's exit table (findings vs operational vs escape hatches vs setup skips vs suppression expiry vs ANSI-free piped output). New CLI behavior that changes exit codes MUST get a scenario here
 - **README drift guard** (`pkg/policy/readme_drift_test.go`): README's two rule tables must equal the code tables (`sectionRules` + `contentRuleSeverities` + `missingFileSeverity`) in IDs AND severities — change rule code and README together or this fails
 - Fuzz: `FuzzParseGitRemote` in `pkg/policy/project_fuzz_test.go` — run `go test ./pkg/policy -run '^$' -fuzz FuzzParseGitRemote -fuzztime 45s`
 - Provider tests: full detect → repair → verify loop in a real temp git repo (`testhelpers_test.go` isolates git env; `version_cache_test.go` git fixtures need explicit author env vars to stay hermetic in the nix FOD)
@@ -78,6 +80,12 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 - Suppressions in code need a reason comment (3 documented `nolint`/`#nosec` sites exist)
 - Deletions via `trash`, never `rm`
 - Config file was removed entirely on purpose (old `.template-security.yaml` never worked); knobs are CLI flags + the toolsdk option
+
+## Gotchas
+
+- **Auto-commit daemon bumps mtimes mid-session**: after any "auto-commit" notice (or unexpectedly clean `git status`), re-View a file before editing it — three "file modified since read" refusals in one day from editing from memory
+- `go install` is blocked by the bash tool security layer — use `go build -o <path> ./cmd/securitymd` instead
+- The stale LSP diagnostic `project_fuzz_test.go:40:17 unparam` is a cached false positive (actual golangci-lint: 0 issues); Go LSP `documentSymbol` is broken — use view+edit, not symbol replace
 
 ## Known state (2026-10-09)
 

@@ -9,7 +9,7 @@ A CLI tool and [BuildFlow](https://github.com/LarsArtmann/BuildFlow) provider th
 - **Validate** existing SECURITY.md files against GitHub's expected sections
 - **Generate** new SECURITY.md files from an embedded canonical template
 - **Never overwrites** an existing policy — generation is additive only (`--force` regenerates in place with a timestamped backup)
-- **Suppressions and severity overrides** — `securitymd:ignore(rule) reason` comments and `--set-severity rule=level` keep CI green while findings stay visible
+- **Suppressions and severity overrides** — `securitymd:ignore(rule) [until YYYY-MM-DD] reason` comments and `--set-severity rule=level` keep CI green while findings stay visible; expired suppressions surface the finding again on their own
 - **Interactive when human, silent when CI** — `setup` prompts for org/repo only on a real terminal
 - **BuildFlow provider** via [go-finding toolsdk](https://github.com/larsartmann/go-finding): detect → repair → verify as a first-class DAG tool
 - **go-finding findings** with stable rule IDs, SARIF/JSON output (contract pinned by golden tests), fix strategies
@@ -86,12 +86,28 @@ Discovery order: `SECURITY.md`, `.github/SECURITY.md`, `docs/SECURITY.md`.
 | `too-short`             | Under 20 lines                          |
 | `no-version-info`       | No version information anywhere         |
 
-Exit codes: `0` clean · `1` error-severity findings · `2` operational failure.
+Exit codes: `0` clean · `1` error-severity findings · `2` operational failure. In a GitHub Actions workflow, gate on the distinction:
+
+```yaml
+- name: Validate security policy
+  run: securitymd validate
+# exit 1 (policy findings) fails the step; exit 2 (operational) surfaces as a tool error
+```
+
+Two severity flags, two different jobs: `--severity LEVEL` sets the minimum severity REPORTED in SARIF output, while `--set-severity rule=level` overrides a rule's severity itself (affecting both output and the exit gate).
+
+Colored output disables itself when stdout is not a terminal, when `NO_COLOR` is set, or when `TERM=dumb` — CI logs stay clean.
 
 False positives? Add a suppression comment in the policy (findings stay visible, exit turns neutral):
 
 ```markdown
 <!-- securitymd:ignore(no-version-info) bootstrap stage, filled next sprint -->
+```
+
+Scope a suppression to a calendar day so deferred debt resurfaces on its own (the finding is silenced through the end of the given UTC day, then active again):
+
+```markdown
+<!-- securitymd:ignore(no-version-info) until 2026-11-01 bootstrap stage, filled next sprint -->
 ```
 
 ## Generation

@@ -106,9 +106,15 @@ func contactSuppressedUntilPast(t *testing.T) string {
 func runCLI(t *testing.T, dir string, args ...string) (int, string) {
 	t.Helper()
 
+	return runCLIWithEnv(t, dir, nil, args...)
+}
+
+func runCLIWithEnv(t *testing.T, dir string, extraEnv []string, args ...string) (int, string) {
+	t.Helper()
+
 	command := exec.CommandContext(t.Context(), os.Args[0], args...)
 	command.Dir = dir
-	command.Env = append(os.Environ(), "SECURITYMD_CONTRACT_CHILD=1")
+	command.Env = append(append(os.Environ(), "SECURITYMD_CONTRACT_CHILD=1"), extraEnv...)
 
 	output, err := command.CombinedOutput()
 
@@ -120,6 +126,23 @@ func runCLI(t *testing.T, dir string, args ...string) (int, string) {
 	}
 
 	return exitCode, string(output)
+}
+
+// TestCLI_piped_output_is_ansi_free pins what CI actually consumes: colored
+// output piped into a log collector must carry no ANSI escape sequences
+// (fatih/color disables color on non-TTY stdout and for NO_COLOR/TERM=dumb —
+// the subprocess's pipe exercises the non-TTY branch CI depends on).
+func TestCLI_piped_output_is_ansi_free(t *testing.T) {
+	t.Parallel()
+
+	dir := repoWithPolicy(t, fixturePolicy(t, "flawed.md"))
+
+	exitCode, output := runCLIWithEnv(t, dir, []string{"NO_COLOR=1"}, "validate")
+
+	require.Equal(t, exitFindings, exitCode)
+	assert.NotContains(t, output, "\x1b[",
+		"piped output must be free of ANSI escape sequences")
+	assert.Contains(t, output, "missing-contact", "findings must still render")
 }
 
 // TestCLI_exit_code_contract pins README.md:88 — `0` clean · `1`

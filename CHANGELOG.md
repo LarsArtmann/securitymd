@@ -34,6 +34,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - CI hardening in `security-validation.yml`: 80% coverage floor (actual 87.6%), 30s `FuzzParseGitRemote` smoke, govulncheck (action v1.1.0, SHA-pinned), and the nix docs-gate as its own job (install-nix-action v31.11.1, SHA-pinned)
 - Fleet rollout prep: `scripts/fleet-securitymd-sweep.sh` (preview/`--fix` sweep across repo lists) and the announcement draft `docs/planning/2026-10-09_fleet-gate-announcement-draft.md` (execution Lars-gated)
 - Suppressed-finding goldens: JSON keeps the suppression evidence, SARIF export drops the finding — the asymmetry is now pinned byte-for-byte
+- Suppression expiry: `securitymd:ignore(rule) until YYYY-MM-DD reason` scopes a suppression to a calendar day (suppressed through the end of the given UTC day, active again the next); a malformed date is inert; expired directives attach nothing anywhere so every consumer agrees the debt is due
+- All-suppressed golden case: the escape hatch at full extent pins JSON evidence (reason + expiry) and an empty SARIF result set
+- Drift-guard red run: the README guard demonstrably fails on a renamed rule ID (end-to-end against a mutated README) and on a severity flip
+- Provider emits ACTIVE findings only: suppressed findings are stripped at the toolsdk boundary because BuildFlow's findings gate counts the provider result and does not honor suppression metadata
+- CLI contract table grown to 16 scenarios: setup refusal and honest identity skip, suppression expiry end-to-end (unexpired neutral, expired trips), and ANSI-free piped output
 
 ### Changed
 
@@ -45,20 +50,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Exit-code contract now matches the docs**: findings exit 1, operational failures (bad flags, IO errors, refusals) exit 2 — previously every error exited 1, making README's `2` unreachable
 - **Critical-severity findings now trip the exit gate**: the gate used go-finding's `BySeverity` (equality), so a finding escalated to `critical` via `--set-severity` silently passed CI; the gate is now threshold-based (`BySeverityAtLeast(error)`)
-- `status` renders escalated (`critical`) findings as errors instead of warnings
+- `status` renders escalated (`critical`) findings as errors instead of warnings, counts suppressed findings separately instead of as errors, and marks them in the listing
+- **`setup` no longer crashes in CI**: the interactive-prompt gate used a `ModeCharDevice` check, which classifies `/dev/null` as a terminal — headless runs (CI, scripts, subprocesses) died with a prompt-EOF exit 2 instead of skipping honestly; TTY detection now uses `go-isatty`
+- `setup` no longer prompts for identity when a policy already exists — the prompt was a guaranteed no-op (generation refuses by design), pure interrogation noise
+- `parseGitRemote` no longer invents identities from unsupported remote forms (`git://`, `file://`, local paths, `host:org` without repo) — these now degrade to an honest incomplete identity instead of a plausible-looking wrong advisory link
+- `setup --location .github|docs` creates the target directory before the atomic write (previously only the root target existed)
+- Template lookup no longer breaks when the binary runs outside the source tree
+- CI workflow: Go version now follows `go.mod` (was pinned to 1.21); removed non-existent `make` targets; paths updated to the new layout
 
 ### Removed
 
 - **Breaking**: `.template-security.yaml` config file support (the config never worked — snake_case keys vs camelCase tags); knobs are now CLI flags and the `contact-email` provider option
 - **Breaking**: policy-type system and domain types (`internal/types`), `setup` interactive template picker
 - `internal/` packages, `cmd/template-security/`, `templates/`, and the legacy `scripts/` (~1,300 lines of shell duplicating Go functionality)
-
-### Fixed
-
-- `parseGitRemote` no longer invents identities from unsupported remote forms (`git://`, `file://`, local paths, `host:org` without repo) — these now degrade to an honest incomplete identity instead of a plausible-looking wrong advisory link
-- `setup --location .github|docs` creates the target directory before the atomic write (previously only the root target existed)
-- Template lookup no longer breaks when the binary runs outside the source tree
-- CI workflow: Go version now follows `go.mod` (was pinned to 1.21); removed non-existent `make` targets; paths updated to the new layout
 
 ## [0.1.0] - 2026-01-01
 
