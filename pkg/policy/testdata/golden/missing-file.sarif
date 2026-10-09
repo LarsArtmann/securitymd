@@ -1,0 +1,59 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "securitymd",
+          "version": "dev"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "missing-file",
+          "level": "error",
+          "message": {
+            "text": "No SECURITY.md found (looked in <REPO> for SECURITY.md, .github/SECURITY.md, docs/SECURITY.md)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "SECURITY.md"
+                },
+                "region": {
+                  "startLine": 0,
+                  "startColumn": 0,
+                  "endLine": 0,
+                  "endColumn": 0
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "Run `securitymd setup` (or `buildflow --fix` with the securitymd provider) to generate one"
+              },
+              "artifactChanges": []
+            }
+          ],
+          "rank": 100,
+          "properties": {
+            "go-finding/category": "security",
+            "go-finding/confidence": 1,
+            "go-finding/fixStrategy": "suggest",
+            "go-finding/id": "securitymd:missing-file:<PATHHASH>",
+            "go-finding/severity": "error",
+            "go-finding/suggestion": "Run `securitymd setup` (or `buildflow --fix` with the securitymd provider) to generate one",
+            "go-finding/tags": [
+              "security"
+            ],
+            "go-finding/toolName": "securitymd"
+          }
+        }
+      ]
+    }
+  ]
+}

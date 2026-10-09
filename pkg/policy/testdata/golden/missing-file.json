@@ -1,0 +1,43 @@
+{
+  "tool": {
+    "name": "securitymd",
+    "version": "dev"
+  },
+  "findings": [
+    {
+      "id": "securitymd:missing-file:<PATHHASH>",
+      "rule": "missing-file",
+      "toolName": "securitymd",
+      "message": "No SECURITY.md found (looked in <REPO> for SECURITY.md, .github/SECURITY.md, docs/SECURITY.md)",
+      "severity": "error",
+      "position": {
+        "file": "SECURITY.md",
+        "line": 0,
+        "column": 0,
+        "offset": -1
+      },
+      "category": "security",
+      "tags": [
+        "security"
+      ],
+      "fixStrategy": "suggest",
+      "suggestion": "Run `securitymd setup` (or `buildflow --fix` with the securitymd provider) to generate one",
+      "confidence": 1
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "bySeverity": {
+      "error": 1
+    },
+    "byCategory": {
+      "security": 1
+    },
+    "byFixStrategy": {
+      "suggest": 1
+    },
+    "filesAffected": 1,
+    "filesScanned": 0,
+    "suppressed": 0
+  }
+}

@@ -76,6 +76,15 @@ const (
 	minLineLength = 20
 )
 
+// Content-quality rule IDs. Like the section-rule IDs above, these are stable
+// forever: suppressions and severity configs key on them.
+const (
+	ruleTooShort           = finding.RuleName("too-short")
+	ruleUnresolvedTemplate = finding.RuleName("unresolved-template")
+	ruleNoContent          = finding.RuleName("no-content")
+	ruleNoVersionInfo      = finding.RuleName("no-version-info")
+)
+
 // Validate checks a SECURITY.md file's content against the required-section
 // and content-quality rules, returning one finding per violated rule. The
 // file must exist; missing files are Detect's concern (rule "missing-file").
@@ -92,7 +101,7 @@ func Validate(filePath string) ([]finding.Finding, error) {
 	findings = append(findings, validateSections(filePath, lines)...)
 	findings = append(findings, validateContentQuality(filePath, lines)...)
 
-	return findings, nil
+	return applySuppressions(lines, findings), nil
 }
 
 func validateSections(filePath string, lines []string) []finding.Finding {
@@ -118,7 +127,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	var findings []finding.Finding
 
 	if len(lines) < minLines {
-		f, err := buildFinding("too-short",
+		f, err := buildFinding(ruleTooShort,
 			fmt.Sprintf("SECURITY.md seems too short (< %d lines)", minLines),
 			finding.SeverityWarning, filePath, 0)
 		if err == nil {
@@ -131,7 +140,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 			continue
 		}
 
-		f, err := buildFinding("unresolved-template",
+		f, err := buildFinding(ruleUnresolvedTemplate,
 			"Unresolved template variable: "+strings.TrimSpace(line),
 			finding.SeverityError, filePath, lineIndex+1)
 		if err == nil {
@@ -140,7 +149,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	}
 
 	if !hasSubstantiveContent(lines, minLineLength) {
-		f, err := buildFinding("no-content",
+		f, err := buildFinding(ruleNoContent,
 			"SECURITY.md lacks substantive content",
 			finding.SeverityError, filePath, 0)
 		if err == nil {
@@ -149,7 +158,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	}
 
 	if !hasVersionInformation(lines) {
-		f, err := buildFinding("no-version-info",
+		f, err := buildFinding(ruleNoVersionInfo,
 			"No version information found",
 			finding.SeverityWarning, filePath, 0)
 		if err == nil {
