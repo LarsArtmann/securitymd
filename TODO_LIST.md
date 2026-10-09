@@ -21,6 +21,15 @@ _Open items only. Source: harvest of `docs/status/2026-10-08_23-40_securitymd-re
 - [ ] Suppression comments (`securitymd:ignore(rule) reason`; report #26)
 - [ ] Cache the version cell (avoid re-running `git describe` per detect; report #28)
 - [ ] Fuzz `parseGitRemote` over remote-URL shapes (report #29)
+- [ ] flake.nix `packages.<system>.securitymd` binary output (plan 2026-10-09 M14)
+- [ ] OSS-landscape survey before publishing — verify the "no dedicated SECURITY.md validator" positioning claim, update README/ROADMAP if contradicted (plan M4)
+- [ ] One-command docs-health gate for this repo (per-file `~~` + check-rows; plan M10)
+
+## Process & ecosystem (plan 2026-10-09 M22–M24)
+
+- [ ] Upstream feedback batch: exhaustruct anchored-patterns note (golangci-lint-auto-configure), `SaveBytes` proposal (linter-autoconfigure-sdk), crush-config lessons.md "nix FOD ignores local replaces", nix-private-go-repos gotools/goimports gotcha (M22)
+- [ ] Scope verdicts recorded in ROADMAP: baseline/ratchet, localization, golangci-plugin distribution — decide defer/adopt (M23)
+- [ ] docs-health fleet cron/gate (un-annotated archives + TODO/CHANGELOG overlap drift alarm) + `docs/reviews/` convention decision (M24; needs Lars)
 
 ## BuildFlow-side
 
