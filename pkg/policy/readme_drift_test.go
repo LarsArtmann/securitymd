@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
@@ -130,8 +131,7 @@ func TestREADME_drift_guard_red_run(t *testing.T) {
 
 	// Comparator: a re-severitied rule must be reported even when every ID
 	// still matches.
-	flipped := make(map[finding.RuleName]finding.Severity, len(documentedFor(code)))
-	maps.Copy(flipped, code)
+	flipped := maps.Clone(code)
 	flipped["missing-response-time"] = finding.SeverityError
 
 	drift = ruleTableDrift(code, flipped)
@@ -147,10 +147,6 @@ func readmeContent(t *testing.T) string {
 	require.NoError(t, err, "README.md must stay readable from the drift guard")
 
 	return string(content)
-}
-
-func documentedFor(code map[finding.RuleName]finding.Severity) map[finding.RuleName]finding.Severity {
-	return code
 }
 
 func TestKnownRuleIDs_matches_severity_table_keys(t *testing.T) {

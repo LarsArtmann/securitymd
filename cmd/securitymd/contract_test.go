@@ -49,6 +49,16 @@ func fixturePolicy(t *testing.T, name string) string {
 	return string(content)
 }
 
+// fixturePolicyOf adapts a named shared fixture into a policy resolver for
+// the scenario table, keeping rows self-describing without sentinel strings.
+func fixturePolicyOf(name string) func(t *testing.T) string {
+	return func(t *testing.T) string {
+		t.Helper()
+
+		return fixturePolicy(t, name)
+	}
+}
+
 // policyWithoutResponseTime strips the response commitment from the compliant
 // fixture: exactly one warning remains, ready for severity escalation.
 func policyWithoutResponseTime(t *testing.T) string {
@@ -70,6 +80,27 @@ func allErrorsSuppressed(t *testing.T) string {
 
 	return suppressed +
 		"\n<!-- securitymd:ignore(unresolved-template) template rendered by CI on release -->\n"
+}
+
+// allFindingsSuppressedUntilFuture silences every flawed-fixture finding with
+// one unexpired until-suppression: the escape hatch with a calendar bound.
+func allFindingsSuppressedUntilFuture(t *testing.T) string {
+	t.Helper()
+
+	return strings.Replace(fixturePolicy(t, "flawed.md"),
+		"Please email {{.ContactEmail}}",
+		"<!-- securitymd:ignore(missing-contact,missing-response-time,unresolved-template) "+
+			"until 2999-01-01 deferred debt with an expiry -->\nPlease email {{.ContactEmail}}", 1)
+}
+
+// contactSuppressedUntilPast pins expiry semantics end-to-end: an until-clause
+// in the past is as if the comment were never written.
+func contactSuppressedUntilPast(t *testing.T) string {
+	t.Helper()
+
+	return strings.Replace(fixturePolicy(t, "flawed.md"),
+		"Please email {{.ContactEmail}}",
+		"<!-- securitymd:ignore(missing-contact) until 2020-01-01 long-past deferral -->\nPlease email {{.ContactEmail}}", 1)
 }
 
 func runCLI(t *testing.T, dir string, args ...string) (int, string) {
@@ -99,7 +130,7 @@ func TestCLI_exit_code_contract(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		policy     string
+		policy     func(t *testing.T) string
 		args       []string
 		wantExit   int
 		wantOut    []string
@@ -107,78 +138,107 @@ func TestCLI_exit_code_contract(t *testing.T) {
 	}{
 		{
 			name:     "clean policy validates green",
-			policy:   "fixture:compliant.md",
+			policy:   fixturePolicyOf("compliant.md"),
 			args:     []string{"validate"},
 			wantExit: 0,
 		},
 		{
 			name:     "missing policy is a finding, not a crash",
-			policy:   "",
+			policy:   nil,
 			args:     []string{"validate"},
 			wantExit: 1,
 			wantOut:  []string{"missing-file"},
 		},
 		{
 			name:     "flawed policy is a finding",
-			policy:   "fixture:flawed.md",
+			policy:   fixturePolicyOf("flawed.md"),
 			args:     []string{"validate"},
 			wantExit: 1,
 			wantOut:  []string{"missing-contact", "unresolved-template"},
 		},
 		{
 			name:     "JSON findings still exit 1",
-			policy:   "fixture:flawed.md",
+			policy:   fixturePolicyOf("flawed.md"),
 			args:     []string{"validate", "--format", "json"},
 			wantExit: 1,
 			wantOut:  []string{"\"rule\": \"missing-contact\""},
 		},
 		{
 			name:     "suppressed error findings keep exit neutral",
-			policy:   "fixture-suppressed:all",
+			policy:   allErrorsSuppressed,
 			args:     []string{"validate"},
 			wantExit: 0,
 			wantOut:  []string{"suppressed: organization email pending"},
 		},
 		{
+			name:     "unexpired until-suppression keeps exit neutral",
+			policy:   allFindingsSuppressedUntilFuture,
+			args:     []string{"validate"},
+			wantExit: 0,
+			wantOut:  []string{"suppressed: deferred debt with an expiry"},
+		},
+		{
+			name:       "expired until-suppression surfaces the finding",
+			policy:     contactSuppressedUntilPast,
+			args:       []string{"validate"},
+			wantExit:   1,
+			wantOut:    []string{"missing-contact"},
+			notWantOut: []string{"suppressed"},
+		},
+		{
 			name:     "critical escalation trips the threshold gate",
-			policy:   "fixture-derived:no-response",
+			policy:   policyWithoutResponseTime,
 			args:     []string{"validate", "--set-severity", "missing-response-time=critical"},
 			wantExit: 1,
 		},
 		{
 			name:     "downgraded missing-file passes CI",
-			policy:   "",
+			policy:   nil,
 			args:     []string{"validate", "--set-severity", "missing-file=warning"},
 			wantExit: 0,
 		},
 		{
+			name:     "setup refuses to overwrite an existing policy",
+			policy:   fixturePolicyOf("compliant.md"),
+			args:     []string{"setup"},
+			wantExit: 0,
+			wantOut:  []string{"already exists"},
+		},
+		{
+			name:     "setup without identity or TTY skips honestly",
+			policy:   nil,
+			args:     []string{"setup"},
+			wantExit: 0,
+			wantOut:  []string{"could not derive"},
+		},
+		{
 			name:     "explicit missing --file is operational failure",
-			policy:   "",
+			policy:   nil,
 			args:     []string{"validate", "--file", "does-not-exist.md"},
 			wantExit: 2,
 		},
 		{
 			name:     "unknown validate --location is operational failure",
-			policy:   "",
+			policy:   nil,
 			args:     []string{"validate", "--location", "bogus"},
 			wantExit: 2,
 			wantOut:  []string{"invalid --location"},
 		},
 		{
 			name:     "unknown status --location is operational failure",
-			policy:   "",
+			policy:   nil,
 			args:     []string{"status", "--location", "bogus"},
 			wantExit: 2,
 		},
 		{
 			name:     "status is informational on an empty repo",
-			policy:   "",
+			policy:   nil,
 			args:     []string{"status"},
 			wantExit: 0,
 		},
 		{
 			name:     "status honors --location docs and stays informational",
-			policy:   "",
+			policy:   nil,
 			args:     []string{"status", "--location", "docs"},
 			wantExit: 0,
 			wantOut:  []string{"missing-file"},
@@ -190,15 +250,8 @@ func TestCLI_exit_code_contract(t *testing.T) {
 			t.Parallel()
 
 			policyContent := ""
-			switch {
-			case test.policy == "fixture:compliant.md":
-				policyContent = fixturePolicy(t, "compliant.md")
-			case test.policy == "fixture:flawed.md":
-				policyContent = fixturePolicy(t, "flawed.md")
-			case test.policy == "fixture-suppressed:all":
-				policyContent = allErrorsSuppressed(t)
-			case test.policy == "fixture-derived:no-response":
-				policyContent = policyWithoutResponseTime(t)
+			if test.policy != nil {
+				policyContent = test.policy(t)
 			}
 
 			dir := repoWithPolicy(t, policyContent)
