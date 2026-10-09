@@ -49,9 +49,11 @@ test/acceptance/       # Ginkgo BDD specs
 
 ## Docs layout
 
-- `docs/status/` — post-rebuild status reports ONLY (the two 2026-10 reports)
+- `docs/status/` — post-rebuild status reports; the NEWEST report is the live snapshot, fully-resolved older ones move to `docs/status/archived/` (annotated inline, manifest README inside)
+- `docs/planning/` — live planning docs only (fleet-gate announcement draft); executed plans in `docs/planning/archived/`
 - `docs/archive/pre-rebuild/` — ALL pre-rebuild history (status/planning/modularization + the five old root reports), annotated with inline ~~verdicts~~ and a manifest README; closed history, do not open without a concrete need
-- Living docs (README/FEATURES/TODO_LIST/ROADMAP/CHANGELOG/DOMAIN_LANGUAGE) refreshed by the 2026-10-09 docs-health pass
+- The docs-gate scans ALL THREE archive homes for un-annotated files (extended 2026-10-09); annotation convention: `~~item~~ done at <hash>` / `routed — <where>` / `decided` / `NOT-DO` / `superseded`, applied with the docs-health `annotate-status-items.py` tooling
+- Living docs (README/FEATURES/TODO_LIST/ROADMAP/CHANGELOG/DOMAIN_LANGUAGE) refreshed by the 2026-10-09 evening docs-health AUDIT pass (post-publish state)
 
 ## BuildFlow integration (the reason this repo exists)
 

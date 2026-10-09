@@ -33,6 +33,7 @@ securitymd is **done**: 11 rules, embedded template, never-overwrite generation,
 ~~- **M7 Per-rule severity configuration** — fleets can downgrade `missing-file` from error → adoption unblocker.~~ done at bd66690
 ~~- **M8 Fuzz `parseGitRemote`** — wrong org/repo renders a garbage policy; prove the parser.~~ done at cf2853d
 ~~- **M9 Version-cell caching** — stop re-running `git describe` per detect.~~ done at 8a325cf
+
 - **M10 Docs-health gate script** — one command for the `~~`/check-rows gates this session ran ad hoc.
 
 ## Tier 20% → 80% — Fleet + distribution (the week)
@@ -62,152 +63,152 @@ securitymd is **done**: 11 rules, embedded template, never-overwrite generation,
 
 ## Comprehensive plan — medium granularity (30–100 min each, sorted)
 
-| #   | Task                                           | Tier | Impact   | Effort | Customer value                                                                | Depends on                 |
-| --- | ---------------------------------------------- | ---- | -------- | ------ | ----------------------------------------------------------------------------- | -------------------------- |
-| M1  | Publish runbook + mechanical readiness         | 1%   | High     | 45m    | Unblocks ALL public value (install, pkg.go.dev, BuildFlow nix simplification) | Lars: rename/push/tag      |
-| M2  | SARIF + JSON golden-file tests                 | 1%   | High     | 45m    | Output contract pinned for every CI consumer                                  | —                          |
-| M3  | Mutation/discrimination proof of rule table    | 1%   | High     | 30m    | Trust: tests proven non-vacuous                                               | —                          |
-| M4  | OSS-landscape survey (positioning claim)       | 4%   | Med-High | 45m    | Honest README claims on day one                                               | —                          |
-| M5  | Suppression comments                           | 4%   | High     | 90m    | Adopter escape hatch for FPs                                                  | —                          |
-| M6  | README.md trigger manifest + coverage test     | 4%   | Medium   | 30m    | Docs-only repos activate                                                      | —                          |
-| M7  | Per-rule severity configuration                | 4%   | High     | 90m    | Fleet adoption (downgrade missing-file)                                       | —                          |
-| M8  | Fuzz parseGitRemote                            | 4%   | Medium   | 60m    | Correct identity → correct policy                                             | —                          |
-| M9  | Version-cell caching                           | 4%   | Low      | 30m    | Faster repeated detects                                                       | —                          |
-~~| M10 | Docs-health gate script                        | 4%   | Medium   | 30m    | Mechanized doc hygiene                                                        | —                          |~~ done at e195158 — apps.docs-gate (extended this pass)
-| M11 | Fleet rollout prep + sweep script              | 20%  | High     | 60m    | Every fleet repo compliant                                                    | M1 published; Lars: timing |
-| M12 | BuildFlow post-sweep nix verification          | 20%  | High     | 60m    | Closes the BuildFlow nix blocker story                                        | BuildFlow sweep settled    |
-| M13 | BuildFlow hygiene (gotchas, gates, guard test) | 20%  | Medium   | 60m    | Repo health where the provider lives                                          | M12                        |
-| M14 | flake packages output                          | 20%  | Medium   | 60m    | `nix run`/install for nix users                                               | —                          |
-| M15 | Interactive setup (no git remote)              | 20%  | Medium   | 90m    | UX for non-git/dir contexts                                                   | —                          |
-| M16 | --force/--regenerate with backup               | 20%  | Medium   | 45m    | Policy refresh UX, safe by default                                            | —                          |
-| M17 | Policy-location knob                           | 20%  | Low      | 45m    | Edge adopters (docs/ canonical)                                               | —                          |
-| M18 | Own SECURITY.md regen + metadata.yaml          | 20%  | Medium   | 30m    | Dogfood honesty                                                               | M1                         |
-| M19 | Website launch                                 | 100% | Medium   | 100m   | Discoverability + demo                                                        | M1                         |
-| M20 | GitHub Action wrapper                          | 100% | Medium   | 100m   | Non-BuildFlow CI users                                                        | M1                         |
-| M21 | Structure-aware validation phase               | 100% | Medium   | 100m   | Precision (fewer FPs), parity-tested                                          | M5 (suppressions first)    |
-| M22 | Upstream feedback batch                        | 100% | Low-Med  | 60m    | Ecosystem health, lessons recorded                                            | —                          |
-| M23 | Scope verdicts (ratchet/i18n/plugin)           | 100% | Low      | 60m    | Prevent zombie ideas                                                          | —                          |
-| M24 | Process: docs cron + reviews convention        | 100% | Low      | 60m    | Mechanized hygiene                                                            | —                          |
+| #   | Task                                           | Tier                    | Impact   | Effort | Customer value                                                                | Depends on                 |
+| --- | ---------------------------------------------- | ----------------------- | -------- | ------ | ----------------------------------------------------------------------------- | -------------------------- |
+| M1  | Publish runbook + mechanical readiness         | 1%                      | High     | 45m    | Unblocks ALL public value (install, pkg.go.dev, BuildFlow nix simplification) | Lars: rename/push/tag      |
+| M2  | SARIF + JSON golden-file tests                 | 1%                      | High     | 45m    | Output contract pinned for every CI consumer                                  | —                          |
+| M3  | Mutation/discrimination proof of rule table    | 1%                      | High     | 30m    | Trust: tests proven non-vacuous                                               | —                          |
+| M4  | OSS-landscape survey (positioning claim)       | 4%                      | Med-High | 45m    | Honest README claims on day one                                               | —                          |
+| M5  | Suppression comments                           | 4%                      | High     | 90m    | Adopter escape hatch for FPs                                                  | —                          |
+| M6  | README.md trigger manifest + coverage test     | 4%                      | Medium   | 30m    | Docs-only repos activate                                                      | —                          |
+| M7  | Per-rule severity configuration                | 4%                      | High     | 90m    | Fleet adoption (downgrade missing-file)                                       | —                          |
+| M8  | Fuzz parseGitRemote                            | 4%                      | Medium   | 60m    | Correct identity → correct policy                                             | —                          |
+| M9  | Version-cell caching                           | 4%                      | Low      | 30m    | Faster repeated detects                                                       | —                          |
+| ~~  | M10                                            | Docs-health gate script | 4%       | Medium | 30m                                                                           | Mechanized doc hygiene     |
+| M11 | Fleet rollout prep + sweep script              | 20%                     | High     | 60m    | Every fleet repo compliant                                                    | M1 published; Lars: timing |
+| M12 | BuildFlow post-sweep nix verification          | 20%                     | High     | 60m    | Closes the BuildFlow nix blocker story                                        | BuildFlow sweep settled    |
+| M13 | BuildFlow hygiene (gotchas, gates, guard test) | 20%                     | Medium   | 60m    | Repo health where the provider lives                                          | M12                        |
+| M14 | flake packages output                          | 20%                     | Medium   | 60m    | `nix run`/install for nix users                                               | —                          |
+| M15 | Interactive setup (no git remote)              | 20%                     | Medium   | 90m    | UX for non-git/dir contexts                                                   | —                          |
+| M16 | --force/--regenerate with backup               | 20%                     | Medium   | 45m    | Policy refresh UX, safe by default                                            | —                          |
+| M17 | Policy-location knob                           | 20%                     | Low      | 45m    | Edge adopters (docs/ canonical)                                               | —                          |
+| M18 | Own SECURITY.md regen + metadata.yaml          | 20%                     | Medium   | 30m    | Dogfood honesty                                                               | M1                         |
+| M19 | Website launch                                 | 100%                    | Medium   | 100m   | Discoverability + demo                                                        | M1                         |
+| M20 | GitHub Action wrapper                          | 100%                    | Medium   | 100m   | Non-BuildFlow CI users                                                        | M1                         |
+| M21 | Structure-aware validation phase               | 100%                    | Medium   | 100m   | Precision (fewer FPs), parity-tested                                          | M5 (suppressions first)    |
+| M22 | Upstream feedback batch                        | 100%                    | Low-Med  | 60m    | Ecosystem health, lessons recorded                                            | —                          |
+| M23 | Scope verdicts (ratchet/i18n/plugin)           | 100%                    | Low      | 60m    | Prevent zombie ideas                                                          | —                          |
+| M24 | Process: docs cron + reviews convention        | 100%                    | Low      | 60m    | Mechanized hygiene                                                            | —                          |
 
 ---
 
 ## Detailed breakdown — fine granularity (≤12 min each, sorted within parent task)
 
-| #     | Micro-task                                                               | ≤  | Parent |
-| ----- | ------------------------------------------------------------------------ | -- | ------ |
-~~| F1.1  | Write publish-runbook skeleton + checklist                               | 12 | M1     |~~ done at 2b91f8f
-~~| F1.2  | Verify module path + `GOWORK=off go mod tidy` clean                      | 8  | M1     |~~ done at 2b91f8f
-~~| F1.3  | Scratch-GOPATH `go install` dry-run of local module                      | 12 | M1     |~~ done at 2b91f8f — pre-verified in runbook §0
-~~| F1.4  | Stage BuildFlow drop-replace diffs (root + tools go.mod)                 | 12 | M1     |~~ superseded — vendoring retired (BuildFlow gotcha #229); replaces drop post-flip per TODO_LIST
-~~| F1.5  | Stage flake-input removal + `update-vendor-hash` commands                | 10 | M1     |~~ superseded — flake input STAYS per the 2026-10-05 input policy (FOD rework verified green)
-~~| F1.6  | Stage own SECURITY.md regeneration + diff review                         | 12 | M1     |~~ done at 7ccba1c
-~~| F1.7  | Map go-release checklist steps onto runbook                              | 12 | M1     |~~ done at 5c739ec
-~~| F2.1  | Scaffold golden test file + fixture policy                               | 12 | M2     |~~ done at 5b1b4ff
-~~| F2.2  | Capture SARIF golden from clean fixture                                  | 12 | M2     |~~ done at 5b1b4ff
-~~| F2.3  | Capture JSON golden                                                      | 10 | M2     |~~ done at 5b1b4ff
-~~| F2.4  | Normalize volatile fields (timestamp, absolute URIs)                     | 12 | M2     |~~ done at 5b1b4ff
-~~| F2.5  | Extend to error+warning fixtures                                         | 12 | M2     |~~ done at 5b1b4ff
-~~| F2.6  | Suite + lint green                                                       | 8  | M2     |~~ done at 5b1b4ff
-~~| F3.1  | Choose 3 sabotage targets                                                | 5  | M3     |~~ done at 5b1b4ff
-~~| F3.2  | Break missing-contact → expect red                                       | 10 | M3     |~~ done at 5b1b4ff
-~~| F3.3  | Break too-short threshold → expect red                                   | 10 | M3     |~~ done at 5b1b4ff
-~~| F3.4  | Break unresolved-template line-precision → expect red                    | 10 | M3     |~~ done at 5b1b4ff
-~~| F3.5  | Revert → verify green                                                    | 8  | M3     |~~ done at 5b1b4ff
-~~| F3.6  | Record proof in FEATURES note                                            | 10 | M3     |~~ done at 5b1b4ff
-~~| F4.1  | Search GitHub/Go ecosystem for SECURITY.md validators                    | 12 | M4     |~~ done at f387d65
-~~| F4.2  | Shortlist + feature-compare candidates                                   | 12 | M4     |~~ done at f387d65
-~~| F4.3  | Write comparison summary                                                 | 12 | M4     |~~ done at f387d65
-~~| F4.4  | Update ROADMAP claim + README positioning if contradicted                | 10 | M4     |~~ done at f387d65
-~~| F5.1  | Define suppression grammar (`securitymd:ignore(rule) reason`)            | 12 | M5     |~~ done at bd66690
-~~| F5.2  | Parse suppression comments in validate                                   | 12 | M5     |~~ done at bd66690
-~~| F5.3  | Mark findings suppressed (go-finding suppression model)                  | 12 | M5     |~~ done at bd66690
-~~| F5.4  | Respect suppressions in provider Detect                                  | 12 | M5     |~~ done at bd66690
-~~| F5.5  | Tests: honored / unknown-rule / malformed                                | 12 | M5     |~~ done at bd66690
-~~| F5.6  | Docs: README + DOMAIN_LANGUAGE entries                                   | 12 | M5     |~~ done at bd66690
-~~| F5.7  | Lint + tests green                                                       | 8  | M5     |~~ done at bd66690
-~~| F6.1  | Add README.md to trigger manifests                                       | 10 | M6     |~~ done at cf2853d
-~~| F6.2  | Trigger-coverage test for docs-only repo shape                           | 12 | M6     |~~ done at cf2853d
-~~| F6.3  | Provider tests updated + run                                             | 10 | M6     |~~ done at cf2853d
-~~| F7.1  | Decide config shape (tool option vs inline comment)                      | 12 | M7     |~~ done at bd66690
-~~| F7.2  | Implement severity override map                                          | 12 | M7     |~~ done at bd66690
-~~| F7.3  | Wire into Detect/Validate paths                                          | 12 | M7     |~~ done at bd66690
-~~| F7.4  | Validate unknown rule/severity → clear error                             | 12 | M7     |~~ done at bd66690
-~~| F7.5  | Test: downgrade missing-file to warning                                  | 12 | M7     |~~ done at bd66690
-~~| F7.6  | Docs                                                                     | 10 | M7     |~~ done at bd66690
-~~| F8.1  | Enumerate URL corpus (https/ssh/port/nested/no-.git)                     | 12 | M8     |~~ done at cf2853d
-~~| F8.2  | Write fuzz harness for parseGitRemote                                    | 12 | M8     |~~ done at cf2853d
-~~| F8.3  | Run seeded fuzz, triage findings                                         | 12 | M8     |~~ done at cf2853d
-~~| F8.4  | Fix parser findings                                                      | 12 | M8     |~~ done at cf2853d
-~~| F8.5  | Regression-test interesting inputs                                       | 12 | M8     |~~ done at cf2853d
-~~| F9.1  | Cache LatestTag per dir (param or sync.Once)                             | 12 | M9     |~~ done at 8a325cf
-~~| F9.2  | Test caching behavior                                                    | 12 | M9     |~~ done at 8a325cf
-| F10.1 | Write one-command docs gate (per-file `~~` + check-rows)                 | 12 | M10    |
-~~| F10.2 | Wire into flake check or document invocation                             | 12 | M10    |~~ done at e195158
-~~| F11.1 | Draft fleet announcement                                                 | 12 | M11    |~~ done at 4511fab
-~~| F11.2 | One-shot sweep script (`-s securitymd --fix` loop)                       | 12 | M11    |~~ done at 4511fab
-~~| F11.3 | Dry-run sweep → report                                                   | 12 | M11    |~~ routed — TODO_LIST (Lars)
-~~| F11.4 | Timing decision with Lars                                                | 5  | M11    |~~ routed — TODO_LIST (Lars)
-~~| F11.5 | Execute sweep + summary                                                  | 12 | M11    |~~ routed — TODO_LIST (Lars)
-~~| F12.1 | Confirm BuildFlow execution/ sweep settled                               | 5  | M12    |~~ done — sweep settled; nix build verified green 2026-10-09
-~~| F12.2 | `nix build .` green (FOD + compile)                                      | 12 | M12    |~~ done — verified green (AGENTS.md)
-~~| F12.3 | Retry/fix if red (securitymd-side only)                                  | 12 | M12    |~~ NOT-DO — nothing to fix, green as-is
-~~| F12.4 | e2e: nix binary `-s securitymd --fix` in scratch repo                    | 12 | M12    |~~ done — built-binary e2e verified (AGENTS.md)
-~~| F12.5 | Re-detect clean + record evidence                                        | 10 | M12    |~~ done — recorded in AGENTS.md
-~~| F13.1 | Re-anchor GOTCHAS.md:124/207 to post-split lines                         | 12 | M13    |~~ routed — TODO_LIST BuildFlow
-~~| F13.2 | `go vet` + `go test ./execution/`                                        | 12 | M13    |~~ routed — BuildFlow-side
-~~| F13.3 | Workspace `nix run .#test`                                               | 12 | M13    |~~ routed — BuildFlow-side
-~~| F13.4 | erraudit exit 0                                                          | 12 | M13    |~~ routed — BuildFlow-side
-~~| F13.5 | tool_options error-message guard test                                    | 12 | M13    |~~ routed — TODO_LIST BuildFlow (report #34)
-~~| F14.1 | Add `packages.default` buildGoModule                                     | 12 | M14    |~~ done at e195158
-~~| F14.2 | Derive vendorHash                                                        | 12 | M14    |~~ done at e195158
-~~| F14.3 | `nix build .#securitymd` green                                           | 12 | M14    |~~ done at e195158
-~~| F14.4 | Wire into flake check                                                    | 8  | M14    |~~ done at e195158
-~~| F15.1 | Prompt UX design (no git remote)                                         | 12 | M15    |~~ done at e195158,7ccba1c
-~~| F15.2 | Wire org/repo prompts into setup                                         | 12 | M15    |~~ done at e195158,7ccba1c
-~~| F15.3 | TTY detection + non-interactive fallback                                 | 12 | M15    |~~ done at e195158,7ccba1c
-~~| F15.4 | Tests for both paths                                                     | 12 | M15    |~~ done at e195158,7ccba1c
-~~| F15.5 | Docs                                                                     | 10 | M15    |~~ done at e195158,7ccba1c
-~~| F16.1 | `--force` flag with backup-file write                                    | 12 | M16    |~~ done at e195158
-~~| F16.2 | Tests: refuse-by-default + force-path + backup exists                    | 12 | M16    |~~ done at e195158
-~~| F16.3 | Docs                                                                     | 10 | M16    |~~ done at e195158
-~~| F17.1 | Location option (root/.github/docs)                                      | 12 | M17    |~~ done at e195158,4511fab
-~~| F17.2 | Candidate-order override + tests                                         | 12 | M17    |~~ done at e195158,4511fab
-~~| F17.3 | Docs                                                                     | 10 | M17    |~~ done at e195158,4511fab
-~~| F18.1 | Lars decision: metadata.yaml tags                                        | 5  | M18    |~~ routed — TODO_LIST (Lars)
-~~| F18.2 | Apply tags                                                               | 5  | M18    |~~ routed — TODO_LIST (Lars)
-~~| F18.3 | Regenerate own SECURITY.md + self-validate                               | 12 | M18    |~~ done at 7ccba1c
-~~| F19.1 | Load website-launch skill + scaffold                                     | 12 | M19    |~~ routed — ROADMAP (website)
-~~| F19.2 | Site structure + content outline                                         | 12 | M19    |~~ routed — ROADMAP (website)
-~~| F19.3 | Landing page copy (demo video centerpiece)                               | 12 | M19    |~~ routed — ROADMAP (website)
-~~| F19.4 | Docs pages (rules, exit codes, BuildFlow)                                | 12 | M19    |~~ routed — ROADMAP (website)
-~~| F19.5 | Render demo video (HyperFrames)                                          | 12 | M19    |~~ routed — ROADMAP (website)
-~~| F19.6 | Firebase deploy + DNS                                                    | 12 | M19    |~~ routed — ROADMAP (website)
-~~| F19.7 | Verify live + fix                                                        | 12 | M19    |~~ routed — ROADMAP (website)
-~~| F20.1 | Action scaffold (repo securitymd-action)                                 | 12 | M20    |~~ routed — ROADMAP (GitHub Action)
-~~| F20.2 | Container/wrapper build                                                  | 12 | M20    |~~ routed — ROADMAP (GitHub Action)
-~~| F20.3 | Inputs/outputs definition                                                | 12 | M20    |~~ routed — ROADMAP (GitHub Action)
-~~| F20.4 | SARIF upload step                                                        | 12 | M20    |~~ routed — ROADMAP (GitHub Action)
-~~| F20.5 | Self-test workflow                                                       | 12 | M20    |~~ routed — ROADMAP (GitHub Action)
-~~| F20.6 | Marketplace listing                                                      | 12 | M20    |~~ routed — ROADMAP (GitHub Action)
-~~| F21.1 | Evaluate markdown parser (goldmark)                                      | 12 | M21    |~~ routed — ROADMAP (structure-aware phase)
-~~| F21.2 | Heading/table extraction layer                                           | 12 | M21    |~~ routed — ROADMAP (structure-aware phase)
-~~| F21.3 | Port layer (part 1)                                                      | 12 | M21    |~~ routed — ROADMAP (structure-aware phase)
-~~| F21.4 | Port layer (part 2)                                                      | 12 | M21    |~~ routed — ROADMAP (structure-aware phase)
-~~| F21.5 | Port 3 highest-FP rules                                                  | 12 | M21    |~~ routed — ROADMAP (structure-aware phase)
-~~| F21.6 | Parity tests old-vs-new                                                  | 12 | M21    |~~ routed — ROADMAP (structure-aware phase)
-~~| F22.1 | exhaustruct anchored-patterns note upstream                              | 12 | M22    |~~ done — verified no defect at source (ROADMAP)
-~~| F22.2 | `SaveBytes` proposal to linter-autoconfigure-sdk                         | 12 | M22    |~~ done — resolved upstream in SDK v0.8.0 (ROADMAP)
-~~| F22.3 | crush-config lessons.md: "nix FOD ignores local replaces"                | 12 | M22    |~~ done — lessons.md committed (ROADMAP ✅)
-~~| F22.4 | nix-private-go-repos skill: gotools/goimports gotcha                     | 12 | M22    |~~ done — skill updated (ROADMAP ✅)
-~~| F23.1 | Baseline/ratchet spike + verdict                                         | 12 | M23    |~~ done at cf2853d
-~~| F23.2 | Localization feasibility verdict                                         | 12 | M23    |~~ done at cf2853d
-~~| F23.3 | golangci-plugin distribution verdict                                     | 12 | M23    |~~ done at cf2853d
-~~| F23.4 | Record verdicts in ROADMAP                                               | 10 | M23    |~~ done at cf2853d
-~~| F24.1 | Docs-health fleet gate design                                            | 12 | M24    |~~ done at e195158
-~~| F24.2 | Implement minimal check (un-annotated archives + TODO/CHANGELOG overlap) | 12 | M24    |~~ done at e195158
-~~| F24.3 | Wire into cron/fleet                                                     | 12 | M24    |~~ routed — TODO_LIST process (fleet cron)
-~~| F24.4 | docs/reviews convention decision (Lars)                                  | 5  | M24    |~~ routed — TODO_LIST (Lars)
-~~| F24.5 | Document convention in AGENTS                                            | 10 | M24    |~~ done — AGENTS.md documents the layout (kept current this pass)
+| #     | Micro-task                                               | ≤                                                                        | Parent |
+| ----- | -------------------------------------------------------- | ------------------------------------------------------------------------ | ------ |
+| ~~    | F1.1                                                     | Write publish-runbook skeleton + checklist                               | 12     |
+| ~~    | F1.2                                                     | Verify module path + `GOWORK=off go mod tidy` clean                      | 8      |
+| ~~    | F1.3                                                     | Scratch-GOPATH `go install` dry-run of local module                      | 12     |
+| ~~    | F1.4                                                     | Stage BuildFlow drop-replace diffs (root + tools go.mod)                 | 12     |
+| ~~    | F1.5                                                     | Stage flake-input removal + `update-vendor-hash` commands                | 10     |
+| ~~    | F1.6                                                     | Stage own SECURITY.md regeneration + diff review                         | 12     |
+| ~~    | F1.7                                                     | Map go-release checklist steps onto runbook                              | 12     |
+| ~~    | F2.1                                                     | Scaffold golden test file + fixture policy                               | 12     |
+| ~~    | F2.2                                                     | Capture SARIF golden from clean fixture                                  | 12     |
+| ~~    | F2.3                                                     | Capture JSON golden                                                      | 10     |
+| ~~    | F2.4                                                     | Normalize volatile fields (timestamp, absolute URIs)                     | 12     |
+| ~~    | F2.5                                                     | Extend to error+warning fixtures                                         | 12     |
+| ~~    | F2.6                                                     | Suite + lint green                                                       | 8      |
+| ~~    | F3.1                                                     | Choose 3 sabotage targets                                                | 5      |
+| ~~    | F3.2                                                     | Break missing-contact → expect red                                       | 10     |
+| ~~    | F3.3                                                     | Break too-short threshold → expect red                                   | 10     |
+| ~~    | F3.4                                                     | Break unresolved-template line-precision → expect red                    | 10     |
+| ~~    | F3.5                                                     | Revert → verify green                                                    | 8      |
+| ~~    | F3.6                                                     | Record proof in FEATURES note                                            | 10     |
+| ~~    | F4.1                                                     | Search GitHub/Go ecosystem for SECURITY.md validators                    | 12     |
+| ~~    | F4.2                                                     | Shortlist + feature-compare candidates                                   | 12     |
+| ~~    | F4.3                                                     | Write comparison summary                                                 | 12     |
+| ~~    | F4.4                                                     | Update ROADMAP claim + README positioning if contradicted                | 10     |
+| ~~    | F5.1                                                     | Define suppression grammar (`securitymd:ignore(rule) reason`)            | 12     |
+| ~~    | F5.2                                                     | Parse suppression comments in validate                                   | 12     |
+| ~~    | F5.3                                                     | Mark findings suppressed (go-finding suppression model)                  | 12     |
+| ~~    | F5.4                                                     | Respect suppressions in provider Detect                                  | 12     |
+| ~~    | F5.5                                                     | Tests: honored / unknown-rule / malformed                                | 12     |
+| ~~    | F5.6                                                     | Docs: README + DOMAIN_LANGUAGE entries                                   | 12     |
+| ~~    | F5.7                                                     | Lint + tests green                                                       | 8      |
+| ~~    | F6.1                                                     | Add README.md to trigger manifests                                       | 10     |
+| ~~    | F6.2                                                     | Trigger-coverage test for docs-only repo shape                           | 12     |
+| ~~    | F6.3                                                     | Provider tests updated + run                                             | 10     |
+| ~~    | F7.1                                                     | Decide config shape (tool option vs inline comment)                      | 12     |
+| ~~    | F7.2                                                     | Implement severity override map                                          | 12     |
+| ~~    | F7.3                                                     | Wire into Detect/Validate paths                                          | 12     |
+| ~~    | F7.4                                                     | Validate unknown rule/severity → clear error                             | 12     |
+| ~~    | F7.5                                                     | Test: downgrade missing-file to warning                                  | 12     |
+| ~~    | F7.6                                                     | Docs                                                                     | 10     |
+| ~~    | F8.1                                                     | Enumerate URL corpus (https/ssh/port/nested/no-.git)                     | 12     |
+| ~~    | F8.2                                                     | Write fuzz harness for parseGitRemote                                    | 12     |
+| ~~    | F8.3                                                     | Run seeded fuzz, triage findings                                         | 12     |
+| ~~    | F8.4                                                     | Fix parser findings                                                      | 12     |
+| ~~    | F8.5                                                     | Regression-test interesting inputs                                       | 12     |
+| ~~    | F9.1                                                     | Cache LatestTag per dir (param or sync.Once)                             | 12     |
+| ~~    | F9.2                                                     | Test caching behavior                                                    | 12     |
+| F10.1 | Write one-command docs gate (per-file `~~` + check-rows) | 12                                                                       | M10    |
+| ~~    | F10.2                                                    | Wire into flake check or document invocation                             | 12     |
+| ~~    | F11.1                                                    | Draft fleet announcement                                                 | 12     |
+| ~~    | F11.2                                                    | One-shot sweep script (`-s securitymd --fix` loop)                       | 12     |
+| ~~    | F11.3                                                    | Dry-run sweep → report                                                   | 12     |
+| ~~    | F11.4                                                    | Timing decision with Lars                                                | 5      |
+| ~~    | F11.5                                                    | Execute sweep + summary                                                  | 12     |
+| ~~    | F12.1                                                    | Confirm BuildFlow execution/ sweep settled                               | 5      |
+| ~~    | F12.2                                                    | `nix build .` green (FOD + compile)                                      | 12     |
+| ~~    | F12.3                                                    | Retry/fix if red (securitymd-side only)                                  | 12     |
+| ~~    | F12.4                                                    | e2e: nix binary `-s securitymd --fix` in scratch repo                    | 12     |
+| ~~    | F12.5                                                    | Re-detect clean + record evidence                                        | 10     |
+| ~~    | F13.1                                                    | Re-anchor GOTCHAS.md:124/207 to post-split lines                         | 12     |
+| ~~    | F13.2                                                    | `go vet` + `go test ./execution/`                                        | 12     |
+| ~~    | F13.3                                                    | Workspace `nix run .#test`                                               | 12     |
+| ~~    | F13.4                                                    | erraudit exit 0                                                          | 12     |
+| ~~    | F13.5                                                    | tool_options error-message guard test                                    | 12     |
+| ~~    | F14.1                                                    | Add `packages.default` buildGoModule                                     | 12     |
+| ~~    | F14.2                                                    | Derive vendorHash                                                        | 12     |
+| ~~    | F14.3                                                    | `nix build .#securitymd` green                                           | 12     |
+| ~~    | F14.4                                                    | Wire into flake check                                                    | 8      |
+| ~~    | F15.1                                                    | Prompt UX design (no git remote)                                         | 12     |
+| ~~    | F15.2                                                    | Wire org/repo prompts into setup                                         | 12     |
+| ~~    | F15.3                                                    | TTY detection + non-interactive fallback                                 | 12     |
+| ~~    | F15.4                                                    | Tests for both paths                                                     | 12     |
+| ~~    | F15.5                                                    | Docs                                                                     | 10     |
+| ~~    | F16.1                                                    | `--force` flag with backup-file write                                    | 12     |
+| ~~    | F16.2                                                    | Tests: refuse-by-default + force-path + backup exists                    | 12     |
+| ~~    | F16.3                                                    | Docs                                                                     | 10     |
+| ~~    | F17.1                                                    | Location option (root/.github/docs)                                      | 12     |
+| ~~    | F17.2                                                    | Candidate-order override + tests                                         | 12     |
+| ~~    | F17.3                                                    | Docs                                                                     | 10     |
+| ~~    | F18.1                                                    | Lars decision: metadata.yaml tags                                        | 5      |
+| ~~    | F18.2                                                    | Apply tags                                                               | 5      |
+| ~~    | F18.3                                                    | Regenerate own SECURITY.md + self-validate                               | 12     |
+| ~~    | F19.1                                                    | Load website-launch skill + scaffold                                     | 12     |
+| ~~    | F19.2                                                    | Site structure + content outline                                         | 12     |
+| ~~    | F19.3                                                    | Landing page copy (demo video centerpiece)                               | 12     |
+| ~~    | F19.4                                                    | Docs pages (rules, exit codes, BuildFlow)                                | 12     |
+| ~~    | F19.5                                                    | Render demo video (HyperFrames)                                          | 12     |
+| ~~    | F19.6                                                    | Firebase deploy + DNS                                                    | 12     |
+| ~~    | F19.7                                                    | Verify live + fix                                                        | 12     |
+| ~~    | F20.1                                                    | Action scaffold (repo securitymd-action)                                 | 12     |
+| ~~    | F20.2                                                    | Container/wrapper build                                                  | 12     |
+| ~~    | F20.3                                                    | Inputs/outputs definition                                                | 12     |
+| ~~    | F20.4                                                    | SARIF upload step                                                        | 12     |
+| ~~    | F20.5                                                    | Self-test workflow                                                       | 12     |
+| ~~    | F20.6                                                    | Marketplace listing                                                      | 12     |
+| ~~    | F21.1                                                    | Evaluate markdown parser (goldmark)                                      | 12     |
+| ~~    | F21.2                                                    | Heading/table extraction layer                                           | 12     |
+| ~~    | F21.3                                                    | Port layer (part 1)                                                      | 12     |
+| ~~    | F21.4                                                    | Port layer (part 2)                                                      | 12     |
+| ~~    | F21.5                                                    | Port 3 highest-FP rules                                                  | 12     |
+| ~~    | F21.6                                                    | Parity tests old-vs-new                                                  | 12     |
+| ~~    | F22.1                                                    | exhaustruct anchored-patterns note upstream                              | 12     |
+| ~~    | F22.2                                                    | `SaveBytes` proposal to linter-autoconfigure-sdk                         | 12     |
+| ~~    | F22.3                                                    | crush-config lessons.md: "nix FOD ignores local replaces"                | 12     |
+| ~~    | F22.4                                                    | nix-private-go-repos skill: gotools/goimports gotcha                     | 12     |
+| ~~    | F23.1                                                    | Baseline/ratchet spike + verdict                                         | 12     |
+| ~~    | F23.2                                                    | Localization feasibility verdict                                         | 12     |
+| ~~    | F23.3                                                    | golangci-plugin distribution verdict                                     | 12     |
+| ~~    | F23.4                                                    | Record verdicts in ROADMAP                                               | 10     |
+| ~~    | F24.1                                                    | Docs-health fleet gate design                                            | 12     |
+| ~~    | F24.2                                                    | Implement minimal check (un-annotated archives + TODO/CHANGELOG overlap) | 12     |
+| ~~    | F24.3                                                    | Wire into cron/fleet                                                     | 12     |
+| ~~    | F24.4                                                    | docs/reviews convention decision (Lars)                                  | 5      |
+| ~~    | F24.5                                                    | Document convention in AGENTS                                            | 10     |
 
 ---
 

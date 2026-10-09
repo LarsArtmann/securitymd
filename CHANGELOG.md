@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Docs-health AUDIT pass (2026-10-09 evening): post-rebuild status/planning reports fully annotated (599 inline verdicts citing carrying commits) and archived under per-directory `archived/` homes with bulk-archive manifests; the docs-gate now scans all three archive homes (`docs/archive/pre-rebuild/`, `docs/status/archived/`, `docs/planning/archived/`); FEATURES row 11 table repaired (unescaped pipes had truncated the row); TODO_LIST synced with the local directory rename and BuildFlow's vendoring retirement; ROADMAP gained the hardening next-list harvest (fuzz severity parser, property fuzz, CLI JSON golden, coverage ratchet, golangci CI leg, sweep `--json`, gosec overlap audit, resolver-column refactor, re-survey cadence)
+
 - Suppression comments (`securitymd:ignore(rule) reason`): matched findings stay visible but exit-neutral; unknown rules or missing reasons are errors
 - Per-rule severity overrides: `validate --set-severity rule=level` and the provider tool option `severity-overrides` (`missing-file=warning` is the incremental-fleet-adoption unblocker)
 - `setup --force`: regenerates an existing policy in place after writing a timestamped `SECURITY.md.<timestamp>.bak` (refuse-by-default unchanged without it)

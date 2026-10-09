@@ -94,7 +94,7 @@ Two inaccurate claims were written into living docs mid-session (AGENTS flake-ch
 **P0 — close out this session**
 
 1. Verify the daemon committed the 5 modified living docs; re-run the per-file `~~` gate + `check-rows` once more post-commit.
-~~2. Confirm `866544a`-range renames survived intact on the next `git log`-based audit (0-line diffs = pure renames).~~ done at 866544a
+   ~~2. Confirm `866544a`-range renames survived intact on the next `git log`-based audit (0-line diffs = pure renames).~~ done at 866544a
 
 **P1 — standing, needs Lars or next repo session**
 
