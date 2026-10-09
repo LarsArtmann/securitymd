@@ -17,19 +17,26 @@ golangci-lint run --timeout 5m     # 90+ linters; must stay at 0 issues
 go build -o bin/securitymd ./cmd/securitymd   # binary
 ```
 
-Quality gate is BuildFlow (`buildflow` / `buildflow --fix`); do not hand-write lint/format scripts. `flake.nix` provides devshells only (no package output yet).
+Quality gate is BuildFlow (`buildflow` / `buildflow --fix`); do not hand-write lint/format scripts. `flake.nix` also provides `packages.<system>.securitymd` (sandboxed binary, `nix run .#securitymd`) and the docs gate:
+
+```bash
+nix run .#docs-gate        # docs integrity: un-annotated archives + dangling docs/ refs (also a flake check)
+nix flake check            # includes docs-gate + format + the package build
+```
 
 ## Architecture
 
 ```
-pkg/policy/            # core: validate.go, generate.go, detect.go, project.go, template.md (go:embed)
-pkg/provider/          # toolsdk self-registration (Spec with Detect + Repair, contact-email option)
+pkg/policy/            # core: validate.go, generate.go, detect.go, suppress.go, severity.go, project.go, template.md (go:embed)
+pkg/provider/          # toolsdk self-registration (Spec with Detect + Repair, contact-email + severity-overrides options)
 cmd/securitymd/        # cobra CLI: validate, setup, status
+pkg/policy/testdata/   # SARIF/JSON goldens (refresh: go test ./pkg/policy -run TestReport_golden -update)
 test/acceptance/       # Ginkgo BDD specs
 ```
 
 - **Detect**: WorkingDir from ctx → first existing of `SECURITY.md`, `.github/SECURITY.md`, `docs/SECURITY.md` → missing-file finding (severity error, FixStrategyDirect with rendered AfterCode when git identity derivable) or `Validate()`
-- **Repair**: `Generate()` — create-only, **never overwrites a human-written policy**; skip-with-reason when org/repo not derivable from `git remote origin`; dry-run aware
+- **Repair**: `Generate()` — create-only, **never overwrites a human-written policy** (`--force` regenerates in place with a timestamped `.bak`); skip-with-reason when org/repo not derivable; dry-run aware; `--location root|.github|docs` picks the canonical write target and `validate --location` reorders candidate detection
+- Interactive `setup`: prompts for org/repo ONLY when stdin is a TTY and no remote/flags provide identity — never in CI (piped stdin stays non-interactive, pinned by test)
 - **Template**: embedded via `go:embed` (`pkg/policy/template.md`). Dogfood invariant is pinned by a test: the rendered template must pass its own validator
 - **Contact default**: GitHub advisory link always; email only when explicitly provided (CLI `--email` / provider `contact-email` option). Deliberate — no fabricated `security@domain` addresses. Changing this fleet-wide is a Lars decision, not a code change
 - Stable kebab rule IDs (`missing-file`, `missing-header`, `unresolved-template`, …) — suppressions and configs key on them
@@ -52,10 +59,11 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 
 ## Testing patterns
 
-- Unit: `pkg/**/*_test.go`, testify, table-driven, `t.Parallel()`
-- Provider tests: full detect → repair → verify loop in a real temp git repo (`testhelpers_test.go` isolates git env)
+- Unit: `pkg/**/*_test.go`, testify, table-driven, `t.Parallel()`; SARIF/JSON goldens in `pkg/policy/testdata/golden/` (path entropy normalized; refresh with `-update` when the output contract intentionally changes)
+- Fuzz: `FuzzParseGitRemote` in `pkg/policy/project_fuzz_test.go` — run `go test ./pkg/policy -run '^$' -fuzz FuzzParseGitRemote -fuzztime 45s`
+- Provider tests: full detect → repair → verify loop in a real temp git repo (`testhelpers_test.go` isolates git env; `version_cache_test.go` git fixtures need explicit author env vars to stay hermetic in the nix FOD)
 - BDD: Ginkgo `Describe/It/By` in `test/acceptance/`
-- `cmd/` has no tests (excluded from lint paths too); behavior is covered via provider + acceptance tests
+- `cmd/` prompt helpers are unit-tested (`prompt_test.go`); cobra wiring itself covered via provider + acceptance tests
 
 ## Conventions
 

@@ -8,9 +8,11 @@ A CLI tool and [BuildFlow](https://github.com/LarsArtmann/BuildFlow) provider th
 
 - **Validate** existing SECURITY.md files against GitHub's expected sections
 - **Generate** new SECURITY.md files from an embedded canonical template
-- **Never overwrites** an existing policy — generation is additive only
+- **Never overwrites** an existing policy — generation is additive only (`--force` regenerates in place with a timestamped backup)
+- **Suppressions and severity overrides** — `securitymd:ignore(rule) reason` comments and `--set-severity rule=level` keep CI green while findings stay visible
+- **Interactive when human, silent when CI** — `setup` prompts for org/repo only on a real terminal
 - **BuildFlow provider** via [go-finding toolsdk](https://github.com/larsartmann/go-finding): detect → repair → verify as a first-class DAG tool
-- **go-finding findings** with stable rule IDs, SARIF/JSON output, fix strategies
+- **go-finding findings** with stable rule IDs, SARIF/JSON output (contract pinned by golden tests), fix strategies
 
 ## 🚀 Quick Start
 
@@ -26,6 +28,16 @@ securitymd setup
 
 # Generate with explicit identity and contact email
 securitymd setup --organization AcmeCorp --repository widget --email security@acme.com
+
+# Canonical location (.github/ or docs/) instead of the repo root
+securitymd setup --location docs
+securitymd validate --location docs
+
+# Refresh a policy you own (writes SECURITY.md.<timestamp>.bak first)
+securitymd setup --force
+
+# Downgrade the adoption blocker for fleets with many unmanaged repos
+securitymd validate --set-severity missing-file=warning
 
 # Show compliance status
 securitymd status
@@ -45,6 +57,7 @@ Per-repo contact override:
 tool_options:
   securitymd:
     contact-email: security@example.com
+    severity-overrides: missing-file=warning
 ```
 
 ## ✅ What We Validate
@@ -73,6 +86,12 @@ Discovery order: `SECURITY.md`, `.github/SECURITY.md`, `docs/SECURITY.md`.
 | `no-version-info`       | No version information anywhere         |
 
 Exit codes: `0` clean · `1` error-severity findings · `2` operational failure.
+
+False positives? Add a suppression comment in the policy (findings stay visible, exit turns neutral):
+
+```markdown
+<!-- securitymd:ignore(no-version-info) bootstrap stage, filled next sprint -->
+```
 
 ## Generation
 
