@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 	"github.com/LarsArtmann/securitymd/pkg/policy"
 	"github.com/fatih/color"
 	finding "github.com/larsartmann/go-finding"
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -23,47 +24,48 @@ const (
 // code 1 means "findings", not "crash".
 var errPolicyFindings = errors.New("SECURITY.md validation failed: error-severity findings remain (see above)")
 
-var (
-	outputFormat     string
-	minimumSeverity  string
-	severitySpecs    []string
-	validateLocation string
-)
+// validateFlags carries everything `securitymd validate` accepts. cmdguard
+// parses the struct tags into pflag definitions at construction, so a typo
+// in a tag fails at startup instead of at first use.
+type validateFlags struct {
+	File            string   `flag:"file"                       help:"Validate a specific policy file instead of discovering it"`
+	Format          string   `flag:"format" default:"text"      help:"Output format (text, json, sarif)" values:"text,json,sarif"`
+	MinimumSeverity string   `flag:"severity" default:"info"    help:"Minimum severity to report (info, warning, error, critical)" values:"info,warning,error,critical"`
+	SetSeverity     []string `flag:"set-severity"               help:"Override a rule's severity, rule=level (repeatable, e.g. --set-severity missing-file=warning)"`
+	Location        string   `flag:"location" default:"root"    help:"Preferred canonical policy location (root, .github, docs)"`
+}
 
-func newValidateCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "validate",
-		Short: "Validate security policy",
-		Long: `Validate the repository's SECURITY.md for completeness and compliance.
+func registerValidateCmd(cli *cmdguard.CLI[appConfig]) error {
+	cmd, err := cmdguard.NewCommand(
+		"validate",
+		validateFlags{},
+		runValidate,
+		cmdguard.WithShort("Validate security policy"),
+		cmdguard.WithLong(`Validate the repository's SECURITY.md for completeness and compliance.
 
 Checks the candidate locations (SECURITY.md, .github/SECURITY.md,
 docs/SECURITY.md); a missing file is itself an error finding. Exits 1 when
-error-severity findings remain.`,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			overrides, err := parseSeverityFlag(severitySpecs)
-			if err != nil {
-				return err
-			}
-
-			file, _ := cmd.Flags().GetString("file")
-			if file != "" {
-				return validateFile(cmd, file, overrides)
-			}
-
-			return validateRepo(cmd, overrides)
-		},
+error-severity findings remain.`),
+		cmdguard.WithNoArgs(),
+	)
+	if err != nil {
+		return fmt.Errorf("building validate command: %w", err)
 	}
 
-	cmd.Flags().String("file", "", "Validate a specific policy file instead of discovering it")
-	cmd.Flags().StringVar(&outputFormat, "format", outputFormatText, "Output format (text, json, sarif)")
-	cmd.Flags().
-		StringVar(&minimumSeverity, "severity", "info", "Minimum severity to report (info, warning, error, critical)")
-	cmd.Flags().StringSliceVar(&severitySpecs, "set-severity", nil,
-		"Override a rule's severity, rule=level (repeatable, e.g. --set-severity missing-file=warning)")
-	cmd.Flags().StringVar(&validateLocation, "location", policy.LocationRoot,
-		"Preferred canonical policy location (root, .github, docs)")
+	return cmdguard.AddCommand(cli, cmd)
+}
 
-	return cmd
+func runValidate(ctx context.Context, _ *appConfig, flags validateFlags) error {
+	overrides, err := parseSeverityFlag(flags.SetSeverity)
+	if err != nil {
+		return err
+	}
+
+	if flags.File != "" {
+		return validateFile(ctx, flags.File, overrides, flags)
+	}
+
+	return validateRepo(ctx, overrides, flags)
 }
 
 func parseSeverityFlag(specs []string) (policy.SeverityOverrides, error) {
@@ -75,27 +77,27 @@ func parseSeverityFlag(specs []string) (policy.SeverityOverrides, error) {
 	return overrides, nil
 }
 
-func validateFile(cmd *cobra.Command, filename string, overrides policy.SeverityOverrides) error {
+func validateFile(ctx context.Context, filename string, overrides policy.SeverityOverrides, flags validateFlags) error {
 	findings, err := policy.Validate(filename)
 	if err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	return outputFindings(cmd, buildReport(findings, overrides))
+	return outputFindings(ctx, buildReport(findings, overrides), flags)
 }
 
-func validateRepo(cmd *cobra.Command, overrides policy.SeverityOverrides) error {
-	candidates, err := policy.OrderedCandidates(validateLocation)
+func validateRepo(ctx context.Context, overrides policy.SeverityOverrides, flags validateFlags) error {
+	candidates, err := policy.OrderedCandidates(flags.Location)
 	if err != nil {
 		return fmt.Errorf("invalid --location: %w", err)
 	}
 
-	findings, err := policy.DetectIn(cmd.Context(), candidates)
+	findings, err := policy.DetectIn(ctx, candidates)
 	if err != nil {
 		return fmt.Errorf("detection failed: %w", err)
 	}
 
-	return outputFindings(cmd, buildReport(findings, overrides))
+	return outputFindings(ctx, buildReport(findings, overrides), flags)
 }
 
 // buildReport applies severity overrides and aggregates the findings; the
@@ -108,19 +110,19 @@ func buildReport(findings []finding.Finding, overrides policy.SeverityOverrides)
 	return report
 }
 
-func outputFindings(cmd *cobra.Command, report *finding.Report) error {
+func outputFindings(ctx context.Context, report *finding.Report, flags validateFlags) error {
 	findings := report.FindingsSnapshot()
 
-	switch outputFormat {
+	switch flags.Format {
 	case outputFormatJSON:
 		if err := report.WriteJSON(os.Stdout); err != nil {
 			return fmt.Errorf("write JSON report: %w", err)
 		}
 	case outputFormatSarif:
 		if err := report.WriteSARIFWithOpts(
-			cmd.Context(),
+			ctx,
 			os.Stdout,
-			finding.WithMinSeverity(parseSeverity(minimumSeverity)),
+			finding.WithMinSeverity(parseSeverity(flags.MinimumSeverity)),
 		); err != nil {
 			return fmt.Errorf("write SARIF report: %w", err)
 		}

@@ -2,11 +2,12 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 )
 
 // Exit codes per README's contract: findings are the policy failing, not the
@@ -23,29 +24,55 @@ var (
 	date    = "unknown"
 )
 
+// appConfig carries no global settings today; every knob is a per-command
+// flag. It exists as cmdguard's typed config slot so fleet-standard CLI
+// plumbing (DI scope, validation, lifecycle) has a place to grow into.
+type appConfig struct{}
+
 func main() {
-	rootCmd := &cobra.Command{
-		Use:   "securitymd",
-		Short: "Validate and generate SECURITY.md files",
-		Long: `securitymd validates and generates SECURITY.md files.
+	cli, err := cmdguard.NewCLI[appConfig](
+		"securitymd",
+		"Validate and generate SECURITY.md files",
+		appConfig{},
+		cmdguard.WithCLILong(`securitymd validates and generates SECURITY.md files.
 
 Detects a missing policy, checks an existing one for the sections GitHub
 expects (vulnerability reporting, supported versions, security practices,
 contact channel, response commitments), and generates a compliant policy
-from the embedded template — never overwriting an existing file.`,
-		Version:           fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date),
-		DisableAutoGenTag: true,
-		SilenceUsage:      true,
+from the embedded template — never overwriting an existing file.`),
+		cmdguard.WithCLIVersion(fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date)),
+		cmdguard.WithSignalHandling(),
+		cmdguard.WithMiddleware[appConfig](cmdguard.RecoveryMiddleware[appConfig]()),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(exitOperational)
 	}
 
-	rootCmd.AddCommand(newSetupCmd())
-	rootCmd.AddCommand(newValidateCmd())
-	rootCmd.AddCommand(newStatusCmd())
-
-	if err := rootCmd.Execute(); err != nil {
+	if err := registerCommands(cli); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(exitOperational)
+	}
+
+	// cmdguard prints every execution error exactly once (styled on a TTY,
+	// plain when piped); the returned error exists for exit-code mapping only.
+	if err := cli.Execute(context.Background()); err != nil {
 		os.Exit(exitCodeFor(err))
 	}
+}
+
+func registerCommands(cli *cmdguard.CLI[appConfig]) error {
+	for _, register := range []func(*cmdguard.CLI[appConfig]) error{
+		registerSetupCmd,
+		registerValidateCmd,
+		registerStatusCmd,
+	} {
+		if err := register(cli); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // exitCodeFor implements the documented contract: error-severity findings

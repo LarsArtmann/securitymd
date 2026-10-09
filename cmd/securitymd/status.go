@@ -1,40 +1,45 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
+
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 
 	"github.com/LarsArtmann/securitymd/pkg/policy"
 	"github.com/fatih/color"
 	finding "github.com/larsartmann/go-finding"
-	"github.com/spf13/cobra"
 )
 
-var statusLocation string
-
-func newStatusCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "status",
-		Short: "Show security policy status",
-		Long:  `Show where the repository's SECURITY.md lives and how compliant it is.`,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runStatus(cmd)
-		},
-	}
-
-	cmd.Flags().StringVar(&statusLocation, "location", policy.LocationRoot,
-		"Preferred canonical policy location (root, .github, docs)")
-
-	return cmd
+// statusFlags carries everything `securitymd status` accepts.
+type statusFlags struct {
+	Location string `flag:"location" default:"root" help:"Preferred canonical policy location (root, .github, docs)"`
 }
 
-func runStatus(cmd *cobra.Command) error {
-	candidates, err := policy.OrderedCandidates(statusLocation)
+func registerStatusCmd(cli *cmdguard.CLI[appConfig]) error {
+	cmd, err := cmdguard.NewCommand(
+		"status",
+		statusFlags{},
+		runStatus,
+		cmdguard.WithShort("Show security policy status"),
+		cmdguard.WithLong(`Show where the repository's SECURITY.md lives and how compliant it is.`),
+		cmdguard.WithNoArgs(),
+	)
+	if err != nil {
+		return fmt.Errorf("building status command: %w", err)
+	}
+
+	return cmdguard.AddCommand(cli, cmd)
+}
+
+func runStatus(ctx context.Context, _ *appConfig, flags statusFlags) error {
+	candidates, err := policy.OrderedCandidates(flags.Location)
 	if err != nil {
 		return fmt.Errorf("invalid --location: %w", err)
 	}
 
-	report, err := policy.ReportIn(cmd.Context(), candidates)
+	report, err := policy.ReportIn(ctx, candidates)
 	if err != nil {
 		return fmt.Errorf("status failed: %w", err)
 	}
