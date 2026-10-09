@@ -10,8 +10,7 @@ import (
 	"testing"
 
 	finding "github.com/larsartmann/go-finding"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 // readmeRuleRow matches a rule-table row's leading `rule-id` cell.
@@ -39,7 +38,8 @@ func readmeDocumentedSeverities(t *testing.T, path string) map[finding.RuleName]
 	t.Helper()
 
 	content, err := os.ReadFile(path)
-	require.NoError(t, err, "README must stay readable from the drift guard")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred(),
+		"README must stay readable from the drift guard")
 
 	documented := make(map[finding.RuleName]finding.Severity)
 	section := ""
@@ -94,13 +94,14 @@ func ruleTableDrift(code, documented map[finding.RuleName]finding.Severity) stri
 // exit-2-class failure mode where docs describe a tool that no longer exists.
 func TestREADME_rule_tables_match_code(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	documented := readmeDocumentedSeverities(t, filepath.Join("..", "..", "README.md"))
 
-	require.NotEmpty(t, documented, "the README rule tables must be found")
+	g.Expect(documented).NotTo(gomega.BeEmpty(), "the README rule tables must be found")
 
-	assert.Empty(t, ruleTableDrift(codeRuleSeverities(), documented),
-		"README rule tables and code severity tables have drifted; "+
+	g.Expect(ruleTableDrift(codeRuleSeverities(), documented)).
+		To(gomega.BeEmpty(), "README rule tables and code severity tables have drifted; "+
 			"update README.md and the rule tables together")
 }
 
@@ -110,6 +111,7 @@ func TestREADME_rule_tables_match_code(t *testing.T) {
 // green forever while docs drift.
 func TestREADME_drift_guard_red_run(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	code := codeRuleSeverities()
 
@@ -120,13 +122,13 @@ func TestREADME_drift_guard_red_run(t *testing.T) {
 		"`missing-contact-typo`",
 		1,
 	)
-	require.NotEqual(t, readmeContent(t), mutated, "the mutation must change the README")
+	g.Expect(mutated).NotTo(gomega.Equal(readmeContent(t)), "the mutation must change the README")
 
 	mutatedPath := filepath.Join(t.TempDir(), "README.md")
-	require.NoError(t, os.WriteFile(mutatedPath, []byte(mutated), 0o600))
+	g.Expect(os.WriteFile(mutatedPath, []byte(mutated), 0o600)).To(gomega.Succeed())
 
 	drift := ruleTableDrift(code, readmeDocumentedSeverities(t, mutatedPath))
-	assert.Contains(t, drift, "missing-contact",
+	g.Expect(drift).To(gomega.ContainSubstring("missing-contact"),
 		"a renamed rule id must be reported as drift")
 
 	// Comparator: a re-severitied rule must be reported even when every ID
@@ -135,7 +137,7 @@ func TestREADME_drift_guard_red_run(t *testing.T) {
 	flipped["missing-response-time"] = finding.SeverityError
 
 	drift = ruleTableDrift(code, flipped)
-	assert.Contains(t, drift, "missing-response-time",
+	g.Expect(drift).To(gomega.ContainSubstring("missing-response-time"),
 		"a severity flip must be reported as drift")
 }
 
@@ -144,15 +146,17 @@ func readmeContent(t *testing.T) string {
 	t.Helper()
 
 	content, err := os.ReadFile(filepath.Join("..", "..", "README.md"))
-	require.NoError(t, err, "README.md must stay readable from the drift guard")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred(),
+		"README.md must stay readable from the drift guard")
 
 	return string(content)
 }
 
 func TestKnownRuleIDs_matches_severity_table_keys(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
-	assert.ElementsMatch(t, KnownRuleIDs(), mapKeys(codeRuleSeverities()),
+	g.Expect(KnownRuleIDs()).To(gomega.ConsistOf(mapKeys(codeRuleSeverities())),
 		"the severity table must cover exactly the emittable rules")
 }
 

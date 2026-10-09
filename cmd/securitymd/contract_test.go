@@ -7,8 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 // TestMain re-executes the compiled test binary as the real CLI: the child
@@ -31,7 +30,9 @@ func repoWithPolicy(t *testing.T, content string) string {
 
 	dir := t.TempDir()
 	if content != "" {
-		require.NoError(t, os.WriteFile(filepath.Join(dir, "SECURITY.md"), []byte(content), 0o600))
+		gomega.NewWithT(t).Expect(
+			os.WriteFile(filepath.Join(dir, "SECURITY.md"), []byte(content), 0o600),
+		).To(gomega.Succeed())
 	}
 
 	return dir
@@ -44,7 +45,8 @@ func fixturePolicy(t *testing.T, name string) string {
 	t.Helper()
 
 	content, err := os.ReadFile(filepath.Join("..", "..", "pkg", "policy", "testdata", "policy", name))
-	require.NoError(t, err, "policy fixture %s missing", name)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred(),
+		"policy fixture %s missing", name)
 
 	return string(content)
 }
@@ -122,7 +124,7 @@ func runCLIWithEnv(t *testing.T, dir string, extraEnv []string, args ...string) 
 	if exitErr, ok := err.(*exec.ExitError); ok {
 		exitCode = exitErr.ExitCode()
 	} else {
-		require.NoError(t, err)
+		gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
 	}
 
 	return exitCode, string(output)
@@ -130,19 +132,22 @@ func runCLIWithEnv(t *testing.T, dir string, extraEnv []string, args ...string) 
 
 // TestCLI_piped_output_is_ansi_free pins what CI actually consumes: colored
 // output piped into a log collector must carry no ANSI escape sequences
-// (fatih/color disables color on non-TTY stdout and for NO_COLOR/TERM=dumb —
+// (fatih/color disables color on non-TTY stdout and for NO_COLOR/TERM=dumb,
+// and cmdguard's fang rendering degrades to plain text the same way —
 // the subprocess's pipe exercises the non-TTY branch CI depends on).
 func TestCLI_piped_output_is_ansi_free(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := repoWithPolicy(t, fixturePolicy(t, "flawed.md"))
 
 	exitCode, output := runCLIWithEnv(t, dir, []string{"NO_COLOR=1"}, "validate")
 
-	require.Equal(t, exitFindings, exitCode)
-	assert.NotContains(t, output, "\x1b[",
+	g.Expect(exitCode).To(gomega.Equal(exitFindings))
+	g.Expect(output).NotTo(gomega.ContainSubstring("\x1b["),
 		"piped output must be free of ANSI escape sequences")
-	assert.Contains(t, output, "missing-contact", "findings must still render")
+	g.Expect(output).To(gomega.ContainSubstring("missing-contact"),
+		"findings must still render")
 }
 
 // TestCLI_exit_code_contract pins README.md:88 — `0` clean · `1`
@@ -274,6 +279,8 @@ func TestCLI_exit_code_contract(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
+			g := gomega.NewWithT(t)
+
 			policyContent := ""
 			if test.policy != nil {
 				policyContent = test.policy(t)
@@ -283,13 +290,13 @@ func TestCLI_exit_code_contract(t *testing.T) {
 
 			exitCode, output := runCLI(t, dir, test.args...)
 
-			assert.Equal(t, test.wantExit, exitCode,
+			g.Expect(exitCode).To(gomega.Equal(test.wantExit),
 				"exit code must match the documented contract")
 			for _, want := range test.wantOut {
-				assert.Contains(t, output, want)
+				g.Expect(output).To(gomega.ContainSubstring(want))
 			}
 			for _, notWant := range test.notWantOut {
-				assert.NotContains(t, output, notWant)
+				g.Expect(output).NotTo(gomega.ContainSubstring(notWant))
 			}
 		})
 	}

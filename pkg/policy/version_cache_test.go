@@ -5,8 +5,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 // runGitIsolated runs git with fleet config neutralized so tests never see
@@ -25,7 +24,7 @@ func runGitIsolated(t *testing.T, dir string, args ...string) {
 	)
 
 	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, "git %v: %s", args, out)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred(), "git %v: %s", args, out)
 }
 
 // TestLookupLatestTag_caches_per_directory proves the memoization
@@ -35,6 +34,7 @@ func runGitIsolated(t *testing.T, dir string, args ...string) {
 // t.Parallel anyway.
 func TestLookupLatestTag_caches_per_directory(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	repo := t.TempDir()
 	runGitIsolated(t, repo, "init")
@@ -43,49 +43,52 @@ func TestLookupLatestTag_caches_per_directory(t *testing.T) {
 
 	ctx := t.Context()
 
-	require.Equal(t, "v9.9.9", lookupLatestTag(ctx, repo), "first lookup reads git")
+	g.Expect(lookupLatestTag(ctx, repo)).To(gomega.Equal("v9.9.9"), "first lookup reads git")
 
 	runGitIsolated(t, repo, "tag", "-d", "v9.9.9")
 
-	assert.Equal(t, "v9.9.9", lookupLatestTag(ctx, repo),
+	g.Expect(lookupLatestTag(ctx, repo)).To(gomega.Equal("v9.9.9"),
 		"second lookup must hit the cache, not re-run git describe")
 
 	untagged := t.TempDir()
 	runGitIsolated(t, untagged, "init")
 	runGitIsolated(t, untagged, "commit", "--allow-empty", "-m", "init")
 
-	assert.Empty(t, lookupLatestTag(ctx, untagged),
+	g.Expect(lookupLatestTag(ctx, untagged)).To(gomega.BeEmpty(),
 		"a different directory must not inherit another directory's cache entry")
 }
 
 func TestVersionCell_falls_back_to_placeholder(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	untagged := t.TempDir()
 	runGitIsolated(t, untagged, "init")
 	runGitIsolated(t, untagged, "commit", "--allow-empty", "-m", "init")
 
-	assert.Equal(t, "Latest release", versionCell(t.Context(), untagged))
+	g.Expect(versionCell(t.Context(), untagged)).To(gomega.Equal("Latest release"))
 }
 
 func TestVersionCell_caches_empty_result_for_tagless_repo(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	untagged := t.TempDir()
 	runGitIsolated(t, untagged, "init")
 	runGitIsolated(t, untagged, "commit", "--allow-empty", "-m", "init")
 
 	ctx := t.Context()
-	require.Equal(t, "Latest release", versionCell(ctx, untagged))
+	g.Expect(versionCell(ctx, untagged)).To(gomega.Equal("Latest release"))
 
 	runGitIsolated(t, untagged, "tag", "v1.0.0")
 
-	assert.Equal(t, "Latest release", versionCell(ctx, untagged),
+	g.Expect(versionCell(ctx, untagged)).To(gomega.Equal("Latest release"),
 		"the tagless cache entry must hold: repeated renders stay stable within a process")
 }
 
 func TestGenerate_uses_latest_tag_in_version_cell(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	repo := t.TempDir()
 	runGitIsolated(t, repo, "init")
@@ -97,11 +100,11 @@ func TestGenerate_uses_latest_tag_in_version_cell(t *testing.T) {
 		Organization: "AcmeCorp",
 		Repository:   "widget",
 	})
-	require.NoError(t, err)
-	require.True(t, result.Wrote)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(result.Wrote).To(gomega.BeTrue())
 
 	content, err := os.ReadFile(result.Path)
-	require.NoError(t, err)
-	assert.Contains(t, string(content), "v3.2.1",
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(content).To(gomega.ContainSubstring("v3.2.1"),
 		"the version cell must carry the repo's latest tag")
 }
