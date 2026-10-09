@@ -32,4 +32,4 @@ _Audit: 2026-10-09, post-rebuild (module `github.com/LarsArtmann/securitymd`). E
 | 17 | CLI unit tests                   | FULLY_FUNCTIONAL | prompt helpers + 16-scenario exit-code contract test (`cmd/securitymd/contract_test.go`); cobra wiring also covered via acceptance/provider |
 | 18 | Nix package output               | FULLY_FUNCTIONAL | none — `packages.<system>.securitymd` builds sandboxed (Go 1.27 pinned, git fixture tests pass in FOD)                                      |
 | 19 | Docs-integrity gate              | FULLY_FUNCTIONAL | none — `nix run .#docs-gate` (un-annotated archives + dangling refs), wired into `nix flake check` and CI                                   |
-| 20 | Published module                 | MISSING          | Not on GitHub yet — `go install …@latest` impossible (runbook staged in `docs/planning/2026-10-09_16-34_publish-runbook.md`)                |
+| 20 | Published module                 | PARTIALLY_FUNCTIONAL | Repo renamed (`LarsArtmann/securitymd`) + pushed + tagged `v1.0.0` 2026-10-09; still PRIVATE, so `go install …@latest`/pkg.go.dev wait on the GitHub visibility flip (Lars) |

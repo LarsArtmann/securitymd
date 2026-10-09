@@ -5,16 +5,16 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 ## Direction
 
 - Stay a single-purpose, single-binary tool in the go-finding family; BuildFlow is the primary consumer, the CLI the manual escape hatch
-- Publish as open source (see TODO_LIST publish checklist) — fills a real gap: **verified 2026-10-09** that no dedicated SECURITY.md validator/linter CLI exists in OSS (survey: `docs/status/2026-10-09_15-57_oss-landscape-survey.md`); closest neighbor is OpenSSF Scorecard's heuristic Security-Policy scoring, so claims say "first dedicated validator CLI", never "first to validate policy content"
+- Publish as open source — repo renamed + pushed + tagged `v1.0.0` 2026-10-09; repo is still PRIVATE, so the remaining button is the GitHub visibility flip (Lars), after which the module proxy/pkg.go.dev resolve. Fills a real gap: **verified 2026-10-09** that no dedicated SECURITY.md validator/linter CLI exists in OSS (survey: `docs/status/2026-10-09_15-57_oss-landscape-survey.md`); closest neighbor is OpenSSF Scorecard's heuristic Security-Policy scoring, so claims say "first dedicated validator CLI", never "first to validate policy content"
 
 ## Raw ideas
 
 ### Promoted from the 2026-10-09 execution report (section f, long tail)
 
 - `validate --repair`: detect + generate one-shot for CLI users
-- Suppression expiry: `securitymd:ignore(rule) until YYYY-MM-DD reason` via go-finding's time model — gated on Lars's yes/no (grammar change + golden refresh)
+- ~~Suppression expiry: `securitymd:ignore(rule) until YYYY-MM-DD reason` via go-finding's time model — gated on Lars's yes/no (grammar change + golden refresh)~~ DONE 2026-10-09: shipped with full-day grant semantics, goldens, and contract scenarios
 - Provider `location` toolsdk option so BuildFlow repos pick `.github`/`docs` canonically
-- `--no-color` / `NO_COLOR` confirmation and docs; shell completions + man pages (cobra built-ins)
+- ~~`--no-color` / `NO_COLOR` confirmation and docs~~ DONE 2026-10-09: verified at source (fatih/color honors NO_COLOR/TERM=dumb/non-TTY) and pinned by an ANSI-free contract scenario; shell completions + man pages (cobra built-ins) still open
 - Windows CI leg (`.bak` timestamp format is already colon-free; verify the rest)
 - Benchmarks: `Detect` on a large repo — perf baseline before structure-aware validation
 - `securitymd list-rules`: machine-readable rule metadata for CI config UIs
@@ -23,7 +23,7 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 - SARIF `automationDetails`/run metadata embedding repo identity — go-finding upstream discussion first
 - Version stamp: flake package should stamp the git rev, not the static `0.1.0-dev`
 - Pre-commit hook recipe in README (validate on commit)
-- Naming audit: `--severity` (SARIF floor) vs `--set-severity` (override) confusion — rename or alias
+- ~~Naming audit: `--severity` (SARIF floor) vs `--set-severity` (override) confusion — rename or alias~~ RESOLVED 2026-10-09: keep both — BuildFlow's provider passes `--severity=warning` (the flag is load-bearing) and the two jobs differ; README now documents the distinction
 - Verify before claiming: "config-free posture" (no config file) as an advertised feature
 - Sync `.golangci.yml` build-tags/go version with go.mod on every toolchain bump (currently tolerated skew)
 - Post-publish: nixpkgs PR packaging securitymd (the flake gives the derivation); Dependabot/renovate for fleet repos
