@@ -1,6 +1,6 @@
 # Status Report — securitymd "done DONE" publish pass
 
-_Point-in-time: 2026-10-09 18:15. Continuation of `docs/status/2026-10-09_17-24_post-hardening-execution-status.md`: this pass executed that report's open items — the three section-(g) questions decided and implemented, the publish chain executed, and two more real defects found and fixed. Format `.md` (established for this repo's reports)._
+_Point-in-time: 2026-10-09 18:15. Continuation of `docs/status/archived/2026-10-09_17-24_post-hardening-execution-status.md` (archived 2026-10-09, fully annotated): this pass executed that report's open items — the three section-(g) questions decided and implemented, the publish chain executed, and two more real defects found and fixed. Format `.md` (established for this repo's reports)._
 
 **Gate status at report time:** build ✅ · tests 4 packages, zero skips ✅ · golangci-lint 0 issues ✅ · gofumpt clean ✅ · docs-gate exit 0 ✅ · `nix flake check` all checks passed ✅ · actionlint clean ✅ · dogfood `validate` exit 0 ✅.
 

@@ -70,7 +70,12 @@
             # Gate 1: every archived status/planning doc must carry inline
             # verdict annotations (the docs-health "~~" convention) — an
             # unannotated file means the annotation sweep missed it.
-            for archived in "$repo"/docs/archive/pre-rebuild/*.md; do
+            # Scans ALL archive homes: the flat pre-rebuild archive and the
+            # per-directory archived/ subdirs (skill default, 2026-10-09).
+            for archived in \
+              "$repo"/docs/archive/pre-rebuild/*.md \
+              "$repo"/docs/status/archived/*.md \
+              "$repo"/docs/planning/archived/*.md; do
               [ -e "$archived" ] || continue
               if ! grep -q '~~' "$archived"; then
                 echo "docs-gate: unannotated archive file: $archived" >&2
