@@ -1,0 +1,14 @@
+# securitymd's pkg/ tree IS the published API: BuildFlow imports
+# pkg/provider (toolsdk self-registration) and pkg/policy (the detector
+# core) across repo boundaries. internal/ would make them unimportable —
+# the exact opposite of this repo's reason to exist (see AGENTS.md,
+# "BuildFlow integration").
+#
+# NOTE: if BuildFlow's embedded go-structure-linter snapshot ignores this
+# file (known upstream gap, see go-error-family's config), skip the step in
+# .buildflow.yml and run the CLI directly instead:
+#   go-structure-linter .
+suppressions:
+  - rule: internal-directory
+    file: pkg/
+    reason: pkg/ is the cross-repo public surface (BuildFlow toolsdk provider + detector core); internal/ would break the integration this repo exists for

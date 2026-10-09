@@ -44,6 +44,7 @@ node_modules/
 
 # Nix build output
 /result
+bin/
 
 # >>> buildflow-managed (.gitignore) >>>
 # Auto-managed by buildflow. Edit outside these markers; this block is regenerated on `buildflow --fix`.

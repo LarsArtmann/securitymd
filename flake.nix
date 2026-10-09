@@ -57,6 +57,7 @@
 
             meta = {
               description = "Validate and generate SECURITY.md files";
+              license = pkgs.lib.licenses.mit;
               mainProgram = "securitymd";
             };
           };

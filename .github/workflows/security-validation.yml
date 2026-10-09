@@ -28,7 +28,7 @@ jobs:
 
       - name: Coverage gate (80% floor)
         run: |
-          go test ./... -coverprofile=coverage.out
+          go test -race ./... -coverprofile=coverage.out
           total=$(go tool cover -func=coverage.out | awk '/^total:/ {gsub("%", "", $3); print $3}')
           echo "total coverage: ${total}%"
           awk -v cov="$total" -v floor=80.0 \
