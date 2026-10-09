@@ -1,6 +1,8 @@
 # Execution Plan — template-SECURITY Modularization
 
-_Generated: 2026-05-14 | Status: Ready for Execution_
+> **Never executed — superseded** — the 2026-10-08 securitymd rebuild (`1c55390`) delivered the end state differently (two packages, viper/pipeline dropped). Every task heading below carries its verdict inline.
+
+_Generated: 2026-05-14 | ~~Status: Ready for Execution~~ never executed_
 
 ---
 
@@ -29,7 +31,7 @@ This plan breaks the modularization into 14 ordered tasks. Each task:
 
 ## Task List
 
-### T1: Remove Dead Domain Types
+### ~~T1: Remove Dead Domain Types~~ done at 1c55390 — all types deleted
 
 **Impact:** 1% → 51% | **Effort:** 10 min | **Depends on:** Nothing
 
@@ -54,7 +56,7 @@ go vet ./...
 
 ---
 
-### T2: Create `core` Module
+### ~~T2: Create `core` Module~~ NOT-DO — never executed; superseded by the rebuild
 
 **Impact:** 1% → 51% | **Effort:** 15 min | **Depends on:** T1
 
@@ -83,7 +85,7 @@ cd /home/lars/projects/template-SECURITY && go build ./... && go test ./...
 
 ---
 
-### T3: Create `detector` Module
+### ~~T3: Create `detector` Module~~ NOT-DO — superseded: pkg/policy/project.go
 
 **Impact:** 4% → 64% | **Effort:** 15 min | **Depends on:** T2
 
@@ -110,7 +112,7 @@ go build ./... && go test ./...
 
 ---
 
-### T4: Create `validator` Module
+### ~~T4: Create `validator` Module~~ NOT-DO — superseded: pkg/policy/validate.go
 
 **Impact:** 4% → 64% | **Effort:** 20 min | **Depends on:** T2
 
@@ -152,7 +154,7 @@ go mod tidy && go build ./...
 
 ---
 
-### T5: Create `generator` Module
+### ~~T5: Create `generator` Module~~ NOT-DO — superseded: pkg/policy/generate.go
 
 **Impact:** 4% → 64% | **Effort:** 20 min | **Depends on:** T2
 
@@ -194,7 +196,7 @@ go mod tidy && go build ./...
 
 ---
 
-### T6: Remove Empty `internal/` Package
+### ~~T6: Remove Empty `internal/` Package~~ done at 1c55390 — internal/ removed wholesale
 
 **Impact:** 4% → 64% | **Effort:** 5 min | **Depends on:** T3, T4, T5
 
@@ -212,7 +214,7 @@ go build ./... && go test ./... && go vet ./...
 
 ---
 
-### T7: Create `go.work`
+### ~~T7: Create `go.work`~~ NOT-DO — single module in the rebuild
 
 **Impact:** 20% → 80% | **Effort:** 10 min | **Depends on:** T2, T3, T4, T5
 
@@ -246,7 +248,7 @@ go test ./...
 
 ---
 
-### T8: Update Root `go.mod`
+### ~~T8: Update Root `go.mod`~~ moot — go.mod rewritten by the rebuild
 
 **Impact:** 20% → 80% | **Effort:** 15 min | **Depends on:** T6, T7
 
@@ -273,7 +275,7 @@ go vet ./...
 
 ---
 
-### T9: Update CLI Imports
+### ~~T9: Update CLI Imports~~ moot — CLI rebuilt as cmd/securitymd
 
 **Impact:** 20% → 80% | **Effort:** 15 min | **Depends on:** T8
 
@@ -310,7 +312,7 @@ go test ./...
 
 ---
 
-### T10: Update Acceptance Test Imports
+### ~~T10: Update Acceptance Test Imports~~ moot — acceptance tests rewritten
 
 **Impact:** 20% → 80% | **Effort:** 10 min | **Depends on:** T8
 
@@ -336,7 +338,7 @@ go test ./test/acceptance/...
 
 ---
 
-### T11: Full Verification Pass
+### ~~T11: Full Verification Pass~~ done — the rebuild's own gate (tests green, lint 0)
 
 **Impact:** Remaining | **Effort:** 10 min | **Depends on:** T9, T10
 
@@ -366,7 +368,7 @@ All checks must pass. If any fail, fix immediately before proceeding.
 
 ---
 
-### T12: Update `.golangci.yml`
+### ~~T12: Update `.golangci.yml`~~ moot — .golangci.yml rewritten for the new layout
 
 **Impact:** Remaining | **Effort:** 10 min | **Depends on:** T11
 
@@ -384,7 +386,7 @@ golangci-lint run ./...
 
 ---
 
-### T13: Update Documentation
+### ~~T13: Update Documentation~~ done at 72085c2/4a8987a — docs pass
 
 **Impact:** Remaining | **Effort:** 15 min | **Depends on:** T11
 
@@ -406,7 +408,7 @@ go build ./... && go test ./...
 
 ---
 
-### T14: Final Commit
+### ~~T14: Final Commit~~ NOT-DO — no modularization commit ever happened
 
 **Impact:** Remaining | **Effort:** 5 min | **Depends on:** T12, T13
 

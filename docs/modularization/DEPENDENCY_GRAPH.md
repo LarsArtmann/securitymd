@@ -1,5 +1,7 @@
 # Dependency Graph — template-SECURITY
 
+> **Historical** — analyzes the deleted `internal/` tree (removed `1c55390`). The rebuild's actual graph: `cmd/securitymd` + `pkg/provider` → `pkg/policy` → go-finding/toolsdk; no viper, no pipeline. Observations and hotspots below carry inline verdicts.
+
 _Generated: 2026-05-14 | Phase: Current State Analysis_
 
 ---
@@ -29,10 +31,10 @@ test/acceptance
 
 ### Observations
 
-1. `internal` is a **flat catch-all package** — validation, policy generation, config loading, project detection, and output formatting all live here
-2. `internal/types` has **zero importers** for most of its types — only `PolicyType` and `Version` are used
-3. `cmd/template-security` directly imports `internal/types` in `setup.go` (for `PolicyConfig.Type` cast)
-4. `test/acceptance` imports `internal` heavily but never `internal/types` directly (except via `policy_generation_test.go`)
+~~1. `internal` is a **flat catch-all package** — validation, policy generation, config loading, project detection, and output formatting all live here~~ internal/ deleted at 1c55390 — the rebuild has pkg/policy + pkg/provider
+~~2. `internal/types` has **zero importers** for most of its types — only `PolicyType` and `Version` are used~~ moot — types deleted entirely
+~~3. `cmd/template-security` directly imports `internal/types` in `setup.go` (for `PolicyConfig.Type` cast)~~ moot — CLI rebuilt as cmd/securitymd (no internal imports exist)
+~~4. `test/acceptance` imports `internal` heavily but never `internal/types` directly (except via `policy_generation_test.go`)~~ moot — acceptance tests rewritten against pkg/policy
 
 ## External Dependencies (Direct)
 
@@ -60,10 +62,10 @@ test/acceptance
 
 ### Coupling Hotspots
 
-1. **`internal` package is overloaded** — 4 distinct concerns in one package. Each has its own test file and its own external dependency profile.
-2. **`viper` only used by `security_tool.go`** — config loading concern isolated to one file, but forces entire `internal` package to carry the dependency.
-3. **`go-finding/pipeline` only used by `security_validator.go`** — the `pipeline.Detector` interface is only relevant to validation.
-4. **Dead domain types** — `SecurityPolicy`, `ValidationResult`, `Template`, `Contact`, `Project`, `ValidationMessage`, `TemplateVariable` are defined but never used anywhere. This inflates the types package unnecessarily.
+~~1. **`internal` package is overloaded** — 4 distinct concerns in one package. Each has its own test file and its own external dependency profile.~~ moot — see observation 1
+~~2. **`viper` only used by `security_tool.go`** — config loading concern isolated to one file, but forces entire `internal` package to carry the dependency.~~ moot — viper dropped in the rebuild
+~~3. **`go-finding/pipeline` only used by `security_validator.go`** — the `pipeline.Detector` interface is only relevant to validation.~~ moot — pipeline dropped in the rebuild
+~~4. **Dead domain types** — `SecurityPolicy`, `ValidationResult`, `Template`, `Contact`, `Project`, `ValidationMessage`, `TemplateVariable` are defined but never used anywhere. This inflates the types package unnecessarily.~~ moot — all deleted at 1c55390
 
 ### Import Flow (Simplified)
 

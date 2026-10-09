@@ -1,5 +1,7 @@
 # Go-Composable-Business-Types Integration Plan
 
+> **Superseded — full arc closed** — the library was renamed `go-branded-id`, adopted on 2026-05-04, removed one day later in the go-finding migration (2026-05-05), and every target type in this plan was deleted in the 2026-10-08 rebuild (`1c55390`). The successor has no ID types at all — `finding.Finding` is the only model. Migration steps below carry inline verdicts.
+
 **Date:** 2025-03-18\
 **Library:** `github.com/larsartmann/go-composable-business-types/id`\
 **Purpose:** Type-safe, branded identifiers for the template-SECURITY project
@@ -294,31 +296,31 @@ func (r *Repository) GetPolicy(id ids.PolicyID) (*SecurityPolicy, error) {
 
 ### Step-by-Step Implementation
 
-1. **Add Dependency**
+~~1. **Add Dependency**~~ NOT-DO — library renamed go-branded-id, adopted 2026-05-04, removed 2026-05-05 (go-finding migration); types deleted at 1c55390
 
    ```bash
    go get github.com/larsartmann/go-composable-business-types/id
    go get github.com/larsartmann/go-composable-business-types/nanoid
    ```
 
-2. **Create ID Package** (`internal/ids/`)
+~~2. **Create ID Package** (`internal/ids/`)~~ NOT-DO — same arc: created, then removed
    - Define brand types
    - Create ID type aliases
    - Implement constructor functions
 
-3. **Update Core Types**
+~~3. **Update Core Types**~~ NOT-DO — core types deleted at 1c55390
    - Replace `string` ID fields with branded types
    - Update JSON struct tags if needed
 
-4. **Update Functions**
+~~4. **Update Functions**~~ NOT-DO — moot
    - Change function signatures to accept branded IDs
    - Update repository/database layer
 
-5. **Update Tests**
+~~5. **Update Tests**~~ NOT-DO — moot
    - Use `ids.NewPolicyID()` etc. in test fixtures
    - Verify serialization round-trips
 
-6. **Add Migration Tool** (Optional)
+~~6. **Add Migration Tool** (Optional)~~ NOT-DO — never needed
    - Script to convert existing string IDs to NanoId format
    - Handle foreign key relationships
 

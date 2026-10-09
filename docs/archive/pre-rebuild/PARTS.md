@@ -328,12 +328,12 @@ The executive report treats all internal code as one library. I recommend extrac
 
 ## Action Items
 
-1. [ ] Create `projectmeta` library repository
-2. [ ] Extract ProjectDetector code with refined API
-3. [ ] Add comprehensive tests with ginkgo/gomega
-4. [ ] Update template-SECURITY to use `projectmeta`
-5. [ ] Replace viper with koanf in template-SECURITY
-6. [ ] Consider publishing `securitymd` if community interest exists
+~~1. [ ] Create `projectmeta` library repository~~ NOT-DO — never happened; detection lives in pkg/policy/project.go (rebuild 1c55390)
+~~2. [ ] Extract ProjectDetector code with refined API~~ NOT-DO — same
+~~3. [ ] Add comprehensive tests with ginkgo/gomega~~ done differently — pkg/policy/project_test.go (testify) covers identity parsing
+~~4. [ ] Update template-SECURITY to use `projectmeta`~~ NOT-DO — moot; tool renamed securitymd, detection in-repo
+~~5. [ ] Replace viper with koanf in template-SECURITY~~ done at 1c55390 — viper dropped wholesale (no replacement needed)
+~~6. [ ] Consider publishing `securitymd` if community interest exists~~ routed — publish checklist in TODO_LIST; the name securitymd WAS adopted by the 2026-10-08 rebuild
 
 ---
 

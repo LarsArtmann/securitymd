@@ -64,10 +64,10 @@ func TestSecurityTool_GeneratePolicy(t *testing.T) {
 
 ### Missing User Stories
 
-1. **As a developer**, I want to generate a SECURITY.md file so that my project has clear security guidelines
-2. **As a security auditor**, I want to validate existing SECURITY.md files so that I can ensure compliance
-3. **As a project maintainer**, I want to customize security policies with my organization's details
-4. **As a CI/CD pipeline**, I want to fail builds when security documentation is incomplete
+~~1. **As a developer**, I want to generate a SECURITY.md file so that my project has clear security guidelines~~ done — test/acceptance Describe "SECURITY.md generation" covers this
+~~2. **As a security auditor**, I want to validate existing SECURITY.md files so that I can ensure compliance~~ done — Describe "SECURITY.md validation" (missing essentials etc.)
+~~3. **As a project maintainer**, I want to customize security policies with my organization's details~~ done — generation carries identity + optional email; customization = CLI flags
+~~4. **As a CI/CD pipeline**, I want to fail builds when security documentation is incomplete~~ done — validate exits 1 on error findings; CI self-validates
 
 ### Missing Behavioral Scenarios
 

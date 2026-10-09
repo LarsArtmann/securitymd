@@ -1,6 +1,8 @@
 # Modularization Proposal — template-SECURITY
 
-_Generated: 2026-05-14 | Status: Self-Reviewed (Phase 4 complete)_
+> **Never executed — superseded** — the 2026-10-08 securitymd rebuild (`1c55390`) solved the same coupling by deletion: two focused packages (`pkg/policy`, `pkg/provider`), viper and pipeline dropped, dead types gone. No `go.work`, no sub-modules. All findings and migration steps below carry inline verdicts.
+
+_Generated: 2026-05-14 | ~~Status: Self-Reviewed (Phase 4 complete)~~ never executed_
 
 ---
 
@@ -44,12 +46,12 @@ See [DEPENDENCY_GRAPH.md](./DEPENDENCY_GRAPH.md) for full analysis.
 
 ### Key Findings
 
-1. **`internal` is a catch-all** — 4 files, 4 concerns, 4 different external dependency profiles all crammed into one package
-2. **`internal/types` has 90% dead code** — `SecurityPolicy`, `ValidationResult`, `Template`, `Contact`, `Project` are defined but never referenced outside the types package itself
-3. **`viper` is only used by `security_tool.go`** — but the entire project carries its transitive dependency tree
-4. **`go-finding/pipeline` is only used by `security_validator.go`** — the `pipeline.Detector` interface is irrelevant to policy generation
-5. **`testify` is used in unit tests** — but it's in the production `go.mod` `require` block (acceptable since Go handles this, but worth noting)
-6. **No circular dependencies** — the current structure is already a DAG, making modularization straightforward
+~~1. **`internal` is a catch-all** — 4 files, 4 concerns, 4 different external dependency profiles all crammed into one package~~ moot — internal/ deleted at 1c55390
+~~2. **`internal/types` has 90% dead code** — `SecurityPolicy`, `ValidationResult`, `Template`, `Contact`, `Project` are defined but never referenced outside the types package itself~~ moot — types deleted entirely at 1c55390
+~~3. **`viper` is only used by `security_tool.go`** — but the entire project carries its transitive dependency tree~~ moot — viper dropped wholesale in the rebuild
+~~4. **`go-finding/pipeline` is only used by `security_validator.go`** — the `pipeline.Detector` interface is irrelevant to policy generation~~ moot — pipeline dropped wholesale in the rebuild
+~~5. **`testify` is used in unit tests** — but it's in the production `go.mod` `require` block (acceptable since Go handles this, but worth noting)~~ historical — testify still used in the rebuild's unit tests (accepted)
+~~6. **No circular dependencies** — the current structure is already a DAG, making modularization straightforward~~ historical — DAG property inherited by the rebuild
 
 ### Coupling Hotspots
 
@@ -209,17 +211,17 @@ All modules share a single git tag (`v1.2.3`). If a module is ever extracted to 
 
 Ordered steps, each independently executable:
 
-1. **Remove dead types** from `internal/types/` — pure deletion, no import changes
-2. **Extract `core` module** — move `internal/types/` → `core/`, create `go.mod`, move used types only
-3. **Extract `detector` module** — move `internal/project_detector.go` → `detector/`, create `go.mod`
-4. **Extract `validator` module** — move `internal/security_validator.go` + tests → `validator/`, create `go.mod`
-5. **Extract `generator` module** — move `internal/security_tool.go` + tests → `generator/`, create `go.mod`, carry `viper`
-6. **Create `go.work`** — wire all modules together
-7. **Update root `go.mod`** — remove moved code, depend on sub-modules
-8. **Update `cmd/template-security/` imports** — point to new module paths
-9. **Update `test/acceptance/` imports** — point to new module paths
-10. **Verify build, test, lint** — full green suite
-11. **Update documentation** — README, AGENTS.md, flake.nix if applicable
+~~1. **Remove dead types** from `internal/types/` — pure deletion, no import changes~~ done at 1c55390 — all types deleted
+~~2. **Extract `core` module** — move `internal/types/` → `core/`, create `go.mod`, move used types only~~ NOT-DO — modularization never executed; superseded by the rebuild (two packages: pkg/policy, pkg/provider)
+~~3. **Extract `detector` module** — move `internal/project_detector.go` → `detector/`, create `go.mod`~~ NOT-DO — superseded: detection lives in pkg/policy/project.go
+~~4. **Extract `validator` module** — move `internal/security_validator.go` + tests → `validator/`, create `go.mod`~~ NOT-DO — superseded: validation lives in pkg/policy/validate.go
+~~5. **Extract `generator` module** — move `internal/security_tool.go` + tests → `generator/`, create `go.mod`, carry `viper`~~ NOT-DO — superseded: generation lives in pkg/policy/generate.go
+~~6. **Create `go.work`** — wire all modules together~~ NOT-DO — single module in the rebuild
+~~7. **Update root `go.mod`** — remove moved code, depend on sub-modules~~ moot — go.mod rewritten by the rebuild
+~~8. **Update `cmd/template-security/` imports** — point to new module paths~~ moot — CLI rebuilt as cmd/securitymd
+~~9. **Update `test/acceptance/` imports** — point to new module paths~~ moot — acceptance tests rewritten
+~~10. **Verify build, test, lint** — full green suite~~ done — the rebuild's own gate (tests green, lint 0, flake check green)
+~~11. **Update documentation** — README, AGENTS.md, flake.nix if applicable~~ done at 72085c2/4a8987a/519916d — docs pass
 
 ---
 
