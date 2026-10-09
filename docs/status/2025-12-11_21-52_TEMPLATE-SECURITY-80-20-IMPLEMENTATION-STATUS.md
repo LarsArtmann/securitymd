@@ -1,5 +1,7 @@
 # Template-SECURITY 80/20 Implementation Status
 
+> **Superseded** — Phase 2's files (`github_integration.go`, `template_variable_detector.go`) were purged the same day by the simplified MVP (`2025-12-11_23-41`); the whole tree was deleted in the 2026-10-08 rebuild (`1c55390`). All open items (blockers, priorities, roadmap) carry inline verdicts; nothing remains open.
+
 ## 📅 Date: 2025-12-11 21:52 CET
 
 ## 🎯 Current Phase: Phase 1 ✅ COMPLETE → Phase 2 🔄 30% IN PROGRESS
@@ -156,18 +158,18 @@ just test-quick   # Full functionality test in 30 seconds
 
 ## 🚨 CRITICAL ISSUES REQUIRING IMMEDIATE ATTENTION
 
-### **BLOCKER #1**: Compilation Error (5 MINUTES TO FIX)
+### **BLOCKER #1**: Compilation Error (5 MINUTES TO FIX) — moot, file purged
 
 **File**: `internal/template_variable_detector.go:279:2`
 **Error**: `declared and not used: org`
 **Impact**: Cannot build application, all Phase 2 testing blocked
 
-### **BLOCKER #2**: Integration Incomplete
+### **BLOCKER #2**: Integration Incomplete — moot, file purged
 
 **Issue**: New template variable detector not properly integrated into security_tool.go
 **Impact**: Smart variable detection not working end-to-end
 
-### **BLOCKER #3**: Testing Blocked
+### **BLOCKER #3**: Testing Blocked — moot, superseded by three green test suites in the rebuild
 
 **Issue**: Cannot test Phase 2 features without working build
 **Impact**: Cannot validate GitHub integration and CI/CD hook functionality
@@ -178,21 +180,21 @@ just test-quick   # Full functionality test in 30 seconds
 
 ### **PRIORITY #1**: Fix Compilation Error (5 minutes)
 
-1. Remove unused `org` variable from template_variable_detector.go:279
-2. Build application to verify fix
-3. Test template variable detection
+~~1. Remove unused `org` variable from template_variable_detector.go:279~~ moot — template_variable_detector.go was purged in the 23-41 simplification; tree deleted at 1c55390
+~~2. Build application to verify fix~~ moot — same
+~~3. Test template variable detection~~ moot — same
 
 ### **PRIORITY #2**: Complete Integration (15 minutes)
 
-1. Integrate new template variable detector into security_tool.go
-2. Verify smart variable detection takes precedence
-3. Test end-to-end variable processing
+~~1. Integrate new template variable detector into security_tool.go~~ moot — same
+~~2. Verify smart variable detection takes precedence~~ moot — same
+~~3. Test end-to-end variable processing~~ moot — same
 
 ### **PRIORITY #3**: Comprehensive Testing (10 minutes)
 
-1. Run `just test-quick` to validate all features
-2. Test GitHub integration with real repository
-3. Validate CI/CD hook functionality
+~~1. Run `just test-quick` to validate all features~~ moot — justfile removed at 9d3094a; suites replaced by go test
+~~2. Test GitHub integration with real repository~~ moot — github_integration.go purged Dec 2025; identity parsing rebuilt in pkg/policy/project.go
+~~3. Validate CI/CD hook functionality~~ done at 72085c2 — CI self-validates with the tool itself
 
 ---
 
@@ -300,8 +302,8 @@ just test-quick   # Full functionality test in 30 seconds
 
 - [x] GitHub integration auto-detects 95% of repos
 - [x] CI/CD validation prevents 100% of broken SECURITY.md
-- [🔄] Template variables handle 90% of use cases (75% complete)
-- [🔄] Error messages solve 85% of user problems (integration blocked)
+~~- [🔄] Template variables handle 90% of use cases (75% complete)~~ moot — variable detector purged Dec 2025
+~~- [🔄] Error messages solve 85% of user problems (integration blocked)~~ moot — rebuilt on finding.FindingError
 
 ---
 
@@ -328,19 +330,19 @@ just test-quick   # Full functionality test in 30 seconds
 
 ### **If Phase 2 Completes Successfully**:
 
-1. **Phase 3 Evaluation**: Determine if additional features needed
-2. **User Feedback**: Collect real-world usage data
-3. **Performance Optimization**: Profile and optimize bottlenecks
-4. **Additional Templates**: Industry-specific templates (SaaS, IoT, etc.)
-5. **Advanced Features**: Configuration system, auto-completion
+~~1. **Phase 3 Evaluation**: Determine if additional features needed~~ superseded — the Dec 2025 simplification answered this: SECURITY.md only, no Phase 3
+~~2. **User Feedback**: Collect real-world usage data~~ routed — publish checklist (TODO_LIST) is the feedback gate
+~~3. **Performance Optimization**: Profile and optimize bottlenecks~~ NOT-DO — no perf need ever materialized
+~~4. **Additional Templates**: Industry-specific templates (SaaS, IoT, etc.)~~ NOT-DO — one canonical embedded template by design
+~~5. **Advanced Features**: Configuration system, auto-completion~~ NOT-DO — config system removed on purpose
 
 ### **Potential Enhancements**:
 
-1. **Security Scoring**: Simple 0-100 quality metrics
-2. **Policy Recommendations**: Suggest missing sections based on project type
-3. **Integration Examples**: Pre-made CI/CD configurations
-4. **Template Library**: Curated collection of industry templates
-5. **Binary Distribution**: Multi-platform releases
+~~1. **Security Scoring**: Simple 0-100 quality metrics~~ NOT-DO — findings with severity replaced scoring
+~~2. **Policy Recommendations**: Suggest missing sections based on project type~~ NOT-DO — missing-file finding carries the rendered policy instead
+~~3. **Integration Examples**: Pre-made CI/CD configurations~~ NOT-DO — BuildFlow wiring is the documented integration (README)
+~~4. **Template Library**: Curated collection of industry templates~~ NOT-DO — single canonical template by design
+~~5. **Binary Distribution**: Multi-platform releases~~ routed — TODO_LIST publish checklist
 
 ---
 

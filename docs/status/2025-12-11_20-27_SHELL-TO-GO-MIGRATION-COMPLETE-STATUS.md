@@ -1,5 +1,7 @@
 # 2025-12-11_20-27_SHELL-TO-GO-MIGRATION-COMPLETE-STATUS.md
 
+> **Superseded** — the v2 template-CLI-SDK architecture this report celebrates was purged hours later the same day (2025-12-11 simplified MVP, see `2025-12-11_23-41`), and the entire tree was deleted in the 2026-10-08 securitymd rebuild (`1c55390`). Kept as the historical record of the shell→Go migration. All open items (roadmap phases, next steps) carry inline verdicts; nothing remains open.
+
 ## 🎉 Migration Complete: Shell Scripts → Go with template-CLI SDK
 
 **Status**: ✅ **COMPLETED SUCCESSFULLY**\
@@ -294,32 +296,32 @@ ENTRYPOINT ["template-security"]
 - [x] **Core Migration**: Shell → Go conversion complete
 - [x] **Feature Parity**: 100% compatibility achieved
 - [x] **Performance Goals**: 10x improvement exceeded
-- [ ] **Documentation**: Complete migration guide
-- [ ] **User Testing**: Community feedback collection
+~~- [ ] **Documentation**: Complete migration guide~~ NOT-DO — v2-SDK era purged in the 2025-12-11 simplification; README rewritten at 519916d
+~~- [ ] **User Testing**: Community feedback collection~~ NOT-DO — pre-publish concern; publish checklist routed in TODO_LIST
 
 ### Phase 2: Enhancement (Week 3-4)
 
-- [ ] **Compliance Engine**: Port compliance-check.sh functionality
-- [ ] **Metrics System**: Port generate-metrics.sh functionality
-- [ ] **Validation System**: Port validate-policies.sh functionality
-- [ ] **Template Expansion**: Additional security templates
-- [ ] **Configuration System**: Advanced configuration management
+~~- [ ] **Compliance Engine**: Port compliance-check.sh functionality~~ NOT-DO — out of scope: the rebuilt tool owns SECURITY.md only
+~~- [ ] **Metrics System**: Port generate-metrics.sh functionality~~ NOT-DO — same
+~~- [ ] **Validation System**: Port validate-policies.sh functionality~~ done — validate command exists through every era (rebuilt cmd/securitymd/validate.go)
+~~- [ ] **Template Expansion**: Additional security templates~~ NOT-DO — one canonical embedded template by design
+~~- [ ] **Configuration System**: Advanced configuration management~~ NOT-DO — config system removed entirely (CHANGELOG breaking change)
 
 ### Phase 3: Production (Week 5-6)
 
-- [ ] **Binary Releases**: Multi-platform binary distribution
-- [ ] **Docker Images**: Official container images
-- [ ] **CI/CD Integration**: GitHub Actions自动化
-- [ ] **Package Managers**: Homebrew, Chocolatey, AUR support
-- [ ] **Cloud Integration**: AWS, Azure, GCP security services
+~~- [ ] **Binary Releases**: Multi-platform binary distribution~~ routed — TODO_LIST publish checklist
+~~- [ ] **Docker Images**: Official container images~~ NOT-DO — single binary + BuildFlow; no containers
+~~- [ ] **CI/CD Integration**: GitHub Actions自动化~~ done at 72085c2 — self-validating workflow
+~~- [ ] **Package Managers**: Homebrew, Chocolatey, AUR support~~ NOT-DO
+~~- [ ] **Cloud Integration**: AWS, Azure, GCP security services~~ NOT-DO
 
 ### Phase 4: Enterprise (Week 7-8)
 
-- [ ] **API Interface**: RESTful API for integrations
-- [ ] **Web UI**: Browser-based policy management
-- [ ] **Enterprise Features**: SSO, RBAC, audit trails
-- [ ] **Plugin System**: Extensible security rule engine
-- [ ] **Compliance Automation**: Automated compliance reporting
+~~- [ ] **API Interface**: RESTful API for integrations~~ NOT-DO — single-purpose CLI
+~~- [ ] **Web UI**: Browser-based policy management~~ NOT-DO
+~~- [ ] **Enterprise Features**: SSO, RBAC, audit trails~~ NOT-DO — enterprise scope purged in Dec 2025, never returned
+~~- [ ] **Plugin System**: Extensible security rule engine~~ NOT-DO — stable rule IDs instead
+~~- [ ] **Compliance Automation**: Automated compliance reporting~~ NOT-DO
 
 ---
 
@@ -367,10 +369,10 @@ ENTRYPOINT ["template-security"]
 
 ### Next Steps
 
-1. **Immediate**: Users can begin using Go version with immediate benefits
-2. **Short-term**: Enhance remaining shell scripts (compliance, metrics, validation)
-3. **Medium-term**: Add enterprise features and integrations
-4. **Long-term**: Expand to cloud-native security automation
+~~1. **Immediate**: Users can begin using Go version with immediate benefits~~ moot — the v2 SDK binary this describes was purged hours later (23-41 simplification)
+~~2. **Short-term**: Enhance remaining shell scripts (compliance, metrics, validation)~~ NOT-DO — compliance/metrics scripts deleted at 1c55390
+~~3. **Medium-term**: Add enterprise features and integrations~~ NOT-DO — enterprise scope deliberately abandoned
+~~4. **Long-term**: Expand to cloud-native security automation~~ NOT-DO
 
 ### Production Readiness
 

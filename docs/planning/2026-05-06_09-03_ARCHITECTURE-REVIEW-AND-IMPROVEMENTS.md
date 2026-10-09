@@ -1,5 +1,7 @@
 # Architecture Review & Improvement Opportunities
 
+> **Superseded 2026-10-08, core adopted** — this review's target (public `pkg/` core, dead types deleted, no package globals) is essentially what the securitymd rebuild (`1c55390`) shipped: `pkg/policy` + `pkg/provider` + `cmd/securitymd`. The scores and dependency graph below describe the deleted `internal/` tree. All recommendation items carry inline verdicts.
+
 _Date: 2026-05-06 | Commit: 03dcf51_
 
 ---
@@ -75,7 +77,9 @@ cmd/template-security
 
 ## Deepening Opportunities
 
-### Candidate 1: Extract Validator from I/O
+### Candidate 1: Extract Validator from I/O — done differently
+
+The rebuild splits `Detect` (I/O + missing-file concern) from `Validate` + pure helpers, and provider tests exercise real temp git repos instead of mocks.
 
 **Files:** `internal/security_validator.go` (311 lines)
 **Problem:** `ValidateSECURITYMd()` does file I/O + validation + report building in one function. `Detect()` wraps it. Testing requires temp files.
@@ -85,7 +89,9 @@ cmd/template-security
 - `ValidateFile(path string) *finding.Report` — reads file, calls `ValidateContent`
   **Benefits:** Content validation testable without file I/O. `Detect()` becomes a thin wrapper. Deletion test confirms: removing the I/O layer concentrates complexity in the pure validator.
 
-### Candidate 2: Extract Template Renderer from SecurityTool
+### Candidate 2: Extract Template Renderer from SecurityTool — moot
+
+`SecurityTool` was deleted; rendering lives in `pkg/policy/generate.go` (`renderTemplate`), tested directly.
 
 **Files:** `internal/security_tool.go` (250 lines)
 **Problem:** `SecurityTool` handles config loading, file discovery, template reading, template rendering, and file writing. It's 5 responsibilities in one struct.
@@ -95,7 +101,9 @@ cmd/template-security
 - `RenderFile(templatePath string, data TemplateData) (string, error)`
   **Benefits:** Testable without temp files. Template rendering becomes mockable. `SecurityTool` becomes a thin orchestrator.
 
-### Candidate 3: Extract ConfigProvider Interface
+### Candidate 3: Extract ConfigProvider Interface — moot
+
+The config system was removed entirely in the rebuild; knobs are CLI flags + one toolsdk option.
 
 **Files:** `internal/security_tool.go`, `cmd/template-security/setup.go`
 **Problem:** Setup command directly calls `SecurityTool.LoadConfig()` + `FindConfigFile()`. Config resolution logic is scattered across cmd and internal.
@@ -109,7 +117,9 @@ type ConfigProvider interface {
 
 **Benefits:** Setup command becomes testable. Config resolution logic centralized. Alternative config sources (env-only, flags-only) become trivial.
 
-### Candidate 4: ProjectDetector I/O Separation
+### Candidate 4: ProjectDetector I/O Separation — moot
+
+`ProjectDetector` was deleted; `pkg/policy/project.go` + git-env-isolating testhelpers cover it with tests.
 
 **Files:** `internal/project_detector.go` (354 lines)
 **Problem:** Every detection method directly calls `os.ReadFile()` or `exec.Command()`. No way to test without real files/git repos.
@@ -126,7 +136,9 @@ type FileSystem interface {
 
 **Benefits:** Full testability. Can mock git responses. Can test edge cases (malformed package.json, etc.).
 
-### Candidate 5: Dead Type System Cleanup
+### Candidate 5: Dead Type System Cleanup — done at `1c55390`
+
+All the listed types were deleted; the rebuild has no parallel type system.
 
 **Files:** `internal/types/types.go` (122 lines), `internal/types/ids.go` (8 lines)
 **Problem:** 8 types defined, only 3 used. Creates confusion about what the "real" domain model is.
@@ -185,3 +197,7 @@ internal/
 ~~2. Support `io.Reader`/`io.Writer` instead of file paths~~ NOT-DO — dir/file-based workflow by design
 ~~3. Add middleware/hooks for pre/post validation~~ NOT-DO — no extension surface wanted
 ~~4. Support pipeline composition via go-finding's `pipeline.New()`~~ NOT-DO — BuildFlow's DAG orchestrates composition now
+
+## Resolution (2026-10-09)
+
+Every numbered recommendation and every candidate carries an inline verdict. The rebuild (`1c55390`) realized the target's core: public `pkg/` core, single model (`finding.Finding`), no flag globals, embedded template. Reference hashes: `1c55390`, `72085c2`/`4a8987a` (docs pass). Archivable: no open items remain.
