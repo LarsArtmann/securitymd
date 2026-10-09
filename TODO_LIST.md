@@ -10,6 +10,7 @@ _Open items only. Source: harvest of `docs/status/2026-10-08_23-40_securitymd-re
 
 ## This repo
 
+- [ ] Examine `.config/` and `git-town.toml` (never reviewed post-rebuild; report 2026-10-09 #38)
 - [ ] SARIF golden-file test for CLI output (`cmd/securitymd/validate.go`; report #17)
 - [ ] Mutation/discrimination proof run for the rule table — break one rule, watch tests fail (report #18)
 - [ ] Decide + wire `README.md` into trigger manifests so docs-only repos activate (report #16)

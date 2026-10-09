@@ -18,6 +18,7 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 - Feedback upstream: exhaustruct ignore-patterns must be anchored struct patterns (path-based ones are silent no-ops) — note to golangci-lint-auto-configure
 - Proposal to linter-autoconfigure-sdk: first-class byte-faithful `SaveBytes` (or doc rename for `SaveJSONBytes`)
 - Record the "nix FOD ignores local replaces" lesson in crush-config `references/lessons.md` (cross-project lesson)
+- Update the nix-private-go-repos skill: nixpkgs `gotools` bundles an older Go than go.mod's floor, so treefmt's goimports fails in-sandbox with a toolchain-download attempt (found 2026-10-09 in securitymd's flake check)
 
 ## Open questions
 
