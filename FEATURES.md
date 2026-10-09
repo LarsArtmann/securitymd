@@ -1,12 +1,12 @@
 # Features — securitymd
 
-_Audit: 2026-10-08, post-rebuild (module `github.com/LarsArtmann/securitymd`). Evidence verified against code this date._
+_Audit: 2026-10-09, post-rebuild (module `github.com/LarsArtmann/securitymd`). Evidence verified against code this date (docs-health pass)._
 
 ## Core
 
 | # | Feature                      | Status           | Notes                                                                                                                 | Evidence                                       |
 | - | ---------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| 1 | Policy validation (10 rules) | FULLY_FUNCTIONAL | Section rules + content-quality rules, stable kebab rule IDs                                                          | `pkg/policy/validate.go`, `validate_test.go`   |
+| 1 | Policy validation (11 rules) | FULLY_FUNCTIONAL | 10 content rules (`pkg/policy/validate.go`) + `missing-file` (`pkg/policy/detect.go`); stable kebab rule IDs | `pkg/policy/validate.go`, `detect.go`, `validate_test.go` |
 | 2 | Policy generation            | FULLY_FUNCTIONAL | Embedded template, never-overwrite, dry-run, atomic idempotent write                                                  | `pkg/policy/generate.go`, `generate_test.go`   |
 | 3 | Detection                    | FULLY_FUNCTIONAL | Candidate locations, missing-file finding with rendered AfterCode                                                     | `pkg/policy/detect.go`                         |
 | 4 | Git identity detection       | FULLY_FUNCTIONAL | https/ssh/gitlab-nested remote parsing, latest-tag best effort                                                        | `pkg/policy/project.go`, `project_test.go`     |

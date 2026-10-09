@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Multi-signal contact detection (GitHub advisory link and `security.txt` count as contact), line-precise `unresolved-template` findings
 - Stable kebab-case rule IDs for suppressions and configurations
 - Provider contract tests including a full detect → repair → verify loop in a real temp git repo, plus a dogfood test pinning that the rendered template passes its own validator
+- Docs: all pre-rebuild status/planning/modularization reports annotated with inline resolutions and archived under `docs/archive/pre-rebuild/` (manifest inside); `docs/status/` now holds only post-rebuild reports
 
 ### Changed
 

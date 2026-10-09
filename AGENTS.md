@@ -35,6 +35,12 @@ test/acceptance/       # Ginkgo BDD specs
 - Stable kebab rule IDs (`missing-file`, `missing-header`, `unresolved-template`, …) — suppressions and configs key on them
 - Errors wrapped via `finding.NewValidationError`/`NewIOError`/`NewParseError`, never `fmt.Errorf`
 
+## Docs layout
+
+- `docs/status/` — post-rebuild status reports ONLY (the two 2026-10 reports)
+- `docs/archive/pre-rebuild/` — ALL pre-rebuild history (status/planning/modularization + the five old root reports), annotated with inline ~~verdicts~~ and a manifest README; closed history, do not open without a concrete need
+- Living docs (README/FEATURES/TODO_LIST/ROADMAP/CHANGELOG/DOMAIN_LANGUAGE) refreshed by the 2026-10-09 docs-health pass
+
 ## BuildFlow integration (the reason this repo exists)
 
 Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for that repo):
@@ -59,7 +65,8 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 - Deletions via `trash`, never `rm`
 - Config file was removed entirely on purpose (old `.template-security.yaml` never worked); knobs are CLI flags + the toolsdk option
 
-## Known state (2026-10-08)
+## Known state (2026-10-09)
 
-- All tests green, golangci-lint 0 issues, BuildFlow integration verified live (detect+repair+re-detect clean)
+- All tests green, build green, golangci-lint 0 issues, `nix flake check` green (re-verified 2026-10-09 docs-health pass), BuildFlow integration verified live (detect+repair+re-detect clean)
+- Pre-rebuild docs fully archived + annotated (see docs/archive/pre-rebuild/README.md manifest)
 - Publishing checklist (needs Lars): rename GitHub repo → push → tag v1.0.0 → drop BuildFlow replaces/flake input → re-vendor → `nix run .#update-vendor-hash`

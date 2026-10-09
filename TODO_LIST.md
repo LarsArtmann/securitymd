@@ -7,10 +7,10 @@ _Open items only. Source: harvest of `docs/status/2026-10-08_23-40_securitymd-re
 - [ ] **P0: Publish securitymd** — rename local dir + GitHub repo `template-SECURITY` → `securitymd`, push, tag `v1.0.0`; then drop BuildFlow replaces + flake input, re-vendor, `nix run .#update-vendor-hash`; regenerate this repo's own SECURITY.md (current one predates the rename and would render the old repo name). Input: `docs/archive/pre-rebuild/PUBLIC_OR_PRIVATE.md` (verdict: conditionally make public — cleanup done by the rebuild).
 - [ ] **Fleet contact policy decision** — keep GitHub-advisory-only default (current) or bake a real address (e.g. `security@lars.software`) via BuildFlow `tool_options`. Default stays advisory-only until Lars rules (no fabricated addresses).
 - [ ] **Fleet gate announcement** — `missing-file` is error severity; every manifest-carrying repo without SECURITY.md fails BuildFlow's findings gate. Announce + run one `buildflow -s securitymd --fix` sweep before it lands in CI defaults.
+- [ ] **Update `.config/metadata.yaml` tags** — still says `template`/`archived` (pre-rebuild relic; also flagged by PUBLIC_OR_PRIVATE's should-fix list). Decide: fresh tags reflecting the live securitymd tool, or confirm archiving. Consumer of the file is external tooling — Lars's call. (Examined 2026-10-09: `git-town.toml` is fine — `main = "master"`, GitHub API connector.)
 
 ## This repo
 
-- [ ] Examine `.config/` and `git-town.toml` (never reviewed post-rebuild; report 2026-10-09 #38)
 - [ ] SARIF golden-file test for CLI output (`cmd/securitymd/validate.go`; report #17)
 - [ ] Mutation/discrimination proof run for the rule table — break one rule, watch tests fail (report #18)
 - [ ] Decide + wire `README.md` into trigger manifests so docs-only repos activate (report #16)
