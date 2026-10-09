@@ -284,35 +284,35 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 
 ### Critical (Blocks Public Release)
 
-1. **Fix SECURITY.md contact information** — Currently says `security@github.com`. Must have real contact.
-2. **Fix CI workflow Go version** — 1.21 vs 1.26.2 mismatch guarantees CI failure.
-3. **Fix or remove `.go-arch-lint.yml`** — Currently references non-existent directories. Either customize it or remove it to avoid confusion.
-4. **Update stale `go-composable-business-types-usage.md`** — References dead dependency. Update or remove.
-5. **Replace placeholder config values** — `.template-security.yaml` has fake org/email/URLs.
+~~1. **Fix SECURITY.md contact information** — Currently says `security@github.com`. Must have real contact.~~ NOT-DO — superseded: contact default is GitHub-advisory-only (no fabricated emails); own-policy regen sits in TODO_LIST publish checklist
+~~2. **Fix CI workflow Go version** — 1.21 vs 1.26.2 mismatch guarantees CI failure.~~ done at 72085c2 — CI rewritten to go-version-file: go.mod
+~~3. **Fix or remove `.go-arch-lint.yml`** — Currently references non-existent directories. Either customize it or remove it to avoid confusion.~~ done at 1c55390 — .go-arch-lint.yml deleted
+~~4. **Update stale `go-composable-business-types-usage.md`** — References dead dependency. Update or remove.~~ done 2026-10-09 — archived by docs-health pass
+~~5. **Replace placeholder config values** — `.template-security.yaml` has fake org/email/URLs.~~ done at 1c55390 — .template-security.yaml deleted
 
 ### High (Quality & Correctness)
 
-6. **Add CHANGELOG entries** — Document all the work that's been done.
-7. **Replace viper with koanf** — Per project standards, viper is not preferred.
-8. **Migrate justfile to flake.nix** — justfile is deprecated per AGENTS.md.
-9. **Remove or migrate shell scripts** — 1,323 lines of bash duplicating Go functionality.
-10. **Add CLI integration tests** — Build binary, run commands, verify output.
-11. **Complete branded ID integration** — Add factory functions, use meaningful brands, integrate NanoId.
+~~6. **Add CHANGELOG entries** — Document all the work that's been done.~~ done at 72085c2 — Unreleased entry covers the rebuild
+~~7. **Replace viper with koanf** — Per project standards, viper is not preferred.~~ done at 1c55390 — viper dropped wholesale; no koanf needed
+~~8. **Migrate justfile to flake.nix** — justfile is deprecated per AGENTS.md.~~ done at 9d3094a — flake.nix created + justfile removed (2026-06-17)
+~~9. **Remove or migrate shell scripts** — 1,323 lines of bash duplicating Go functionality.~~ done at 1c55390 — scripts/ deleted (~1,300 lines)
+~~10. **Add CLI integration tests** — Build binary, run commands, verify output.~~ done — successor ships provider detect→repair→verify loop tests + BDD
+~~11. **Complete branded ID integration** — Add factory functions, use meaningful brands, integrate NanoId.~~ NOT-DO — branded IDs removed 2026-05-05 (go-finding migration)
 
 ### Medium (Polish & Best Practices)
 
-12. **Add structured logging** — Replace `fmt.Printf` with slog or similar.
-13. **Add version subcommand** — Version vars are defined but inaccessible as a command.
-14. **Customize `.golangci.yml`** — 80+ linters is excessive; tune to project needs.
-15. **Add shell completion** — Cobra supports this natively.
-16. **Update IMPROVEMENT_PLAN.md** — Many items are done or no longer relevant.
+~~12. **Add structured logging** — Replace `fmt.Printf` with slog or similar.~~ Won't implement — CLI tool; colored terminal output is the interface
+~~13. **Add version subcommand** — Version vars are defined but inaccessible as a command.~~ NOT-DO — rebuilt CLI ships validate/setup/status only
+~~14. **Customize `.golangci.yml`** — 80+ linters is excessive; tune to project needs.~~ done pre-rebuild (f29259c, d6614d6); config survives at 0 issues
+~~15. **Add shell completion** — Cobra supports this natively.~~ NOT-DO — cobra ships default completion; nothing to add
+~~16. **Update IMPROVEMENT_PLAN.md** — Many items are done or no longer relevant.~~ done at 72085c2 — archived to docs/archive/pre-rebuild/
 
 ### Low (Nice to Have)
 
-17. **Add pre-commit hook** — Validate SECURITY.md before commits.
-18. **Add benchmarks** — For validation and template processing.
-19. **Add plugin system** — For custom validation rules.
-20. **Extract `projectmeta` library** — As described in PARTS.md.
+~~17. **Add pre-commit hook** — Validate SECURITY.md before commits.~~ NOT-DO — BuildFlow findings gate is the mechanism now
+~~18. **Add benchmarks** — For validation and template processing.~~ Won't implement — no perf need
+~~19. **Add plugin system** — For custom validation rules.~~ NOT-DO — stable kebab rule IDs replace plugin ambitions
+~~20. **Extract `projectmeta` library** — As described in PARTS.md.~~ NOT-DO — detection lives in pkg/policy/project.go of the rebuild
 
 ---
 
@@ -320,31 +320,31 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 
 | #  | Priority | Task                                                                                                            | Effort   | Impact                |
 | -- | -------- | --------------------------------------------------------------------------------------------------------------- | -------- | --------------------- |
-| 1  | P0       | Fix SECURITY.md with real contact info                                                                          | 5 min    | Blocks release        |
-| 2  | P0       | Fix CI workflow Go version (1.21 → 1.26.2)                                                                      | 10 min   | CI is broken          |
-| 3  | P0       | Update `go-composable-business-types-usage.md` to reference `go-branded-id`                                     | 30 min   | Misleading docs       |
-| 4  | P0       | Replace placeholder values in `.template-security.yaml`                                                         | 5 min    | Bad defaults          |
-| 5  | P1       | Fix or remove `.go-arch-lint.yml`                                                                               | 30 min   | False confidence      |
-| 6  | P1       | Write CHANGELOG entries for all work since v0.1.0                                                               | 1 hour   | Release readiness     |
-| 7  | P1       | Complete branded ID integration (factory functions, meaningful brands)                                          | 2 hours  | Type safety           |
-| 8  | P1       | Replace viper with koanf in `security_tool.go`                                                                  | 2 hours  | Project standards     |
-| 9  | P1       | Update `PUBLIC_OR_PRIVATE.md` — remove "replace directive" issue (still exists but pointing to correct lib now) | 30 min   | Accurate status       |
-| 10 | P1       | Add CLI integration tests (build binary, run validate/setup/status)                                             | 3 hours  | Confidence            |
-| 11 | P1       | Migrate justfile to flake.nix                                                                                   | 3 hours  | Project standards     |
-| 12 | P1       | Update IMPROVEMENT_PLAN.md to reflect current reality                                                           | 1 hour   | Accurate planning     |
-| 13 | P2       | Remove or refactor `scripts/security-setup.sh` (duplicates Go `setup` command)                                  | 1 hour   | Reduce confusion      |
-| 14 | P2       | Remove or refactor `scripts/validate-policies.sh` (duplicates Go `validate` command)                            | 30 min   | Reduce confusion      |
-| 15 | P2       | Implement Go equivalents for `scripts/compliance-check.sh` (GDPR/SOC2/ISO27001)                                 | 4 hours  | Feature parity        |
-| 16 | P2       | Implement Go equivalents for `scripts/generate-metrics.sh` (metrics/Prometheus)                                 | 4 hours  | Feature parity        |
-| 17 | P2       | Remove `scripts/build.sh` (replaced by `go build` or flake.nix)                                                 | 5 min    | Cleanup               |
-| 18 | P2       | Add structured logging (replace `fmt.Printf` with `slog`)                                                       | 2 hours  | Observability         |
-| 19 | P2       | Add `version` subcommand to CLI                                                                                 | 30 min   | User experience       |
-| 20 | P2       | Tune `.golangci.yml` — reduce from 80+ linters to project-appropriate set                                       | 1 hour   | Build speed           |
-| 21 | P2       | Update `BDD_TESTS_REVIEW.md` — BDD tests now exist (score should be updated)                                    | 30 min   | Accurate docs         |
-| 22 | P3       | Add pre-commit hook for SECURITY.md validation                                                                  | 1 hour   | Developer experience  |
-| 23 | P3       | Extract `projectmeta` library (as described in PARTS.md)                                                        | 2-3 days | Reusability           |
-| 24 | P3       | Add benchmarks for validation and template processing                                                           | 1 hour   | Performance awareness |
-| 25 | P3       | Decide: make this repo public or private (per PUBLIC_OR_PRIVATE.md analysis)                                    | Decision | Direction             |
+~~| 1  | P0       | Fix SECURITY.md with real contact info                                                                          | 5 min    | Blocks release        |~~ routed — TODO_LIST publish checklist (advisory-only contact default)
+~~| 2  | P0       | Fix CI workflow Go version (1.21 → 1.26.2)                                                                      | 10 min   | CI is broken          |~~ done at 72085c2 — CI follows go.mod now
+~~| 3  | P0       | Update `go-composable-business-types-usage.md` to reference `go-branded-id`                                     | 30 min   | Misleading docs       |~~ done 2026-10-09 — archived (docs-health pass)
+~~| 4  | P0       | Replace placeholder values in `.template-security.yaml`                                                         | 5 min    | Bad defaults          |~~ done at 1c55390 — config deleted
+~~| 5  | P1       | Fix or remove `.go-arch-lint.yml`                                                                               | 30 min   | False confidence      |~~ done at 1c55390 — deleted
+~~| 6  | P1       | Write CHANGELOG entries for all work since v0.1.0                                                               | 1 hour   | Release readiness     |~~ done at 72085c2
+~~| 7  | P1       | Complete branded ID integration (factory functions, meaningful brands)                                          | 2 hours  | Type safety           |~~ NOT-DO — removed 2026-05-05
+~~| 8  | P1       | Replace viper with koanf in `security_tool.go`                                                                  | 2 hours  | Project standards     |~~ done at 1c55390 (dropped)
+~~| 9  | P1       | Update `PUBLIC_OR_PRIVATE.md` — remove "replace directive" issue (still exists but pointing to correct lib now) | 30 min   | Accurate status       |~~ done at 72085c2 — archived, verdict quoted in manifest
+~~| 10 | P1       | Add CLI integration tests (build binary, run validate/setup/status)                                             | 3 hours  | Confidence            |~~ done — provider loop + BDD tests
+~~| 11 | P1       | Migrate justfile to flake.nix                                                                                   | 3 hours  | Project standards     |~~ done at 9d3094a
+~~| 12 | P1       | Update IMPROVEMENT_PLAN.md to reflect current reality                                                           | 1 hour   | Accurate planning     |~~ done at 72085c2 — archived
+~~| 13 | P2       | Remove or refactor `scripts/security-setup.sh` (duplicates Go `setup` command)                                  | 1 hour   | Reduce confusion      |~~ done at 1c55390 (deleted)
+~~| 14 | P2       | Remove or refactor `scripts/validate-policies.sh` (duplicates Go `validate` command)                            | 30 min   | Reduce confusion      |~~ done at 1c55390 (deleted)
+~~| 15 | P2       | Implement Go equivalents for `scripts/compliance-check.sh` (GDPR/SOC2/ISO27001)                                 | 4 hours  | Feature parity        |~~ NOT-DO — out of scope post-rebuild
+~~| 16 | P2       | Implement Go equivalents for `scripts/generate-metrics.sh` (metrics/Prometheus)                                 | 4 hours  | Feature parity        |~~ NOT-DO — out of scope post-rebuild
+~~| 17 | P2       | Remove `scripts/build.sh` (replaced by `go build` or flake.nix)                                                 | 5 min    | Cleanup               |~~ done at 1c55390
+~~| 18 | P2       | Add structured logging (replace `fmt.Printf` with `slog`)                                                       | 2 hours  | Observability         |~~ Won't implement
+~~| 19 | P2       | Add `version` subcommand to CLI                                                                                 | 30 min   | User experience       |~~ NOT-DO
+~~| 20 | P2       | Tune `.golangci.yml` — reduce from 80+ linters to project-appropriate set                                       | 1 hour   | Build speed           |~~ done pre-rebuild (f29259c)
+~~| 21 | P2       | Update `BDD_TESTS_REVIEW.md` — BDD tests now exist (score should be updated)                                    | 30 min   | Accurate docs         |~~ done at 72085c2 — archived
+~~| 22 | P3       | Add pre-commit hook for SECURITY.md validation                                                                  | 1 hour   | Developer experience  |~~ NOT-DO (BuildFlow gate)
+~~| 23 | P3       | Extract `projectmeta` library (as described in PARTS.md)                                                        | 2-3 days | Reusability           |~~ NOT-DO
+~~| 24 | P3       | Add benchmarks for validation and template processing                                                           | 1 hour   | Performance awareness |~~ Won't implement
+~~| 25 | P3       | Decide: make this repo public or private (per PUBLIC_OR_PRIVATE.md analysis)                                    | Decision | Direction             |~~ routed — TODO_LIST publish decision (PUBLIC_OR_PRIVATE: conditionally make public)
 
 ---
 
