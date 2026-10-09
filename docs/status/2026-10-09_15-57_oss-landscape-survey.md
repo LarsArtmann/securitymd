@@ -18,13 +18,13 @@
 
 ### Closest neighbors (repo-hygiene tools that touch SECURITY.md)
 
-| Tool | What it does re: SECURITY.md | Validates content? |
-|---|---|---|
-| [OpenSSF Scorecard](https://github.com/ossf/scorecard) | `Security-Policy` check + probes (`securityPolicyPresent`, `securityPolicyContainsLinks`, `securityPolicyContainsText`, `securityPolicyContainsVulnerabilityDisclosure`); awards points for links, disclosure text, timeline wording | Partial content heuristics (regex scoring), not section completeness; scoring framework, not a linter CLI |
-| [Repolinter](https://github.com/todogroup/repolinter) | Default ruleset: `security-file-exists` | Presence only |
-| [hashload/boss](https://github.com/hashload/boss) | Checks SECURITY.md presence in root/`.github/`/`docs/`, offers `boss cra init` to generate a template | Presence + template generator (niche, Delphi ecosystem) |
-| [MegaLinter/Super-Linter](https://github.com/oxsecurity/megalinter) | Generic markdown linting | No SECURITY.md-specific rules |
-| [OSSF Security Insights](https://github.com/ossf/security-insights) | Schema-validates `security-insights.yml`, which references the policy | Different file entirely |
+| Tool                                                                | What it does re: SECURITY.md                                                                                                                                                                                                         | Validates content?                                                                                        |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| [OpenSSF Scorecard](https://github.com/ossf/scorecard)              | `Security-Policy` check + probes (`securityPolicyPresent`, `securityPolicyContainsLinks`, `securityPolicyContainsText`, `securityPolicyContainsVulnerabilityDisclosure`); awards points for links, disclosure text, timeline wording | Partial content heuristics (regex scoring), not section completeness; scoring framework, not a linter CLI |
+| [Repolinter](https://github.com/todogroup/repolinter)               | Default ruleset: `security-file-exists`                                                                                                                                                                                              | Presence only                                                                                             |
+| [hashload/boss](https://github.com/hashload/boss)                   | Checks SECURITY.md presence in root/`.github/`/`docs/`, offers `boss cra init` to generate a template                                                                                                                                | Presence + template generator (niche, Delphi ecosystem)                                                   |
+| [MegaLinter/Super-Linter](https://github.com/oxsecurity/megalinter) | Generic markdown linting                                                                                                                                                                                                             | No SECURITY.md-specific rules                                                                             |
+| [OSSF Security Insights](https://github.com/ossf/security-insights) | Schema-validates `security-insights.yml`, which references the policy                                                                                                                                                                | Different file entirely                                                                                   |
 
 ### GitHub's own tooling
 

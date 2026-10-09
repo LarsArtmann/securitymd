@@ -46,6 +46,9 @@
             version = securitymdVersion;
             src = self;
             env.GOTOOLCHAIN = "local";
+            # The check phase runs the unit suite, whose helpers shell out to
+            # git (repo fixtures) — the sandbox has no implicit git.
+            nativeBuildInputs = [ pkgs.git ];
             ldflags = [
               "-s -w"
               "-X main.version=${securitymdVersion}"
