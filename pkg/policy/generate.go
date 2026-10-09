@@ -138,6 +138,12 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 		return GenerateResult{}, err
 	}
 
+	// Non-root locations (.github/, docs/) may live in directories that do
+	// not exist yet; the atomic writer cannot create parents itself.
+	if err := os.MkdirAll(filepath.Dir(target), 0o750); err != nil {
+		return GenerateResult{}, fmt.Errorf("create %s: %w", filepath.Dir(target), err)
+	}
+
 	if _, err := atomicwrite.WriteIfChanged(target, []byte(content)); err != nil {
 		return GenerateResult{}, fmt.Errorf("write %s: %w", target, err)
 	}
