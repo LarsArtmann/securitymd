@@ -14,7 +14,7 @@ import (
 func runGitIsolated(t *testing.T, dir string, args ...string) {
 	t.Helper()
 
-	cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
+	cmd := exec.CommandContext(t.Context(), "git", append([]string{"-C", dir}, args...)...)
 	cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_SYSTEM=/dev/null")
 
 	out, err := cmd.CombinedOutput()

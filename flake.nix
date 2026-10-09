@@ -35,9 +35,50 @@
       perSystem =
         {
           config,
+          inputs,
           pkgs,
           ...
         }:
+        let
+          docsGate = pkgs.writeShellScriptBin "docs-gate" ''
+            set -euo pipefail
+
+            repo="''${1:-$PWD}"
+            status=0
+
+            # Gate 1: every archived status/planning doc must carry inline
+            # verdict annotations (the docs-health "~~" convention) — an
+            # unannotated file means the annotation sweep missed it.
+            for archived in "$repo"/docs/archive/pre-rebuild/*.md; do
+              [ -e "$archived" ] || continue
+              if ! grep -q '~~' "$archived"; then
+                echo "docs-gate: unannotated archive file: $archived" >&2
+                status=1
+              fi
+            done
+
+            # Gate 2: backticked docs/ references in living docs must resolve
+            # to an existing file or directory. Excluded: docs/SECURITY.md (a
+            # policy candidate-location string, not a repo file) and
+            # docs/reviews/ (convention decision still open, tracked in
+            # TODO_LIST).
+            for doc in "$repo"/README.md "$repo"/AGENTS.md "$repo"/TODO_LIST.md \
+              "$repo"/ROADMAP.md "$repo"/FEATURES.md "$repo"/CHANGELOG.md; do
+              [ -f "$doc" ] || continue
+              grep -ohE '`docs/[A-Za-z0-9_./ -]+`' "$doc" | tr -d '`' | sort -u | while read -r ref; do
+                case "$ref" in
+                  docs/SECURITY.md | docs/reviews/) continue ;;
+                esac
+                if [ ! -e "$repo/$ref" ]; then
+                  echo "docs-gate: dangling reference in $(basename "$doc"): $ref" >&2
+                  exit 1
+                fi
+              done || status=1
+            done
+
+            exit "$status"
+          '';
+        in
         {
           treefmt = {
             projectRootFile = "go.mod";
@@ -52,6 +93,22 @@
           };
 
           checks.format = config.treefmt.build.check self;
+
+          checks.docs-gate =
+            pkgs.runCommand "docs-gate"
+              {
+                src = inputs.self;
+                nativeBuildInputs = [ pkgs.bash ];
+              }
+              ''
+                ${pkgs.lib.getExe docsGate} "$src"
+                touch $out
+              '';
+
+          apps.docs-gate = {
+            type = "app";
+            program = pkgs.lib.getExe docsGate;
+          };
 
           devShells = {
             default = pkgs.mkShell {
