@@ -8,7 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Changed
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [1.1.0] - 2026-10-09
+
+### Added
+
 - Docs-health AUDIT pass (2026-10-09 evening): post-rebuild status/planning reports fully annotated (599 inline verdicts citing carrying commits) and archived under per-directory `archived/` homes with bulk-archive manifests; the docs-gate now scans all three archive homes (`docs/archive/pre-rebuild/`, `docs/status/archived/`, `docs/planning/archived/`); FEATURES row 11 table repaired (unescaped pipes had truncated the row); TODO_LIST synced with the local directory rename and BuildFlow's vendoring retirement; ROADMAP gained the hardening next-list harvest (fuzz severity parser, property fuzz, CLI JSON golden, coverage ratchet, golangci CI leg, sweep `--json`, gosec overlap audit, resolver-column refactor, re-survey cadence)
+
+### Changed
+
+- CLI framework migrated from cobra to cmdguard v4 (fleet-standard CLI plumbing: typed flag structs, fang rendering, signal handling, panic recovery); commands, flags, and the README-pinned exit-code contract are unchanged — the 16-scenario subprocess contract test pins the surface
+
+### Fixed
+
+- Piped output is now ANSI-free even when the ambient environment forces color (`CLICOLOR_FORCE`/`TTY_FORCE`): the guard unsets the forcing variables when stdout is not a TTY, so machine-readable output consumed by CI and the BuildFlow provider can no longer leak escape sequences (pinned by a hostile-env contract scenario)
+
+## [1.0.0] - 2026-10-09
+
+### Added
 
 - Suppression comments (`securitymd:ignore(rule) reason`): matched findings stay visible but exit-neutral; unknown rules or missing reasons are errors
 - Per-rule severity overrides: `validate --set-severity rule=level` and the provider tool option `severity-overrides` (`missing-file=warning` is the incremental-fleet-adoption unblocker)
