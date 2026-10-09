@@ -24,6 +24,7 @@ _Open items only. Refreshed 2026-10-09 late evening (docs-health AUDIT pass): lo
 
 ## BuildFlow-side
 
+- [ ] **Rebuild the buildflow binary with the fixed go-auto-upgrade FindGoMod** — `FindGoMod` started its walk at `filepath.Dir(path)`, so a module-root WorkDir skipped its own go.mod and stdlib2lo's dependency gate always closed (`lo-dependency-missing` warnings even with samber/lo required; verified dir→false / file→true at pinned rev 64ca820). Fixed upstream in go-auto-upgrade `92b4dfd` (+ regression test). To activate: `nix flake update go-auto-upgrade` in BuildFlow, then `nix build . && nix run .#reinstall` (concurrent-session caution). This repo already applied the lo rewrites manually, so the expected post-rebuild delta is just the 5 stale `lo-dependency-missing` warnings disappearing.
 - [ ] BuildFlow gotcha-anchor warnings (GOTCHAS.md:124/207 → `execution/pipeline.go:432/530`) need re-anchoring to the post-split files — belongs to the split sweep's follow-up.
 - [ ] **Harden BuildFlow's findings gate against suppression** (found + verified at source 2026-10-09): `execution/workflow_result_2.go` `filterFindingsAtOrAbove` filters on severity only and ignores `Suppression` — securitymd's provider now strips suppressed findings at the boundary (pinned by `TestProvider_suppressed_findings_never_reach_the_gate`), but BuildFlow-side defense in depth would protect every tool.
 - [ ] Guard test: assert `securitymd` tool_options validation error message text (report #34).
