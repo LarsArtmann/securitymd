@@ -163,11 +163,11 @@ internal/
 
 ### Key Changes from Current → Target
 
-1. **Split `internal/` into sub-packages** — each with single responsibility
-2. **Delete dead types** — keep only what's used
-3. **Extract interfaces for I/O** — FileSystem, ConfigProvider
-4. **Pure functions for business logic** — `ValidateContent()` takes string, not file path
-5. **No package globals** — command state in structs
+~~1. **Split `internal/` into sub-packages** — each with single responsibility~~ done differently at 1c55390 — rebuild uses pkg/policy + pkg/provider (two focused packages, not five); the single-responsibility goal is met
+~~2. **Delete dead types** — keep only what's used~~ done at 1c55390 — all of internal/types deleted; finding.Finding is the only model
+~~3. **Extract interfaces for I/O** — FileSystem, ConfigProvider~~ moot — the rebuild tests real files in temp git repos (provider testhelpers isolate git env); no mock layer needed
+~~4. **Pure functions for business logic** — `ValidateContent()` takes string, not file path~~ done differently — rebuild splits Detect (I/O) from Validate + pure helpers; provider loop tests real dirs
+~~5. **No package globals** — command state in structs~~ done — rebuilt CLI (cmd/securitymd) has no package-level flag globals
 
 ---
 
@@ -175,13 +175,13 @@ internal/
 
 ### Make the repo more Service-Oriented
 
-1. Move core logic to `pkg/` (public) instead of `internal/` (private)
-2. Expose `ValidateContent(content string) *finding.Report` as a public function
-3. Add HTTP API wrapper for remote validation (optional)
+~~1. Move core logic to `pkg/` (public) instead of `internal/` (private)~~ done at 1c55390 — core lives in pkg/policy + pkg/provider (public)
+~~2. Expose `ValidateContent(content string) *finding.Report` as a public function~~ NOT-DO — public surface is Detect/Report/Validate/Generate; a content-level entry was never needed
+~~3. Add HTTP API wrapper for remote validation (optional)~~ NOT-DO — single-purpose CLI + BuildFlow provider by design
 
 ### Make the repo more Composable
 
-1. Define `Validator` interface in `pkg/` — allows custom validators
-2. Support `io.Reader`/`io.Writer` instead of file paths
-3. Add middleware/hooks for pre/post validation
-4. Support pipeline composition via go-finding's `pipeline.New()`
+~~1. Define `Validator` interface in `pkg/` — allows custom validators~~ NOT-DO — single detector core by design ("never two implementations", AGENTS.md)
+~~2. Support `io.Reader`/`io.Writer` instead of file paths~~ NOT-DO — dir/file-based workflow by design
+~~3. Add middleware/hooks for pre/post validation~~ NOT-DO — no extension surface wanted
+~~4. Support pipeline composition via go-finding's `pipeline.New()`~~ NOT-DO — BuildFlow's DAG orchestrates composition now
