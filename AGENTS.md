@@ -2,8 +2,8 @@
 
 SECURITY.md policy linter and generator. Go, single binary, self-registering BuildFlow provider via go-finding/toolsdk.
 
-- **Module:** `github.com/LarsArtmann/securitymd` — **directory is still `template-SECURITY`** (rename to `securitymd` pending; do not be confused, the code is new)
-- **Not yet published on GitHub** — `go install …@latest` impossible until rename+push+tag; BuildFlow consumes it via local replace + flake input
+- **Module:** `github.com/LarsArtmann/securitymd` — GitHub repo renamed 2026-10-09 (`LarsArtmann/securitymd`); the local checkout dir is still `template-SECURITY` (rename is cosmetic and deferred: it would break BuildFlow's local `replace` path)
+- **Published as PRIVATE + tagged `v1.0.0`** — the module proxy/pkg.go.dev resolve only after the GitHub visibility flip (Lars); BuildFlow consumes it via local replace + flake input until then
 - Single detector core (`pkg/policy`) behind both the CLI and the toolsdk provider — never two implementations
 
 ## Commands
@@ -87,10 +87,11 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 - `go install` is blocked by the bash tool security layer — use `go build -o <path> ./cmd/securitymd` instead
 - The stale LSP diagnostic `project_fuzz_test.go:40:17 unparam` is a cached false positive (actual golangci-lint: 0 issues); Go LSP `documentSymbol` is broken — use view+edit, not symbol replace
 
-## Known state (2026-10-09)
+## Known state (2026-10-09, post-publish pass)
 
-- All tests green, build green, `nix flake check` green, golangci-lint 0 issues, gofumpt clean (re-verified 2026-10-09 after the exit-contract/fixture/drift-guard hardening pass), BuildFlow integration verified live (detect+repair+re-detect clean)
-- CI (`.github/workflows/security-validation.yml`): build+test, 80% coverage floor (actual 87.6%), 30s fuzz smoke, govulncheck (action v1.1.0), nix docs-gate — all steps verified locally; first real runner run happens on the post-publish push
+- All tests green, build green, `nix flake check` green, golangci-lint 0 issues, gofumpt clean, docs-gate exit 0 (re-verified after the expiry/provider/contract hardening)
+- **CI**: the workflow was `disabled_manually` on GitHub (pre-rebuild relic) — re-enabled 2026-10-09; the first real runner run is BLOCKED on Lars's GitHub Actions billing (run 37957194805: all jobs refused before any step, "payments have failed or spending limit"). `workflow_dispatch` is wired: after billing is fixed, prove it with `gh workflow run "Security Policy Validation" -R LarsArtmann/securitymd`
+- Publish state: repo renamed + master pushed + annotated tag `v1.0.0` + description/topics set + dogfood SECURITY.md regenerated (old file was a pre-rebuild relic advertising `security@github.com`/"MyCompany")
 - Fleet rollout prep staged: `scripts/fleet-securitymd-sweep.sh` + announcement draft `docs/planning/2026-10-09_fleet-gate-announcement-draft.md` (execution Lars-gated)
 - Pre-rebuild docs fully archived + annotated (see docs/archive/pre-rebuild/README.md manifest)
-- Publishing checklist (needs Lars): rename GitHub repo → push → tag v1.0.0 → drop BuildFlow replaces/flake input → re-vendor → `nix run .#update-vendor-hash`
+- BuildFlow-side finding (2026-10-09, verified at source): their `filterFindingsAtOrAbove` ignores `Suppression`; this repo's provider strips suppressed findings at the boundary — see TODO_LIST BuildFlow section
