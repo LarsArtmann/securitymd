@@ -3,7 +3,7 @@
 SECURITY.md policy linter and generator. Go, single binary, self-registering BuildFlow provider via go-finding/toolsdk.
 
 - **Module:** `github.com/LarsArtmann/securitymd` — GitHub repo renamed 2026-10-09 (`LarsArtmann/securitymd`) AND the local checkout moved to `~/projects/securitymd` (dir name now matches the module); BuildFlow's local `replace` paths were retargeted in the same change (go.mod + tools/go.mod)
-- **Published as PRIVATE + tagged `v1.0.0`** — the module proxy/pkg.go.dev resolve only after the GitHub visibility flip (Lars); BuildFlow consumes it via local replace + flake input until then
+- **PUBLIC + tagged `v1.0.0`** (visibility flipped 2026-10-09 by Lars) — module proxy resolves it (`go list -m github.com/LarsArtmann/securitymd@v1.0.0` verified via proxy.golang.org); `GOPRIVATE`/local replaces no longer needed for THIS repo (BuildFlow keeps its replace+flake-input wiring, now resolvable from the public proxy)
 - Single detector core (`pkg/policy`) behind both the CLI and the toolsdk provider — never two implementations
 
 ## Commands

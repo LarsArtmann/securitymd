@@ -19,6 +19,7 @@ _Open items only. Refreshed 2026-10-09 late evening (docs-health AUDIT pass): lo
 
 ## Process & ecosystem
 
+- [ ] **Prove the extended docs-gate red** — mutate a throwaway copy (drop an un-annotated file into `docs/status/archived/`), watch the gate fail, record it (third-time lesson: negative-test-first; flagged in the 20:19 status report).
 - [ ] docs-health fleet cron: run `nix run .#docs-gate` per fleet repo on a schedule (the gate script exists in this repo's flake; wiring it fleet-wide needs a cron home — Lars).
 
 ## BuildFlow-side
@@ -27,6 +28,7 @@ _Open items only. Refreshed 2026-10-09 late evening (docs-health AUDIT pass): lo
 - [ ] **Harden BuildFlow's findings gate against suppression** (found + verified at source 2026-10-09): `execution/workflow_result_2.go` `filterFindingsAtOrAbove` filters on severity only and ignores `Suppression` — securitymd's provider now strips suppressed findings at the boundary (pinned by `TestProvider_suppressed_findings_never_reach_the_gate`), but BuildFlow-side defense in depth would protect every tool.
 - [ ] Guard test: assert `securitymd` tool_options validation error message text (report #34).
 - [ ] Run `docs --check` after any provider-count change and fix table drift (report #32; clean as of 2026-10-09).
+- [ ] **docs-gate manifest-coverage leg**: an archived file must have a row in its archive home's manifest README (annotation presence is gated today; classification completeness is not).
 
 ## Decided (recorded so nobody re-opens them)
 
