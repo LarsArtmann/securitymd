@@ -39,6 +39,25 @@
           ...
         }:
         let
+          securitymdVersion = "0.1.0-dev";
+
+          securitymdPackage = pkgs.buildGoModule.override { go = pkgs.go_1_27; } {
+            pname = "securitymd";
+            version = securitymdVersion;
+            src = self;
+            env.GOTOOLCHAIN = "local";
+            ldflags = [
+              "-s -w"
+              "-X main.version=${securitymdVersion}"
+            ];
+            vendorHash = "sha256-DxkiSrHx9cQDlBWV9C9XGgGWGvH3iUvhghF0qL+/X2Y=";
+
+            meta = {
+              description = "Validate and generate SECURITY.md files";
+              mainProgram = "securitymd";
+            };
+          };
+
           docsGate = pkgs.writeShellScriptBin "docs-gate" ''
             set -euo pipefail
 
@@ -109,6 +128,11 @@
           apps.docs-gate = {
             type = "app";
             program = pkgs.lib.getExe docsGate;
+          };
+
+          packages = {
+            default = securitymdPackage;
+            securitymd = securitymdPackage;
           };
 
           devShells = {
