@@ -6,14 +6,14 @@
 
 ## 0. Pre-verified readiness (✅ done 2026-10-09)
 
-| Check | Command | Result |
-|---|---|---|
-| Module path is the new name | `head -1 go.mod` | `module github.com/LarsArtmann/securitymd` |
-| `go mod tidy` clean | `GOWORK=off go mod tidy && git status --short go.mod go.sum` | no diff |
-| Local install path compiles + links | `GOWORK=off go build -o /tmp/securitymd ./cmd/securitymd && /tmp/securitymd --version` | `securitymd version dev` |
-| Nix package builds sandboxed | `nix build .#securitymd` (plan M14) | green, e2e smoke passed |
-| Gates green | `GOWORK=off go test ./... && GOWORK=off golangci-lint run && nix flake check` | green (suppression-suite caveat resolved once the concurrent WIP lands) |
-| Output contract pinned | `go test ./pkg/policy -run TestReport_golden` (plan M2) | green |
+| Check                               | Command                                                                                | Result                                                                  |
+| ----------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Module path is the new name         | `head -1 go.mod`                                                                       | `module github.com/LarsArtmann/securitymd`                              |
+| `go mod tidy` clean                 | `GOWORK=off go mod tidy && git status --short go.mod go.sum`                           | no diff                                                                 |
+| Local install path compiles + links | `GOWORK=off go build -o /tmp/securitymd ./cmd/securitymd && /tmp/securitymd --version` | `securitymd version dev`                                                |
+| Nix package builds sandboxed        | `nix build .#securitymd` (plan M14)                                                    | green, e2e smoke passed                                                 |
+| Gates green                         | `GOWORK=off go test ./... && GOWORK=off golangci-lint run && nix flake check`          | green (suppression-suite caveat resolved once the concurrent WIP lands) |
+| Output contract pinned              | `go test ./pkg/policy -run TestReport_golden` (plan M2)                                | green                                                                   |
 
 ## 1. Lars: the four human steps
 
