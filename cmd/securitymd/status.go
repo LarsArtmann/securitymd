@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/LarsArtmann/securitymd/pkg/policy"
 	"github.com/fatih/color"
@@ -49,15 +50,26 @@ func runStatus(cmd *cobra.Command) error {
 		return nil
 	}
 
-	errors := finding.Filter(findings, finding.BySeverityAtLeast(finding.SeverityError))
-	warnings := finding.Filter(findings, finding.BySeverity(finding.SeverityWarning))
+	now := time.Now()
+	active := finding.Filter(findings, func(f finding.Finding) bool {
+		return !f.IsSuppressedAt(now)
+	})
+	suppressedCount := len(findings) - len(active)
+	errors := finding.Filter(active, finding.BySeverityAtLeast(finding.SeverityError))
+	warnings := finding.Filter(active, finding.BySeverity(finding.SeverityWarning))
 
 	color.Red("❌ %d error(s), %d warning(s)", len(errors), len(warnings))
+	if suppressedCount > 0 {
+		color.Cyan("🔇 %d finding(s) suppressed in-file (not counted)", suppressedCount)
+	}
 
 	for _, f := range findings {
-		if f.Severity.GreaterThanOrEqual(finding.SeverityError) {
+		switch {
+		case f.IsSuppressedAt(now):
+			color.Cyan("  🔇 [%s] %s (suppressed)", f.Rule, f.Message)
+		case f.Severity.GreaterThanOrEqual(finding.SeverityError):
 			color.Red("  • [%s] %s", f.Rule, f.Message)
-		} else {
+		default:
 			color.Yellow("  • [%s] %s", f.Rule, f.Message)
 		}
 	}

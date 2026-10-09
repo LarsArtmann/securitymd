@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/larsartmann/go-finding"
 )
@@ -112,7 +113,7 @@ func Validate(filePath string) ([]finding.Finding, error) {
 	findings = append(findings, validateSections(filePath, lines)...)
 	findings = append(findings, validateContentQuality(filePath, lines)...)
 
-	return applySuppressions(lines, findings), nil
+	return applySuppressions(lines, findings, time.Now()), nil
 }
 
 func validateSections(filePath string, lines []string) []finding.Finding {

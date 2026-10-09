@@ -142,14 +142,18 @@ func printFindings(findings []finding.Finding) {
 		return
 	}
 
+	now := time.Now()
+
 	for _, f := range findings {
 		location := string(f.Position.File)
 		if f.Position.Line > 0 {
 			location = fmt.Sprintf("%s:%d", location, f.Position.Line)
 		}
 
+		suppressed := f.IsSuppressedAt(now)
+
 		switch {
-		case f.Suppression != nil:
+		case suppressed:
 			color.Cyan("🔇 [%s] %s (%s)\n    🔇 suppressed: %s", f.Rule, f.Message, location, f.Suppression.Reason)
 		case f.Severity == finding.SeverityError:
 			color.Red("❌ [%s] %s (%s)", f.Rule, f.Message, location)
@@ -157,7 +161,7 @@ func printFindings(findings []finding.Finding) {
 			color.Yellow("⚠️  [%s] %s (%s)", f.Rule, f.Message, location)
 		}
 
-		if f.Suppression == nil && f.Suggestion != "" {
+		if !suppressed && f.Suggestion != "" {
 			fmt.Printf("    💡 %s\n", f.Suggestion)
 		}
 	}
