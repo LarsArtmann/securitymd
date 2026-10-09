@@ -45,6 +45,21 @@ func (d suppressionDirective) activeAt(now time.Time) bool {
 	return d.expiresAt == nil || now.Before(*d.expiresAt)
 }
 
+// ActiveFindings returns only the findings whose suppression is not in force
+// at now. Consumers whose job is to GATE (exit codes, fleet findings gates)
+// must see the active set — a suppressed finding gates nobody — while
+// evidence-preserving surfaces (JSON reports, SARIF) keep the full set.
+func ActiveFindings(findings []finding.Finding, now time.Time) []finding.Finding {
+	active := make([]finding.Finding, 0, len(findings))
+	for _, f := range findings {
+		if !f.IsSuppressedAt(now) {
+			active = append(active, f)
+		}
+	}
+
+	return active
+}
+
 // applySuppressions marks findings whose rule is suppressed by an in-file
 // suppression comment that is still active at now. Suppressed findings keep
 // their severity but carry the suppression metadata, so consumers (SARIF

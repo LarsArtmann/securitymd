@@ -78,6 +78,10 @@ func promptWhenIdentityMissing(cmd *cobra.Command) error {
 		dir = autoconfigure.WorkingDir(cmd.Context())
 	}
 
+	if _, found := autoconfigure.FirstExisting(dir, policy.CandidateLocations...); found {
+		return nil
+	}
+
 	if policy.DetectRepoIdentity(cmd.Context(), dir).IsComplete() {
 		return nil
 	}

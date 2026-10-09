@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"github.com/mattn/go-isatty"
 )
 
 // errEmptyPromptAnswer marks an unusable interactive answer; the message
@@ -47,13 +49,10 @@ func promptValue(in *bufio.Reader, writer io.Writer, label string) (string, erro
 	return answer, nil
 }
 
-// stdinIsInteractive reports whether stdin is a terminal, so interactive
-// prompts only run for humans — never in CI or piped contexts.
+// stdinIsInteractive reports whether stdin is a REAL terminal, so interactive
+// prompts only run for humans — never in CI, piped contexts, or under
+// /dev/null (which is a character device too, so a ModeCharDevice check here
+// once crashed headless runs with a prompt-EOF error instead of skipping).
 func stdinIsInteractive() bool {
-	stat, err := os.Stdin.Stat()
-	if err != nil {
-		return false
-	}
-
-	return stat.Mode()&os.ModeCharDevice != 0
+	return isatty.IsTerminal(os.Stdin.Fd()) || isatty.IsCygwinTerminal(os.Stdin.Fd())
 }

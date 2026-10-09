@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-finding"
@@ -28,6 +30,52 @@ func TestProvider_registered_and_shaped(t *testing.T) {
 	require.ErrorIs(t,
 		Provider.ValidateOptions(toolsdk.OptionValues{"unknown-knob": true}),
 		toolsdk.ErrUnknownOption)
+}
+
+// TestProvider_suppressed_findings_never_reach_the_gate pins the provider's
+// exit-neutral contract across the BuildFlow boundary: BuildFlow's findings
+// gate counts the provider result, so an in-file suppression must strip the
+// finding HERE — the gate cannot be trusted to honor suppression metadata
+// (verified 2026-10-09: BuildFlow's filterFindingsAtOrAbove filters on
+// severity only).
+func TestProvider_suppressed_findings_never_reach_the_gate(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "SECURITY.md"),
+		[]byte(flawedWithSuppressedContact(t)), 0o600))
+
+	findings, err := Provider.Detect.Detect(finding.WithWorkingDir(t.Context(), dir))
+	require.NoError(t, err)
+
+	assert.NotContains(t, rulesOf(findings), "missing-contact",
+		"a suppressed finding must not reach consumers' findings gates")
+	assert.ElementsMatch(t, []string{"missing-response-time", "unresolved-template"},
+		rulesOf(findings),
+		"active findings must pass through untouched")
+}
+
+// flawedWithSuppressedContact derives the shared flawed fixture with an
+// in-file suppression on its error-severity rule.
+func flawedWithSuppressedContact(t *testing.T) string {
+	t.Helper()
+
+	raw, err := os.ReadFile(filepath.Join("..", "policy", "testdata", "policy", "flawed.md"))
+	require.NoError(t, err, "shared flawed fixture missing")
+
+	return strings.Replace(string(raw),
+		"Please email {{.ContactEmail}}",
+		"<!-- securitymd:ignore(missing-contact) organization email pending -->\nPlease email {{.ContactEmail}}",
+		1)
+}
+
+func rulesOf(findings []finding.Finding) []string {
+	rules := make([]string, 0, len(findings))
+	for _, f := range findings {
+		rules = append(rules, string(f.Rule))
+	}
+
+	return rules
 }
 
 // A docs-only repo (README.md, no dependency manifests) must still activate:

@@ -13,6 +13,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/LarsArtmann/securitymd/pkg/policy"
 	"github.com/larsartmann/go-finding"
@@ -88,8 +89,11 @@ var Provider = toolsdk.Register(toolsdk.Spec{
 	}),
 })
 
-// detectWithOptions runs the policy detector, then applies the repo's
-// severity overrides so consumers see the severities the repo actually chose.
+// detectWithOptions runs the policy detector, applies the repo's severity
+// overrides, then strips suppressed findings. The provider result feeds
+// consumers' findings gates, and a suppression must gate nobody — in the CLI
+// (exit-neutral) just as much as fleet-wide. Evidence stays available through
+// the CLI's JSON report, which keeps the full set.
 func detectWithOptions(ctx context.Context) ([]finding.Finding, error) {
 	findings, err := policy.Detect(ctx)
 	if err != nil {
@@ -101,7 +105,7 @@ func detectWithOptions(ctx context.Context) ([]finding.Finding, error) {
 		return nil, fmt.Errorf("securitymd %s: %w", optionSeverityOverrides, err)
 	}
 
-	return policy.ApplySeverityOverrides(findings, overrides), nil
+	return policy.ActiveFindings(policy.ApplySeverityOverrides(findings, overrides), time.Now()), nil
 }
 
 // contactEmailFromContext reads the optional contact-email tool option.
