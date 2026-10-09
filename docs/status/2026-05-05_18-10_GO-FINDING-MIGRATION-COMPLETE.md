@@ -1,5 +1,7 @@
 # Comprehensive Project Status — template-SECURITY
 
+> **Superseded 2026-10-08** — describes the pre-rebuild tree (`internal/`, `cmd/template-security/`), deleted in the securitymd rebuild (`1c55390`). Successor report: `docs/status/2026-10-08_23-40_securitymd-rebuild-buildflow-provider-status.md`. All open items below carry inline verdicts.
+
 **Date:** 2026-05-05 18:10 | **Branch:** master | **Commit:** f24512b
 
 ---
@@ -11,6 +13,8 @@ Successfully migrated template-SECURITY from custom validation types to `github.
 ---
 
 ## A) FULLY DONE ✅
+
+_Historically accurate: all of this shipped in the pre-rebuild tree (deleted `1c55390`). Several rows below were themselves superseded by the rebuild — pipeline.Detector became a toolsdk Spec, WriteSARIF became CLI `--format sarif`._
 
 ### 1. go-finding Migration (THIS SESSION)
 
@@ -51,9 +55,9 @@ Successfully migrated template-SECURITY from custom validation types to `github.
 
 ## B) PARTIALLY DONE 🔶
 
-### 1. go-finding Integration Depth — ~30%
+### 1. go-finding Integration Depth — ~~~30%~~ done next session, superseded by rebuild
 
-We added go-finding as a dependency and migrated the validator output, but:
+All five gaps (FindingError, Builder, WriteJSON/SARIF, pipeline, filters) were closed the same day by session 2 — see `2026-05-05_18-51_DEEP-GO-FINDING-INTEGRATION.md`. The rebuild then re-founded integration on toolsdk instead of pipeline.
 
 - **NOT using `finding.FindingError`** — `security_tool.go` still has its own `SecurityError` type for config/template errors. Could use `finding.NewValidationError()`, `finding.NewIOError()`, etc.
 - **NOT using `finding.Builder` API** — Findings are constructed via `finding.NewFinding()` directly. The fluent builder would be cleaner.
@@ -61,7 +65,9 @@ We added go-finding as a dependency and migrated the validator output, but:
 - **NOT using pipeline** — The `pipeline.Detector` interface is not implemented. The validator could become a proper `Detector` that plugs into the go-finding pipeline.
 - **NOT using filters** — `finding.Filter`, `finding.BySeverity`, etc. not used for result processing.
 
-### 2. Test Coverage — 24.2% overall
+### 2. Test Coverage — 24.2% overall (historical)
+
+The coverage question is moot for the deleted tree; the successor ships unit + provider-loop + BDD suites, all green.
 
 | Package                 | Coverage | Notes                                                                                            |
 | ----------------------- | -------- | ------------------------------------------------------------------------------------------------ |
@@ -70,7 +76,9 @@ We added go-finding as a dependency and migrated the validator output, but:
 | `cmd/template-security` | 0.0%     | No tests at all                                                                                  |
 | `test/acceptance`       | 100.0%   | Good acceptance coverage                                                                         |
 
-### 3. CLI Binary — Functional but Basic
+### 3. CLI Binary — Functional but Basic — superseded
+
+The rebuilt CLI (`cmd/securitymd`) ships `--file`, `--format text/json/sarif`, `--severity`, and exit 0/1/2 semantics.
 
 - No `--sarif` output format (now easily addable via go-finding)
 - No `--severity` filtering (now trivially addable)
@@ -80,20 +88,20 @@ We added go-finding as a dependency and migrated the validator output, but:
 
 ## C) NOT STARTED ⬜
 
-1. **Pipeline integration** — Implement `pipeline.Detector` interface for `SecurityValidator`
-2. **SARIF output in CLI** — Add `-format sarif` flag using `report.WriteSARIF()`
-3. **Severity filtering in CLI** — Add `-severity` flag using `finding.BySeverityAtLeast()`
-4. **Migrate SecurityError to finding.FindingError** — Replace custom error type in `security_tool.go`
-5. **Implement `finding.Builder`** — Use fluent builder instead of `NewFinding()` + field assignment
-6. **CLI tests** — 0% coverage on `cmd/template-security`
-7. **Project detector tests** — `project_detector.go` has no test file
-8. **Config file tests** — Config loading has minimal coverage
-9. **Template variable tests** — Template processing edge cases untested
-10. **Nix flake migration** — Proposal exists but no implementation
-11. **De-duplication of findings** — Multiple validations of same file produce duplicates
-12. **Exit code semantics** — Different exit codes for different severity levels
-13. **CI/CD integration guide** — How to use in GitHub Actions with SARIF upload
-14. **Version flag in binary** — Uses ldflags but no goreleaser config
+~~1. **Pipeline integration** — Implement `pipeline.Detector` interface for `SecurityValidator`~~ done 2026-05-05 (session 2) as pipeline.Detector; superseded 10-08 — rebuild drops pipeline for a toolsdk provider
+~~2. **SARIF output in CLI** — Add `-format sarif` flag using `report.WriteSARIF()`~~ done session 2 (WriteSARIFFiltered); rebuilt CLI ships text/json/sarif
+~~3. **Severity filtering in CLI** — Add `-severity` flag using `finding.BySeverityAtLeast()`~~ done session 2 (-severity flag); rebuilt CLI keeps --severity
+~~4. **Migrate SecurityError to finding.FindingError** — Replace custom error type in `security_tool.go`~~ done session 2 — FindingError family (NewIOError/NewParseError)
+~~5. **Implement `finding.Builder`** — Use fluent builder instead of `NewFinding()` + field assignment~~ done session 2 — Builder API used throughout
+~~6. **CLI tests** — 0% coverage on `cmd/template-security`~~ NOT-DO — old CLI deleted at 1c55390; successor cmd/ stays test-free by design (coverage via provider + acceptance tests, see FEATURES.md)
+~~7. **Project detector tests** — `project_detector.go` has no test file~~ done — pkg/policy/project_test.go exists in the rebuild
+~~8. **Config file tests** — Config loading has minimal coverage~~ done at 1c55390 — config system removed entirely (nothing to test)
+~~9. **Template variable tests** — Template processing edge cases untested~~ done — pkg/policy/generate_test.go + line-precise unresolved-template tests in validate_test.go
+~~10. **Nix flake migration** — Proposal exists but no implementation~~ done at 9d3094a (2026-06-17)
+~~11. **De-duplication of findings** — Multiple validations of same file produce duplicates~~ NOT-DO — moot in the rebuild: one detect pass per run, no multi-validation merge
+~~12. **Exit code semantics** — Different exit codes for different severity levels~~ done — rebuilt CLI exits 0 clean / 1 error findings / 2 operational failure
+~~13. **CI/CD integration guide** — How to use in GitHub Actions with SARIF upload~~ NOT-DO — BuildFlow provider is the integration path (README documents usage)
+~~14. **Version flag in binary** — Uses ldflags but no goreleaser config~~ NOT-DO — version stays ldflags metadata; goreleaser never adopted
 
 ---
 
@@ -134,26 +142,26 @@ The project has **88+ golangci-lint warnings** that were NOT introduced by this 
 
 ### High Impact
 
-1. **Fix `.golangci.yml`** — Relax rules inappropriate for a CLI tool (forbidigo, exhaustruct for cobra). This eliminates 80%+ of warnings in one shot.
-2. **Add CLI tests** — `cmd/template-security` at 0% coverage is the biggest gap
-3. **Use go-finding's JSON/SARIF output** — Replace manual JSON construction with `report.WriteJSON()` / `report.WriteSARIF()`
-4. **Implement `pipeline.Detector`** — Makes the validator pluggable into go-finding's ecosystem
+~~1. **Fix `.golangci.yml`** — Relax rules inappropriate for a CLI tool (forbidigo, exhaustruct for cobra). This eliminates 80%+ of warnings in one shot.~~ done session 3 (f29259c, d6614d6)
+~~2. **Add CLI tests** — `cmd/template-security` at 0% coverage is the biggest gap~~ NOT-DO — successor covers behavior via provider + acceptance tests
+~~3. **Use go-finding's JSON/SARIF output** — Replace manual JSON construction with `report.WriteJSON()` / `report.WriteSARIF()`~~ done session 2 — WriteJSON/WriteSARIFFiltered wired
+~~4. **Implement `pipeline.Detector`** — Makes the validator pluggable into go-finding's ecosystem~~ done session 2; superseded — toolsdk Spec is the integration shape now
 
 ### Medium Impact
 
-5. **Add `-format sarif` CLI flag** — Trivially addable now, huge value for CI/CD
-6. **Add `-severity` CLI flag** — Filter findings by minimum severity
-7. **Test `project_detector.go`** — No tests at all for a complex file
-8. **Migrate `SecurityError` to `finding.FindingError`** — Consolidate error handling
-9. **Remove unused functions** — `printSuccess`, `printError` in cmd_helpers
+~~5. **Add `-format sarif` CLI flag** — Trivially addable now, huge value for CI/CD~~ done session 2; rebuilt CLI ships it
+~~6. **Add `-severity` CLI flag** — Filter findings by minimum severity~~ done session 2; rebuilt CLI keeps it
+~~7. **Test `project_detector.go`** — No tests at all for a complex file~~ done — pkg/policy/project_test.go in the rebuild
+~~8. **Migrate `SecurityError` to `finding.FindingError`** — Consolidate error handling~~ done session 2
+~~9. **Remove unused functions** — `printSuccess`, `printError` in cmd_helpers~~ done session 3 (d6614d6)
 
 ### Low Impact / Polish
 
-10. Fix JSON tag casing in `types.go`
-11. Add package comments
-12. Add nix flake build
-13. Add goreleaser config
-14. Update stale status docs
+~~10. Fix JSON tag casing in `types.go`~~ moot — types deleted at 1c55390
+~~11. Add package comments~~ moot — rebuild lint runs at 0 issues
+~~12. Add nix flake build~~ done at 9d3094a
+~~13. Add goreleaser config~~ NOT-DO — publish via git tag (TODO_LIST checklist); goreleaser never adopted
+~~14. Update stale status docs~~ done 2026-10-09 — this docs-health pass annotates and archives them
 
 ---
 
@@ -161,37 +169,37 @@ The project has **88+ golangci-lint warnings** that were NOT introduced by this 
 
 | #  | Priority | Task                                                            | Effort | Impact                       |
 | -- | -------- | --------------------------------------------------------------- | ------ | ---------------------------- |
-| 1  | P0       | Fix `.golangci.yml` — relax CLI-inappropriate rules             | 30min  | Eliminates 80%+ warnings     |
-| 2  | P0       | Add CLI tests for `cmd/template-security`                       | 2h     | 0% → 80% coverage gap closed |
-| 3  | P0       | Remove unused `printSuccess`/`printError` functions             | 5min   | Dead code elimination        |
-| 4  | P1       | Add `-format sarif` flag using `report.WriteSARIF()`            | 30min  | CI/CD integration value      |
-| 5  | P1       | Add `-severity` filter flag using `finding.BySeverityAtLeast()` | 30min  | CLI usability                |
-| 6  | P1       | Use `report.WriteJSON()` instead of manual JSON in validate.go  | 30min  | Code dedup                   |
-| 7  | P1       | Implement `pipeline.Detector` for `SecurityValidator`           | 1h     | Ecosystem integration        |
-| 8  | P1       | Test `project_detector.go`                                      | 1h     | Untested complex code        |
-| 9  | P1       | Migrate `SecurityError` to `finding.FindingError`               | 1h     | Consistency                  |
-| 10 | P1       | Use `finding.Builder` API in validator                          | 30min  | Cleaner code                 |
-| 11 | P2       | Fix JSON tags in `types.go` (camelCase)                         | 15min  | Lint compliance              |
-| 12 | P2       | Add package comments to all packages                            | 15min  | Lint compliance              |
-| 13 | P2       | Add `go.Finding` category tags to all findings                  | 15min  | Better filtering             |
-| 14 | P2       | Add confidence scores to findings                               | 15min  | Richer output                |
-| 15 | P2       | Update `README.md` to mention go-finding integration            | 15min  | Documentation                |
-| 16 | P2       | Update `SECURITY.md` template                                   | 30min  | Template quality             |
-| 17 | P2       | Add `Makefile` or `flake.nix` build                             | 1h     | Build automation             |
-| 18 | P2       | Add GitHub Actions SARIF upload step                            | 30min  | CI/CD                        |
-| 19 | P2       | Add configuration file for validation rules                     | 2h     | Extensibility                |
-| 20 | P3       | Add `docs/adr/` for go-finding migration decision               | 30min  | Architecture docs            |
-| 21 | P3       | Add `FEATURES.md` — audit actual features                       | 1h     | Documentation                |
-| 22 | P3       | Add `TODO_LIST.md` — comprehensive task list                    | 1h     | Project management           |
-| 23 | P3       | Clean up stale docs in `docs/status/` and `docs/planning/`      | 30min  | Housekeeping                 |
-| 24 | P3       | Add goreleaser config for binary releases                       | 1h     | Distribution                 |
-| 25 | P3       | Update `CHANGELOG.md` with go-finding migration entry           | 15min  | Changelog hygiene            |
+~~| 1  | P0       | Fix `.golangci.yml` — relax CLI-inappropriate rules             | 30min  | Eliminates 80%+ warnings     |~~ done session 3 (f29259c, d6614d6)
+~~| 2  | P0       | Add CLI tests for `cmd/template-security`                       | 2h     | 0% → 80% coverage gap closed |~~ NOT-DO — successor: provider + acceptance coverage
+~~| 3  | P0       | Remove unused `printSuccess`/`printError` functions             | 5min   | Dead code elimination        |~~ done session 3 (d6614d6)
+~~| 4  | P1       | Add `-format sarif` flag using `report.WriteSARIF()`            | 30min  | CI/CD integration value      |~~ done session 2; rebuilt CLI ships it
+~~| 5  | P1       | Add `-severity` filter flag using `finding.BySeverityAtLeast()` | 30min  | CLI usability                |~~ done session 2
+~~| 6  | P1       | Use `report.WriteJSON()` instead of manual JSON in validate.go  | 30min  | Code dedup                   |~~ done session 2
+~~| 7  | P1       | Implement `pipeline.Detector` for `SecurityValidator`           | 1h     | Ecosystem integration        |~~ done session 2; superseded by toolsdk provider (1c55390)
+~~| 8  | P1       | Test `project_detector.go`                                      | 1h     | Untested complex code        |~~ done — pkg/policy/project_test.go
+~~| 9  | P1       | Migrate `SecurityError` to `finding.FindingError`               | 1h     | Consistency                  |~~ done session 2
+~~| 10 | P1       | Use `finding.Builder` API in validator                          | 30min  | Cleaner code                 |~~ done session 2
+~~| 11 | P2       | Fix JSON tags in `types.go` (camelCase)                         | 15min  | Lint compliance              |~~ moot — deleted at 1c55390
+~~| 12 | P2       | Add package comments to all packages                            | 15min  | Lint compliance              |~~ moot — lint 0 issues in rebuild
+~~| 13 | P2       | Add `go.Finding` category tags to all findings                  | 15min  | Better filtering             |~~ done session 2 — WithCategory wired
+~~| 14 | P2       | Add confidence scores to findings                               | 15min  | Richer output                |~~ done session 2 — WithConfidence wired
+~~| 15 | P2       | Update `README.md` to mention go-finding integration            | 15min  | Documentation                |~~ done at 519916d — README rewritten for securitymd
+~~| 16 | P2       | Update `SECURITY.md` template                                   | 30min  | Template quality             |~~ done — embedded canonical template (pkg/policy/template.md)
+~~| 17 | P2       | Add `Makefile` or `flake.nix` build                             | 1h     | Build automation             |~~ done at 9d3094a (flake.nix; never Makefile)
+~~| 18 | P2       | Add GitHub Actions SARIF upload step                            | 30min  | CI/CD                        |~~ NOT-DO — BuildFlow is the CI path
+~~| 19 | P2       | Add configuration file for validation rules                     | 2h     | Extensibility                |~~ NOT-DO — config system removed on purpose (CHANGELOG breaking change)
+~~| 20 | P3       | Add `docs/adr/` for go-finding migration decision               | 30min  | Architecture docs            |~~ NOT-DO — decision recorded in CHANGELOG + status reports instead
+~~| 21 | P3       | Add `FEATURES.md` — audit actual features                       | 1h     | Documentation                |~~ done at 4a8987a
+~~| 22 | P3       | Add `TODO_LIST.md` — comprehensive task list                    | 1h     | Project management           |~~ done at 4a8987a
+~~| 23 | P3       | Clean up stale docs in `docs/status/` and `docs/planning/`      | 30min  | Housekeeping                 |~~ done 2026-10-09 (this pass)
+~~| 24 | P3       | Add goreleaser config for binary releases                       | 1h     | Distribution                 |~~ NOT-DO
+~~| 25 | P3       | Update `CHANGELOG.md` with go-finding migration entry           | 15min  | Changelog hygiene            |~~ done at 72085c2
 
 ---
 
 ## G) TOP #1 QUESTION I CANNOT FIGURE OUT MYSELF 🤔
 
-**Should `SecurityValidator` become a `pipeline.Detector` implementation (with `Name()` and `Detect(ctx) ([]finding.Finding, error)`), or should it stay as a higher-level abstraction that returns `*finding.Report`?**
+**~~Should `SecurityValidator` become a `pipeline.Detector` implementation…?~~** — RESOLVED twice over: implemented as `Detector` in session 2 the same day; the 2026-10-08 rebuild then replaced the question entirely — the integration shape is now a go-finding **toolsdk Spec provider** (Detect + Repair), which fits the validate/generate duality better than a detect-only pipeline node.
 
 Arguments for `Detector`:
 
@@ -236,3 +244,7 @@ Total: 17 tests PASS | 0 FAIL | go vet CLEAN | go build CLEAN
 ---
 
 _Generated by Crush <crush@charm.land>_
+
+## Resolution (2026-10-09)
+
+Every open item in C/E/F/G carries an inline verdict. Reference hashes: `1c55390` (old tree deleted), `72085c2`/`4a8987a`/`519916d` (docs pass), `9d3094a` (flake.nix), session-2/3 work of 2026-05-05 (`f29259c`, `d6614d6` era). Archivable: no open items remain.

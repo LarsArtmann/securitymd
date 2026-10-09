@@ -78,23 +78,23 @@ Notable uncovered functions: `DetectFile()` (0.0%), `hasVersionInformation()` (7
 
 ## C) NOT STARTED ⬜
 
-1. **Pipeline composition** — Combine SecurityValidator detector with govet/staticcheck from go-finding
-2. **CLI tests** — `cmd/template-security` still at 0% coverage
-3. **`project_detector.go` tests** — Complex file with zero tests
-4. **`security_tool.go` tests** — `NewSecurityError` callers not tested with `FindingError`
-5. **`DetectFile()` tests** — New convenience function, 0% coverage
-6. **SARIF round-trip tests** — No test for `-format sarif` output
-7. **GitHub Actions SARIF upload** — CI workflow doesn't use SARIF output yet
-8. **`finding.Merge` for multi-file reports** — Could use `finding.Merge()` instead of manual `mergeReports()`
-9. **`finding.SortBySeverity`** — Not used in text output
-10. **`finding.GroupByFile`** — Not used in PrintResults
-11. **`finding.ReportFromJSON`** — Not used (could enable re-loading cached results)
-12. **Nix flake migration** — Proposal exists, no implementation
-13. **Goreleaser config** — No release automation
-14. **`.golangci.yml` fix** — 80%+ of warnings are from inappropriate rules
-15. **Version flag via ldflags** — Exists but untested
-16. **Exit codes** — Same exit code regardless of severity level
-17. **Configurable validation rules** — Hardcoded required sections
+~~1. **Pipeline composition** — Combine SecurityValidator detector with govet/staticcheck from go-finding~~ NOT-DO — superseded: composition happens in BuildFlow's DAG now (toolsdk provider), not in-process
+~~2. **CLI tests** — `cmd/template-security` still at 0% coverage~~ NOT-DO — old CLI deleted at 1c55390; successor cmd/ test-free by design (provider + acceptance coverage)
+~~3. **`project_detector.go` tests** — Complex file with zero tests~~ done — pkg/policy/project_test.go exists in the rebuild
+~~4. **`security_tool.go` tests** — `NewSecurityError` callers not tested with `FindingError`~~ moot — file deleted at 1c55390; generation covered by pkg/policy/generate_test.go
+~~5. **`DetectFile()` tests** — New convenience function, 0% coverage~~ moot — DetectFile deleted with the old tree (detect.go redesigned)
+~~6. **SARIF round-trip tests** — No test for `-format sarif` output~~ routed — TODO_LIST keeps the SARIF golden-file test for the rebuilt CLI
+~~7. **GitHub Actions SARIF upload** — CI workflow doesn't use SARIF output yet~~ NOT-DO — BuildFlow is the CI integration path
+~~8. **`finding.Merge` for multi-file reports** — Could use `finding.Merge()` instead of manual `mergeReports()`~~ moot — rebuild validates one policy per run; no multi-file merge exists
+~~9. **`finding.SortBySeverity`** — Not used in text output~~ moot — rebuild output has no multi-severity sort need
+~~10. **`finding.GroupByFile`** — Not used in PrintResults~~ moot — single file per validate in the rebuild
+~~11. **`finding.ReportFromJSON`** — Not used (could enable re-loading cached results)~~ NOT-DO — no cached-results feature; YAGNI
+~~12. **Nix flake migration** — Proposal exists, no implementation~~ done at 9d3094a (2026-06-17)
+~~13. **Goreleaser config** — No release automation~~ NOT-DO — publish via git tag (TODO_LIST checklist)
+~~14. **`.golangci.yml` fix** — 80%+ of warnings are from inappropriate rules~~ done session 3 of 2026-05-05 (f29259c, d6614d6)
+~~15. **Version flag via ldflags** — Exists but untested~~ NOT-DO — cosmetic; version string ships in the rebuilt CLI header
+~~16. **Exit codes** — Same exit code regardless of severity level~~ done — rebuilt CLI: 0 clean / 1 error findings / 2 operational failure
+~~17. **Configurable validation rules** — Hardcoded required sections~~ routed — TODO_LIST (per-rule severity configuration); config files stay out
 
 ---
 
@@ -140,24 +140,24 @@ The deep integration session (commit `4cfba19`) did NOT include all files. Six f
 
 ### Critical
 
-1. **Commit the uncommitted changes** — Deep integration work is sitting in working tree
-2. **Fix `.golangci.yml`** — One 30-minute session eliminates 80%+ of warnings
-3. **Add CLI tests** — Biggest coverage gap (0%)
+~~1. **Commit the uncommitted changes** — Deep integration work is sitting in working tree~~ done — committed by the auto-git daemon the same night (f29259c followed)
+~~2. **Fix `.golangci.yml`** — One 30-minute session eliminates 80%+ of warnings~~ done session 3 (f29259c, d6614d6)
+~~3. **Add CLI tests** — Biggest coverage gap (0%)~~ NOT-DO — successor covers behavior via provider + acceptance tests
 
 ### High Impact
 
-4. **Wire `pipeline.New()` + `Run()`** — Actually use the pipeline orchestration
-5. **Compose with go-finding detectors** — Security validation + govet + staticcheck in one pipeline
-6. **Test `DetectFile()`** — New public function, 0% coverage
-7. **Test `-format sarif`** — No test for SARIF output at all
+~~4. **Wire `pipeline.New()` + `Run()`** — Actually use the pipeline orchestration~~ NOT-DO — superseded: BuildFlow's DAG orchestrates detect/repair now
+~~5. **Compose with go-finding detectors** — Security validation + govet + staticcheck in one pipeline~~ NOT-DO — superseded: same reason, composition lives in BuildFlow
+~~6. **Test `DetectFile()`** — New public function, 0% coverage~~ moot — deleted at 1c55390
+~~7. **Test `-format sarif`** — No test for SARIF output at all~~ routed — TODO_LIST SARIF golden-file test
 
 ### Medium Impact
 
-8. **Use `finding.Merge()`** — Replace manual `mergeReports()`
-9. **Use `finding.SortBySeverity()`** — In PrintResults
-10. **Use `finding.GroupByFile()`** — Group output by file
-11. **Test `project_detector.go`** — Complex file, zero tests
-12. **Fix nil context in tests** — `context.TODO()` instead of `nil`
+~~8. **Use `finding.Merge()`** — Replace manual `mergeReports()`~~ moot — no mergeReports left; single report per run
+~~9. **Use `finding.SortBySeverity()`** — In PrintResults~~ moot — output redesigned
+~~10. **Use `finding.GroupByFile()`** — Group output by file~~ moot — output redesigned
+~~11. **Test `project_detector.go`** — Complex file, zero tests~~ done — pkg/policy/project_test.go
+~~12. **Fix nil context in tests** — `context.TODO()` instead of `nil`~~ done — tests use context.TODO() (noted in the 2026-07-26 report)
 
 ---
 
@@ -165,31 +165,31 @@ The deep integration session (commit `4cfba19`) did NOT include all files. Six f
 
 | #  | Priority | Task                                                       | Effort | Impact                        |
 | -- | -------- | ---------------------------------------------------------- | ------ | ----------------------------- |
-| 1  | P0       | **Commit uncommitted deep integration changes**            | 2min   | Uncommitted work at risk      |
-| 2  | P0       | Fix `.golangci.yml` — relax CLI-inappropriate rules        | 30min  | Eliminates 80%+ warnings      |
-| 3  | P0       | Remove unused `printSuccess`/`printError` from cmd_helpers | 5min   | Dead code                     |
-| 4  | P1       | Add CLI tests for `cmd/template-security`                  | 2h     | 0% → 80% coverage             |
-| 5  | P1       | Wire `pipeline.New()` + `Run()` in validate command        | 1h     | Full pipeline orchestration   |
-| 6  | P1       | Compose with go-finding govet + staticcheck detectors      | 1h     | Multi-tool pipeline           |
-| 7  | P1       | Test `DetectFile()` convenience function                   | 30min  | 0% → 100% coverage            |
-| 8  | P1       | Add SARIF output test                                      | 30min  | Untested feature              |
-| 9  | P1       | Use `finding.Merge()` in validate.go                       | 15min  | Use library instead of custom |
-| 10 | P1       | Use `finding.SortBySeverity()` in PrintResults             | 15min  | Better output ordering        |
-| 11 | P2       | Fix nil context in tests → `context.TODO()`                | 5min   | Correctness                   |
-| 12 | P2       | Add `--output` flag for file-based SARIF output            | 30min  | CI/CD file output             |
-| 13 | P2       | Test `project_detector.go`                                 | 1h     | Untested complex code         |
-| 14 | P2       | Convert `file://` URIs in SARIF output                     | 30min  | SARIF compliance              |
-| 15 | P2       | Update `README.md` with go-finding integration docs        | 30min  | Documentation                 |
-| 16 | P2       | Add `docs/adr/` for go-finding migration decision          | 30min  | Architecture docs             |
-| 17 | P2       | Add `FEATURES.md` audit                                    | 1h     | Documentation                 |
-| 18 | P2       | Add `TODO_LIST.md`                                         | 1h     | Project management            |
-| 19 | P3       | Add GitHub Actions SARIF upload step                       | 30min  | CI/CD                         |
-| 20 | P3       | Add exit codes by severity                                 | 30min  | CLI usability                 |
-| 21 | P3       | Configurable validation rules via YAML                     | 2h     | Extensibility                 |
-| 22 | P3       | Add goreleaser config                                      | 1h     | Distribution                  |
-| 23 | P3       | Add nix flake build                                        | 1h     | Build automation              |
-| 24 | P3       | Update `CHANGELOG.md`                                      | 15min  | Changelog hygiene             |
-| 25 | P3       | Clean up stale docs in `docs/status/` and `docs/planning/` | 30min  | Housekeeping                  |
+~~| 1  | P0       | **Commit uncommitted deep integration changes**            | 2min   | Uncommitted work at risk      |~~ done — committed by the auto-git daemon the same night
+~~| 2  | P0       | Fix `.golangci.yml` — relax CLI-inappropriate rules        | 30min  | Eliminates 80%+ warnings      |~~ done session 3 (f29259c, d6614d6)
+~~| 3  | P0       | Remove unused `printSuccess`/`printError` from cmd_helpers | 5min   | Dead code                     |~~ done session 3 (d6614d6)
+~~| 4  | P1       | Add CLI tests for `cmd/template-security`                  | 2h     | 0% → 80% coverage             |~~ NOT-DO — provider + acceptance coverage in the successor
+~~| 5  | P1       | Wire `pipeline.New()` + `Run()` in validate command        | 1h     | Full pipeline orchestration   |~~ NOT-DO — BuildFlow DAG is the pipeline now
+~~| 6  | P1       | Compose with go-finding govet + staticcheck detectors      | 1h     | Multi-tool pipeline           |~~ NOT-DO — same
+~~| 7  | P1       | Test `DetectFile()` convenience function                   | 30min  | 0% → 100% coverage            |~~ moot — deleted at 1c55390
+~~| 8  | P1       | Add SARIF output test                                      | 30min  | Untested feature              |~~ routed — TODO_LIST golden-file test
+~~| 9  | P1       | Use `finding.Merge()` in validate.go                       | 15min  | Use library instead of custom |~~ moot
+~~| 10 | P1       | Use `finding.SortBySeverity()` in PrintResults             | 15min  | Better output ordering        |~~ moot
+~~| 11 | P2       | Fix nil context in tests → `context.TODO()`                | 5min   | Correctness                   |~~ done
+~~| 12 | P2       | Add `--output` flag for file-based SARIF output            | 30min  | CI/CD file output             |~~ NOT-DO — BuildFlow consumes stdout; no file-output flag
+~~| 13 | P2       | Test `project_detector.go`                                 | 1h     | Untested complex code         |~~ done — pkg/policy/project_test.go
+~~| 14 | P2       | Convert `file://` URIs in SARIF output                     | 30min  | SARIF compliance              |~~ routed — TODO_LIST SARIF golden-file test covers URI shape
+~~| 15 | P2       | Update `README.md` with go-finding integration docs        | 30min  | Documentation                 |~~ done at 519916d — README rewritten for securitymd
+~~| 16 | P2       | Add `docs/adr/` for go-finding migration decision          | 30min  | Architecture docs             |~~ NOT-DO — decision recorded in CHANGELOG + status reports
+~~| 17 | P2       | Add `FEATURES.md` audit                                    | 1h     | Documentation                 |~~ done at 4a8987a
+~~| 18 | P2       | Add `TODO_LIST.md`                                         | 1h     | Project management            |~~ done at 4a8987a
+~~| 19 | P3       | Add GitHub Actions SARIF upload step                       | 30min  | CI/CD                         |~~ NOT-DO — BuildFlow path
+~~| 20 | P3       | Add exit codes by severity                                 | 30min  | CLI usability                 |~~ done — 0/1/2 semantics in the rebuilt CLI
+~~| 21 | P3       | Configurable validation rules via YAML                     | 2h     | Extensibility                 |~~ routed — TODO_LIST per-rule severity item
+~~| 22 | P3       | Add goreleaser config                                      | 1h     | Distribution                  |~~ NOT-DO
+~~| 23 | P3       | Add nix flake build                                        | 1h     | Build automation              |~~ done at 9d3094a
+~~| 24 | P3       | Update `CHANGELOG.md`                                      | 15min  | Changelog hygiene             |~~ done at 72085c2
+~~| 25 | P3       | Clean up stale docs in `docs/status/` and `docs/planning/` | 30min  | Housekeeping                  |~~ done 2026-10-09 (this pass)
 
 ---
 

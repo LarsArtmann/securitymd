@@ -1,5 +1,7 @@
 # template-SECURITY — Comprehensive Status Report
 
+> **Superseded 2026-10-08** — this report describes the pre-rebuild `template-SECURITY` tree (`internal/`, `cmd/template-security/`, `scripts/`, viper config), deleted in the securitymd rebuild (`1c55390`). Successor report: `docs/status/2026-10-08_23-40_securitymd-rebuild-buildflow-provider-status.md`. Every open item below carries an inline verdict; nothing remains open.
+
 **Date:** 2026-05-04 21:47
 **Branch:** master
 **Last Commit:** `05c5a96` feat(docs): add public/private decision analysis
@@ -25,6 +27,8 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 ---
 
 ## a) FULLY DONE
+
+_All items in this section shipped in the pre-rebuild tree and were historically complete when written; that tree was deleted at `1c55390`. Successors live in `pkg/policy`, `pkg/provider`, and `cmd/securitymd` of the rebuild. No open items here._
 
 ### 1. Core CLI Application
 
@@ -116,23 +120,25 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 
 ## b) PARTIALLY DONE
 
-### 1. Branded ID Integration in Domain Types
+### 1. Branded ID Integration in Domain Types — NOT-DO
 
 - **Status:** 20% — Types defined in `ids.go` but only `SecurityPolicy.ID` and `ValidationResult.ID`/`ValidationResult.PolicyID` actually use them
+- Removed entirely one day later in the go-finding migration (2026-05-05); never reintroduced — the rebuild uses plain types
 - `Template.ID` still uses `IDID` type alias which maps to `id.ID[IDBrand, string]` — but `IDBrand` is a generic "ID" brand, not template-specific
 - No constructor functions (`NewPolicyID()`, `NewTemplateID()`, etc.)
 - No NanoId integration (planned in `go-composable-business-types-usage.md` but not implemented)
 - The branded IDs exist but aren't meaningfully differentiated — `IDID` and `PolicyID` are both `id.ID[X, string]` with different brands, which is correct, but there are no factory functions or meaningful usage beyond type definitions
 
-### 2. Error Handling
+### 2. Error Handling — done 2026-05-05 (session 2)
 
 - **Status:** 60% — Structured `SecurityError` type exists with code, message, field, cause
+- Completed the next day: custom `SecurityError` replaced by `finding.FindingError` (see `2026-05-05_18-51_DEEP-GO-FINDING-INTEGRATION.md`)
 - Named sentinel errors defined (`ErrConfigNotFound`, `ErrInvalidConfig`, etc.)
 - BUT: Not all code paths use `SecurityError` consistently
 - `security_validator.go` uses plain `fmt.Errorf` instead of structured errors
 - No error wrapping chain in validator
 
-### 3. Documentation
+### 3. Documentation — done at `72085c2`/`4a8987a` (successor docs pass)
 
 - **Status:** 50%
 - README.md: Good, covers features, commands, validation standards
@@ -144,9 +150,10 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 - PUBLIC_OR_PRIVATE.md: Good analysis, needs updating now that dependency migration is done
 - `docs/planning/go-composable-business-types-usage.md`: Now STALE — references old library name
 
-### 4. CLI Help & Examples
+### 4. CLI Help & Examples — NOT-DO
 
 - **Status:** 70%
+- CLI rebuilt as `cmd/securitymd` (validate/setup/status); shell completion is cobra-default, no version subcommand by design
 - Root command has good example text
 - `validate` has `--file` and `--format` flags
 - `setup` has `--type`, `--organization`, `--email`, `--output`, `--quick` flags
@@ -156,127 +163,85 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 
 ## c) NOT STARTED
 
-### 1. Replace viper with koanf
+### 1. Replace viper with koanf — done at `1c55390`
 
-- Mentioned in IMPROVEMENT_PLAN.md and PARTS.md as a recommendation
-- viper is functional but overkill; koanf is the preferred library per project standards
-- No work done on this
+Viper was dropped wholesale in the rebuild (≈15 indirect deps removed); no config system exists anymore, so no koanf was ever needed.
 
-### 2. Extract `projectmeta` Library
+### 2. Extract `projectmeta` Library — NOT-DO
 
-- Detailed plan in PARTS.md
-- `ProjectDetector` has clear extraction potential
-- Would need: refined API, options pattern, context support, comprehensive tests
-- Not started
+Superseded: project detection lives in `pkg/policy/project.go` of the rebuild; extraction never happened and has no consumer.
 
-### 3. Plugin System for Validation Rules
+### 3. Plugin System for Validation Rules — NOT-DO
 
-- Listed in IMPROVEMENT_PLAN.md as medium-impact, medium-effort
-- Would allow custom validation rules
-- Not started
+Superseded by design: the rebuild exposes stable kebab rule IDs keyed for suppressions/configuration instead of a plugin system.
 
-### 4. Template Repository (Multiple Sources)
+### 4. Template Repository (Multiple Sources) — NOT-DO
 
-- Currently hardcoded single template file
-- Support for multiple template sources not started
-- Enterprise templates referenced in shell scripts but not in Go code
+Superseded by design: the rebuild ships exactly one canonical template, embedded via `go:embed` (`pkg/policy/template.md`).
 
-### 5. Integration / E2E Tests
+### 5. Integration / E2E Tests — done in the rebuild
 
-- BDD acceptance tests cover some integration scenarios
-- But no true end-to-end CLI tests (build binary, run commands, check output)
-- Not started
+The successor ships provider contract tests running a full detect → repair → verify loop in a real temp git repo (`pkg/provider/provider_test.go`) plus 7 Ginkgo BDD specs.
 
-### 6. Logging
+### 6. Logging — Won't implement
 
-- No structured logging anywhere in the codebase
-- `fmt.Printf` used for output
-- Not started
+CLI tool; colored terminal output via `fatih/color` is the interface. No structured logging in the successor either.
 
-### 7. Performance Metrics / Benchmarking
+### 7. Performance Metrics / Benchmarking — Won't implement
 
-- No benchmarks for validation or generation
-- Not started
+No benchmarks in the successor; the tool is subprocess-light and no perf need ever materialized.
 
-### 8. Pre-commit Hook
+### 8. Pre-commit Hook — NOT-DO
 
-- Not started
-- Could validate SECURITY.md before commits
+BuildFlow's findings gate is the enforcement mechanism now; no per-repo hooks.
 
-### 9. Update SECURITY.md with Real Contact Info
+### 9. Update SECURITY.md with Real Contact Info — routed
 
-- Currently has `security@github.com` and `MyCompany`
-- Needs real project-specific values
+Resolved by policy: the rebuild's contact default is the GitHub advisory link (email optional; no fabricated addresses). This repo's own SECURITY.md regeneration sits in the TODO_LIST publish checklist (blocked on the rename).
 
-### 10. Migrate Shell Scripts to Go or Remove
+### 10. Migrate Shell Scripts to Go or Remove — done at `1c55390`
 
-- 1,323 lines of bash in `scripts/` directory
-- Duplicate Go functionality in many cases
-- `security-setup.sh` (370+ lines) duplicates `setup` command
-- `validate-policies.sh` duplicates `validate` command
-- `compliance-check.sh` (GDPR, SOC2, ISO27001 validation) has NO Go equivalent
-- `generate-metrics.sh` (security metrics, Prometheus output, executive reports) has NO Go equivalent
-- `build.sh` is simple and could be replaced by `go build`
+All ~1,300 legacy shell lines were deleted in the rebuild; the two scripts with no Go equivalent (compliance-check, generate-metrics) were dropped as out of scope for a SECURITY.md linter.
 
-### 11. Fix CI/CD Workflow Go Version
+### 11. Fix CI/CD Workflow Go Version — done at `72085c2`
 
-- Workflow uses `setup-go@v4` with Go 1.21
-- `go.mod` specifies Go 1.26.2
-- Version mismatch will cause build failures in CI
+CI rewritten: `go-version-file: go.mod`, no `make`, new layout paths.
 
-### 12. Fix `go-arch-lint.yml` to Match Actual Structure
+### 12. Fix `go-arch-lint.yml` to Match Actual Structure — done at `1c55390`
 
-- Arch lint config references `internal/domain/entities/`, `internal/infrastructure/db/`, `pkg/errors/`, etc.
-- Actual project structure is flat: `internal/security_tool.go`, `internal/security_validator.go`, `internal/project_detector.go`
-- The arch lint config is a TEMPLATE that was never customized for this project
-- Running `go-arch-lint` would produce countless false positives
+The template config was deleted with the old tree.
 
-### 13. nix flake migration
+### 13. nix flake migration — done at `9d3094a`
 
-- justfile exists (deprecated per project standards)
-- No `flake.nix` exists
-- Should be migrated
+`flake.nix` created and justfile removed on 2026-06-17; modernized in the rebuild docs pass (`72085c2`).
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-### 1. Stale Documentation Referencing Dead Dependency
+### 1. Stale Documentation Referencing Dead Dependency — done 2026-10-09
 
-- `docs/planning/go-composable-business-types-usage.md` is a 435-line document that references the OLD library throughout
-- All code examples, import paths, and recommendations point to `go-composable-business-types/id`
-- This is actively misleading now
+`go-composable-business-types-usage.md` archived by the docs-health pass.
 
-### 2. `.template-security.yaml` Has Placeholder Values
+### 2. `.template-security.yaml` Has Placeholder Values — done at `1c55390`
 
-- `organization: "MyCompany"`, `contact_email: "security@mycompany.com"`
-- `BUG_BOUNTY_URL: "https://hackerone.com/mycompany"`
-- These are production config files with fake values — anyone running `template-security setup` gets garbage output
+The config file was deleted entirely in the rebuild.
 
-### 3. `SECURITY.md` Has Wrong Contact
+### 3. `SECURITY.md` Has Wrong Contact — routed
 
-- Lists `security@github.com` as the security contact
-- This is GitHub's security email, not this project's
-- "MyCompany" appears in safe harbor section
+Still `security@github.com` as of 2026-10-09; the file passes the new validator but predates the rename. Regeneration is tracked in the TODO_LIST publish checklist.
 
-### 4. `go-arch-lint.yml` Is Completely Wrong
+### 4. `go-arch-lint.yml` Is Completely Wrong — done at `1c55390`
 
-- Defines components like `domain-entities`, `domain-values`, `domain-repositories`, `sqlc-generated`, `pkg-errors`
-- NONE of these directories exist in the project
-- The config was copied from a template and never customized
-- Running arch lint against this project would be meaningless
+Deleted.
 
-### 5. CI Workflow Will Fail
+### 5. CI Workflow Will Fail — done at `72085c2`
 
-- `setup-go@v4` with Go 1.21 vs `go.mod` requiring 1.26.2
-- Build step tries `make build || just build || go build` — no Makefile exists, justfile is deprecated
-- The fallback to `go build` would work but the first two attempts are dead ends
+Workflow rewritten (go-version-file, no make).
 
-### 6. CHANGELOG.md Is Empty
+### 6. CHANGELOG.md Is Empty — done at `72085c2`
 
-- Only has "Initial release" under v0.1.0
-- 20+ commits of actual work with zero changelog entries
-- Defeats the purpose of having a changelog
+Unreleased entry documents the rebuild with all breaking changes.
 
 ---
 
@@ -350,7 +315,7 @@ A Go CLI tool (`template-security`) that validates and generates `SECURITY.md` f
 
 ## g) Top #1 Question I Cannot Figure Out Myself
 
-**What is the actual security contact email and organization name for this project?**
+**~~What is the actual security contact email and organization name for this project?~~** — RESOLVED 2026-10-08: the org is `LarsArtmann`; the contact default is the GitHub advisory link, with email strictly optional (CLI `--email` / provider `contact-email`). The rebuild deliberately never fabricates `security@domain` addresses, which dissolves this question.
 
 Everything hinges on this:
 
@@ -452,3 +417,7 @@ ee92e72 fix(deduplicate): crush refactoring for duplicate dup_177527142555827500
 ---
 
 _Report generated at 2026-05-04_21-47 by Crush_
+
+## Resolution (2026-10-09)
+
+Every open item in sections b)–g) carries an inline verdict. Reference hashes: `1c55390` (old tree deleted: `internal/`, `cmd/template-security/`, `scripts/`, `templates/`, `.go-arch-lint.yml`, config), `72085c2` + `4a8987a` (docs/CI/archive pass), `519916d` (README), `9d3094a` (flake.nix created 2026-06-17). Items whose intent survived live in the rebuild (`pkg/policy`, `pkg/provider`, `cmd/securitymd`); the publish/public decision is routed to TODO_LIST. Archivable: no open items remain.
