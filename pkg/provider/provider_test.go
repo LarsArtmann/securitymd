@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-finding/toolsdk"
 	"github.com/onsi/gomega"
+	"github.com/samber/lo"
 )
 
 // The spec must be registered (package var side effect) and valid: this is
@@ -71,12 +72,9 @@ func flawedWithSuppressedContact(t *testing.T) string {
 }
 
 func rulesOf(findings []finding.Finding) []string {
-	rules := make([]string, 0, len(findings))
-	for _, f := range findings {
-		rules = append(rules, string(f.Rule))
-	}
-
-	return rules
+	return lo.Map(findings, func(f finding.Finding, _ int) string {
+		return string(f.Rule)
+	})
 }
 
 // A docs-only repo (README.md, no dependency manifests) must still activate:

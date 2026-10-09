@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-finding"
+	"github.com/samber/lo"
 )
 
 // contentRuleIDs mirrors the content-quality rules built in validate.go.
@@ -19,11 +20,9 @@ var contentRuleIDs = []finding.RuleName{ //nolint:gochecknoglobals // declarativ
 // KnownRuleIDs lists every rule ID securitymd can emit, including
 // missing-file. Severity configuration and suppressions key on these IDs.
 func KnownRuleIDs() []finding.RuleName {
-	ids := make([]finding.RuleName, 0, len(sectionRules)+len(contentRuleIDs)+1)
-	for _, rule := range sectionRules {
-		ids = append(ids, rule.rule)
-	}
-
+	ids := lo.Map(sectionRules, func(rule sectionRule, _ int) finding.RuleName {
+		return rule.rule
+	})
 	ids = append(ids, contentRuleIDs...)
 	ids = append(ids, RuleMissingFile)
 

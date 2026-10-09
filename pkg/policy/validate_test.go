@@ -8,6 +8,7 @@ import (
 
 	finding "github.com/larsartmann/go-finding"
 	"github.com/onsi/gomega"
+	"github.com/samber/lo"
 )
 
 // compliantPolicy lives in testdata/policy/compliant.md (see fixtures_test.go):
@@ -28,12 +29,9 @@ func validateContent(t *testing.T, content string) []finding.Finding {
 }
 
 func ruleIDs(findings []finding.Finding) []string {
-	ids := make([]string, 0, len(findings))
-	for _, f := range findings {
-		ids = append(ids, string(f.Rule))
-	}
-
-	return ids
+	return lo.Map(findings, func(f finding.Finding, _ int) string {
+		return string(f.Rule)
+	})
 }
 
 func TestValidate_accepts_compliant_policy(t *testing.T) {
@@ -96,13 +94,9 @@ func TestValidate_flags_unresolved_template_variables_with_line(t *testing.T) {
 
 	findings := validateContent(t, "# Security Policy\n\nContact {{.ContactEmail}} for issues.\n")
 
-	var unresolved []finding.Finding
-
-	for _, candidate := range findings {
-		if candidate.Rule == "unresolved-template" {
-			unresolved = append(unresolved, candidate)
-		}
-	}
+	unresolved := lo.Filter(findings, func(candidate finding.Finding, _ int) bool {
+		return candidate.Rule == "unresolved-template"
+	})
 
 	g.Expect(unresolved).To(gomega.HaveLen(1))
 	g.Expect(unresolved[0].Position.Line).To(gomega.Equal(3),

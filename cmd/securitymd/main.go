@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mattn/go-isatty"
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	"github.com/mattn/go-isatty"
 )
 
 // Exit codes per README's contract: findings are the policy failing, not the

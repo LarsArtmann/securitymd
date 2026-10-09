@@ -11,6 +11,7 @@ import (
 
 	finding "github.com/larsartmann/go-finding"
 	"github.com/onsi/gomega"
+	"github.com/samber/lo"
 )
 
 // readmeRuleRow matches a rule-table row's leading `rule-id` cell.
@@ -19,11 +20,9 @@ var readmeRuleRow = regexp.MustCompile(`^\|\s*` + "`" + `([a-z-]+)` + "`")
 // codeRuleSeverities assembles the code's single source of truth: every rule
 // ID securitymd can emit mapped to the severity it emits with.
 func codeRuleSeverities() map[finding.RuleName]finding.Severity {
-	severities := make(map[finding.RuleName]finding.Severity, len(sectionRules)+len(contentRuleIDs)+1)
-
-	for _, rule := range sectionRules {
-		severities[rule.rule] = rule.severity
-	}
+	severities := lo.SliceToMap(sectionRules, func(rule sectionRule) (finding.RuleName, finding.Severity) {
+		return rule.rule, rule.severity
+	})
 
 	maps.Copy(severities, contentRuleSeverities)
 

@@ -10,6 +10,7 @@ import (
 	finding "github.com/larsartmann/go-finding"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
+	"github.com/samber/lo"
 )
 
 func withPolicyFile(content string, callback func(path string)) {
@@ -29,12 +30,9 @@ func gomegaTempDir() string {
 }
 
 func ruleNames(findings []finding.Finding) []string {
-	names := make([]string, 0, len(findings))
-	for _, f := range findings {
-		names = append(names, string(f.Rule))
-	}
-
-	return names
+	return lo.Map(findings, func(f finding.Finding, _ int) string {
+		return string(f.Rule)
+	})
 }
 
 var _ = ginkgo.Describe("SECURITY.md validation", ginkgo.Label("acceptance"), func() {

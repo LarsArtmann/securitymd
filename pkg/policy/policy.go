@@ -11,6 +11,7 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-finding"
+	"github.com/samber/lo"
 )
 
 // ToolName is the stable namespace for findings, BuildFlow tool selection
@@ -49,14 +50,10 @@ func OrderedCandidates(preference string) ([]string, error) {
 	}
 
 	preferred := preference + "/" + CandidateLocations[0]
-	order := make([]string, 0, len(CandidateLocations))
-	order = append(order, preferred)
-
-	for _, candidate := range CandidateLocations {
-		if candidate != preferred {
-			order = append(order, candidate)
-		}
-	}
+	order := append([]string{preferred},
+		lo.Filter(CandidateLocations, func(candidate string, _ int) bool {
+			return candidate != preferred
+		})...)
 
 	return order, nil
 }

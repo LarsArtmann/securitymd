@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-finding"
+	"github.com/samber/lo"
 )
 
 // suppressionMarker begins an in-file suppression comment anywhere in a
@@ -50,14 +51,9 @@ func (d suppressionDirective) activeAt(now time.Time) bool {
 // must see the active set — a suppressed finding gates nobody — while
 // evidence-preserving surfaces (JSON reports, SARIF) keep the full set.
 func ActiveFindings(findings []finding.Finding, now time.Time) []finding.Finding {
-	active := make([]finding.Finding, 0, len(findings))
-	for _, f := range findings {
-		if !f.IsSuppressedAt(now) {
-			active = append(active, f)
-		}
-	}
-
-	return active
+	return lo.Filter(findings, func(f finding.Finding, _ int) bool {
+		return !f.IsSuppressedAt(now)
+	})
 }
 
 // applySuppressions marks findings whose rule is suppressed by an in-file

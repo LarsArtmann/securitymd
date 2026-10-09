@@ -6,6 +6,7 @@ import (
 
 	finding "github.com/larsartmann/go-finding"
 	"github.com/onsi/gomega"
+	"github.com/samber/lo"
 )
 
 func TestValidate_honors_suppression_comment(t *testing.T) {
@@ -207,13 +208,7 @@ func TestSuppressionDirective_fullDayGrant(t *testing.T) {
 }
 
 func findingsSuppressedByRule(findings []finding.Finding, rule string) []finding.Finding {
-	var matched []finding.Finding
-
-	for _, f := range findings {
-		if string(f.Rule) == rule && f.Suppression != nil {
-			matched = append(matched, f)
-		}
-	}
-
-	return matched
+	return lo.Filter(findings, func(f finding.Finding, _ int) bool {
+		return string(f.Rule) == rule && f.Suppression != nil
+	})
 }
