@@ -9,8 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var statusLocation string
+
 func newStatusCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Show security policy status",
 		Long:  `Show where the repository's SECURITY.md lives and how compliant it is.`,
@@ -18,10 +20,20 @@ func newStatusCmd() *cobra.Command {
 			return runStatus(cmd)
 		},
 	}
+
+	cmd.Flags().StringVar(&statusLocation, "location", policy.LocationRoot,
+		"Preferred canonical policy location (root, .github, docs)")
+
+	return cmd
 }
 
 func runStatus(cmd *cobra.Command) error {
-	report, err := policy.Report(cmd.Context())
+	candidates, err := policy.OrderedCandidates(statusLocation)
+	if err != nil {
+		return fmt.Errorf("invalid --location: %w", err)
+	}
+
+	report, err := policy.ReportIn(cmd.Context(), candidates)
 	if err != nil {
 		return fmt.Errorf("status failed: %w", err)
 	}
@@ -37,13 +49,13 @@ func runStatus(cmd *cobra.Command) error {
 		return nil
 	}
 
-	errors := finding.Filter(findings, finding.BySeverity(finding.SeverityError))
+	errors := finding.Filter(findings, finding.BySeverityAtLeast(finding.SeverityError))
 	warnings := finding.Filter(findings, finding.BySeverity(finding.SeverityWarning))
 
 	color.Red("❌ %d error(s), %d warning(s)", len(errors), len(warnings))
 
 	for _, f := range findings {
-		if f.Severity == finding.SeverityError {
+		if f.Severity.GreaterThanOrEqual(finding.SeverityError) {
 			color.Red("  • [%s] %s", f.Rule, f.Message)
 		} else {
 			color.Yellow("  • [%s] %s", f.Rule, f.Message)

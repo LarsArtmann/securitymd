@@ -85,6 +85,17 @@ const (
 	ruleNoVersionInfo      = finding.RuleName("no-version-info")
 )
 
+// contentRuleSeverities is the declarative severity table for the
+// content-quality rules built in validateContentQuality — the same single
+// source the code and the README drift guard read, so a severity change here
+// forces the documented table to follow.
+var contentRuleSeverities = map[finding.RuleName]finding.Severity{ //nolint:gochecknoglobals // declarative severity table keyed by stable IDs; read-only after init
+	ruleTooShort:           finding.SeverityWarning,
+	ruleUnresolvedTemplate: finding.SeverityError,
+	ruleNoContent:          finding.SeverityError,
+	ruleNoVersionInfo:      finding.SeverityWarning,
+}
+
 // Validate checks a SECURITY.md file's content against the required-section
 // and content-quality rules, returning one finding per violated rule. The
 // file must exist; missing files are Detect's concern (rule "missing-file").
@@ -129,7 +140,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	if len(lines) < minLines {
 		f, err := buildFinding(ruleTooShort,
 			fmt.Sprintf("SECURITY.md seems too short (< %d lines)", minLines),
-			finding.SeverityWarning, filePath, 0)
+			contentRuleSeverities[ruleTooShort], filePath, 0)
 		if err == nil {
 			findings = append(findings, f)
 		}
@@ -142,7 +153,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 
 		f, err := buildFinding(ruleUnresolvedTemplate,
 			"Unresolved template variable: "+strings.TrimSpace(line),
-			finding.SeverityError, filePath, lineIndex+1)
+			contentRuleSeverities[ruleUnresolvedTemplate], filePath, lineIndex+1)
 		if err == nil {
 			findings = append(findings, f)
 		}
@@ -151,7 +162,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	if !hasSubstantiveContent(lines, minLineLength) {
 		f, err := buildFinding(ruleNoContent,
 			"SECURITY.md lacks substantive content",
-			finding.SeverityError, filePath, 0)
+			contentRuleSeverities[ruleNoContent], filePath, 0)
 		if err == nil {
 			findings = append(findings, f)
 		}
@@ -160,7 +171,7 @@ func validateContentQuality(filePath string, lines []string) []finding.Finding {
 	if !hasVersionInformation(lines) {
 		f, err := buildFinding(ruleNoVersionInfo,
 			"No version information found",
-			finding.SeverityWarning, filePath, 0)
+			contentRuleSeverities[ruleNoVersionInfo], filePath, 0)
 		if err == nil {
 			findings = append(findings, f)
 		}

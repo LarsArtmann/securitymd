@@ -14,6 +14,11 @@ import (
 // generates the file.
 const RuleMissingFile = finding.RuleName("missing-file")
 
+// missingFileSeverity is the missing-file severity, declared beside the rule
+// ID so the README drift guard verifies the documented table against a single
+// code source.
+const missingFileSeverity = finding.SeverityError
+
 // Detect locates the repository's SECURITY.md (root, .github/, docs/) and
 // validates it. A missing file is itself an error finding with a direct fix
 // strategy: the provider's Repair generates one.
@@ -75,7 +80,7 @@ func missingFileFinding(ctx context.Context, dir string, candidates []string) (f
 		RuleMissingFile,
 		ToolName,
 		"No SECURITY.md found (looked in "+dir+" for "+strings.Join(candidates, ", ")+")",
-		finding.SeverityError,
+		missingFileSeverity,
 		finding.FilePos(finding.FilePath(candidates[0])),
 	).
 		WithCategory(finding.CategorySecurity).

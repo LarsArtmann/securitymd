@@ -2,10 +2,19 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+)
+
+// Exit codes per README's contract: findings are the policy failing, not the
+// tool crashing, and CI keys its decisions on the distinction.
+const (
+	exitOK          = 0
+	exitFindings    = 1
+	exitOperational = 2
 )
 
 var (
@@ -35,6 +44,17 @@ from the embedded template — never overwriting an existing file.`,
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		os.Exit(exitCodeFor(err))
 	}
+}
+
+// exitCodeFor implements the documented contract: error-severity findings
+// exit 1 (the tool worked; the policy failed validation), every other error
+// exits 2 (the tool could not run: bad flags, IO failures, cancellations).
+func exitCodeFor(err error) int {
+	if errors.Is(err, errPolicyFindings) {
+		return exitFindings
+	}
+
+	return exitOperational
 }

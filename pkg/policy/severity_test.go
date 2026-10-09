@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"time"
 	"testing"
 
 	finding "github.com/larsartmann/go-finding"
@@ -112,4 +113,60 @@ func TestApplySeverityOverrides_empty_is_noop(t *testing.T) {
 
 	assert.Equal(t, findings, ApplySeverityOverrides(findings, SeverityOverrides{}),
 		"an empty override map must return the findings unchanged")
+}
+
+// The CLI composes the two escape hatches: Validate applies in-file
+// suppressions first, then the --set-severity overrides rewrite severities on
+// the result. This pins the combination on the same rule — the edge the
+// report flagged as unproven.
+func TestSeverityOverrides_combine_with_suppressions(t *testing.T) {
+	t.Parallel()
+
+	content := policyWithoutResponseTime(t) +
+		"\n<!-- securitymd:ignore(missing-response-time) tracked in the support wiki -->\n"
+
+	findings := validateContent(t, content)
+	require.Len(t, findings, 1)
+	require.NotNil(t, findings[0].Suppression, "precondition: the warning is suppressed")
+
+	overrides, err := ParseSeverityOverrides("missing-response-time=critical")
+	require.NoError(t, err)
+
+	adjusted := ApplySeverityOverrides(findings, overrides)
+	require.Len(t, adjusted, 1)
+
+	assert.Equal(t, finding.SeverityCritical, adjusted[0].Severity,
+		"the override rewrites severity even on a suppressed finding")
+	assert.NotNil(t, adjusted[0].Suppression,
+		"the override must not strip the suppression evidence")
+	assert.True(t, adjusted[0].IsSuppressedAt(time.Now()),
+		"severity escalation must not resurrect a suppressed finding")
+}
+
+// The gate contract the CLI implements: suppressed findings never trip exit 1,
+// even when their severity was escalated by an override — and the same
+// escalation without a suppression DOES trip it, so the suppression is what
+// keeps CI green, not the override being harmless.
+func TestSeverityOverrides_suppressed_findings_stay_exit_neutral(t *testing.T) {
+	t.Parallel()
+
+	overrides, err := ParseSeverityOverrides("missing-response-time=critical")
+	require.NoError(t, err)
+
+	activeErrors := func(findings []finding.Finding) []finding.Finding {
+		active := finding.Filter(findings, func(f finding.Finding) bool {
+			return !f.IsSuppressedAt(time.Now())
+		})
+
+		return finding.Filter(active, finding.BySeverityAtLeast(finding.SeverityError))
+	}
+
+	suppressed := validateContent(t, policyWithoutResponseTime(t) +
+		"\n<!-- securitymd:ignore(missing-response-time) tracked in the support wiki -->\n")
+	assert.Empty(t, activeErrors(ApplySeverityOverrides(suppressed, overrides)),
+		"an escalated-but-suppressed finding must not activate: the escape hatch holds")
+
+	unsuppressed := validateContent(t, policyWithoutResponseTime(t))
+	assert.NotEmpty(t, activeErrors(ApplySeverityOverrides(unsuppressed, overrides)),
+		"the same escalation without an in-file suppression activates")
 }

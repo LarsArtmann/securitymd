@@ -165,12 +165,14 @@ func printFindings(findings []finding.Finding) {
 
 // hasErrors gates the exit code on ACTIVE findings only: suppressed findings
 // stay visible in the output but never fail CI — that is the escape hatch.
+// The gate is threshold-based (error or critical): an escalated finding must
+// never silently pass.
 func hasErrors(findings []finding.Finding) bool {
 	active := finding.Filter(findings, func(f finding.Finding) bool {
 		return !f.IsSuppressedAt(time.Now())
 	})
 
-	return len(finding.Filter(active, finding.BySeverity(finding.SeverityError))) > 0
+	return len(finding.Filter(active, finding.BySeverityAtLeast(finding.SeverityError))) > 0
 }
 
 func parseSeverity(severity string) finding.Severity {
