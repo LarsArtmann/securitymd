@@ -25,6 +25,17 @@ jobs:
           go build ./...
           go test ./...
 
+      - name: Coverage gate (80% floor)
+        run: |
+          go test ./... -coverprofile=coverage.out
+          total=$(go tool cover -func=coverage.out | awk '/^total:/ {gsub("%", "", $3); print $3}')
+          echo "total coverage: ${total}%"
+          awk -v cov="$total" -v floor=80.0 \
+            'BEGIN { if (cov + 0 < floor) { printf "FAIL: coverage %.1f%% is below the %.1f%% floor\n", cov, floor; exit 1 } }'
+
+      - name: Fuzz smoke — git remote parser (30s)
+        run: go test ./pkg/policy -run '^$' -fuzz FuzzParseGitRemote -fuzztime 30s
+
       - name: Validate SECURITY.md with securitymd
         run: |
           go run ./cmd/securitymd validate --file SECURITY.md
@@ -43,6 +54,30 @@ jobs:
             echo ""
             echo "*Validation completed at $(date)*"
           } >> "$GITHUB_STEP_SUMMARY"
+    timeout-minutes: 15
+
+  govulncheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+        with:
+          go-version-file: go.mod
+    timeout-minutes: 10
+
+  docs-gate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+
+      - name: Docs gate (archive tombstones + living-doc link resolution)
+        run: nix run .#docs-gate .
     timeout-minutes: 15
 
 concurrency:
