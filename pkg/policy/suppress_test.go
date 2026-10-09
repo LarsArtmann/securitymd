@@ -147,6 +147,7 @@ func TestValidate_suppression_expired_carries_no_metadata(t *testing.T) {
 
 	assert.Contains(t, ruleIDs(findings), "missing-response-time",
 		"an expired suppression must not silence anything")
+
 	for _, f := range findings {
 		assert.Nil(t, f.Suppression,
 			"an expired directive attaches nothing: every consumer must see plain debt")

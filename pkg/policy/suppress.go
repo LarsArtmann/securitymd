@@ -73,13 +73,13 @@ func applySuppressions(lines []string, findings []finding.Finding, now time.Time
 	}
 
 	marked := slices.Clone(findings)
-	for i, candidate := range marked {
+	for idx, candidate := range marked {
 		directive, ok := directives[string(candidate.Rule)]
 		if !ok || !directive.activeAt(now) {
 			continue
 		}
 
-		marked[i].Suppression = &finding.Suppression{
+		marked[idx].Suppression = &finding.Suppression{
 			Kind:      finding.SuppressionInSource,
 			Rule:      candidate.Rule,
 			Reason:    directive.reason,
@@ -125,17 +125,17 @@ func parseSuppressions(lines []string) map[string]suppressionDirective {
 func parseSuppressionComment(rest string) (string, suppressionDirective, bool) {
 	ruleList, reason, found := strings.Cut(rest, ")")
 	if !found {
-		return "", suppressionDirective{}, false
+		return "", suppressionDirective{reason: "", expiresAt: nil}, false
 	}
 
 	reason = trimCommentTerminator(reason)
 	if strings.TrimSpace(ruleList) == "" || reason == "" {
-		return "", suppressionDirective{}, false
+		return "", suppressionDirective{reason: "", expiresAt: nil}, false
 	}
 
 	directive, ok := parseSuppressionReason(reason)
 	if !ok {
-		return "", suppressionDirective{}, false
+		return "", suppressionDirective{reason: "", expiresAt: nil}, false
 	}
 
 	return ruleList, directive, true
@@ -148,7 +148,7 @@ func parseSuppressionComment(rest string) (string, suppressionDirective, bool) {
 // whole comment (inert), never degrades to an indefinite suppression.
 func parseSuppressionReason(reason string) (suppressionDirective, bool) {
 	if !strings.HasPrefix(reason, untilPrefix) {
-		return suppressionDirective{reason: reason}, true
+		return suppressionDirective{reason: reason, expiresAt: nil}, true
 	}
 
 	dateAndReason := strings.TrimPrefix(reason, untilPrefix)
@@ -157,12 +157,12 @@ func parseSuppressionReason(reason string) (suppressionDirective, bool) {
 
 	expiryDay, err := time.Parse(time.DateOnly, dateToken)
 	if err != nil {
-		return suppressionDirective{}, false
+		return suppressionDirective{reason: "", expiresAt: nil}, false
 	}
 
 	remainingReason = strings.TrimSpace(remainingReason)
 	if remainingReason == "" {
-		return suppressionDirective{}, false
+		return suppressionDirective{reason: "", expiresAt: nil}, false
 	}
 
 	expiresAt := expiryDay.AddDate(0, 0, 1)
