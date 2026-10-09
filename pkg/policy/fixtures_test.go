@@ -6,8 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 // policyFixture loads a canonical SECURITY.md scenario from testdata/policy.
@@ -18,7 +17,8 @@ func policyFixture(t *testing.T, name string) string {
 	t.Helper()
 
 	content, err := os.ReadFile(filepath.Join("testdata", "policy", name))
-	require.NoError(t, err, "policy fixture %s missing from testdata/policy", name)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred(),
+		"policy fixture %s missing from testdata/policy", name)
 
 	return string(content)
 }
@@ -55,21 +55,21 @@ func policyWithoutResponseTime(t *testing.T) string {
 // exactly the rules the golden and mutation tests rely on.
 func TestPolicyFixtures_contract(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
-	assert.Empty(t, ruleIDs(validateContent(t, compliantPolicy(t))),
-		"compliant.md is the zero-findings baseline")
+	g.Expect(ruleIDs(validateContent(t, compliantPolicy(t)))).
+		To(gomega.BeEmpty(), "compliant.md is the zero-findings baseline")
 
-	assert.Equal(t,
-		[]string{"missing-contact", "missing-response-time", "unresolved-template"},
-		ruleIDs(validateContent(t, flawedPolicy(t))),
-		"flawed.md must violate exactly these rules, in emission order")
+	g.Expect(ruleIDs(validateContent(t, flawedPolicy(t)))).
+		To(gomega.Equal([]string{"missing-contact", "missing-response-time", "unresolved-template"}),
+			"flawed.md must violate exactly these rules, in emission order")
 }
 
 func TestPolicyWithoutResponseTime_derives_exactly_one_finding(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
-	assert.Equal(t,
-		[]string{"missing-response-time"},
-		ruleIDs(validateContent(t, policyWithoutResponseTime(t))),
-		"the derivation must leave exactly the suppressible warning")
+	g.Expect(ruleIDs(validateContent(t, policyWithoutResponseTime(t)))).
+		To(gomega.Equal([]string{"missing-response-time"}),
+			"the derivation must leave exactly the suppressible warning")
 }

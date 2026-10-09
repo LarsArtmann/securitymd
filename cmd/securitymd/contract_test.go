@@ -245,7 +245,9 @@ func TestCLI_exit_code_contract(t *testing.T) {
 			policy:   nil,
 			args:     []string{"validate", "--location", "bogus"},
 			wantExit: 2,
-			wantOut:  []string{"invalid --location"},
+			// fang frames and capitalizes the error, so pin the domain
+			// message — the part whose wording securitymd owns.
+			wantOut: []string{`unknown policy location "bogus"`},
 		},
 		{
 			name:     "unknown status --location is operational failure",

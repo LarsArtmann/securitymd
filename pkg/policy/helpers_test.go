@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	finding "github.com/larsartmann/go-finding"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 // withWorkingDir pins Detect/Generate to dir, mirroring how BuildFlow scopes
@@ -20,11 +20,11 @@ func withWorkingDir(ctx context.Context, dir string) context.Context {
 // parents).
 func writePolicyFixture(t *testing.T, path string) {
 	t.Helper()
-	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o750))
-	require.NoError(t, os.WriteFile(path, []byte(compliantPolicy(t)), 0o600))
+	gomega.NewWithT(t).Expect(os.MkdirAll(filepath.Dir(path), 0o750)).To(gomega.Succeed())
+	gomega.NewWithT(t).Expect(os.WriteFile(path, []byte(compliantPolicy(t)), 0o600)).To(gomega.Succeed())
 }
 
 func requireNoError(t *testing.T, err error) {
 	t.Helper()
-	require.NoError(t, err)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
 }

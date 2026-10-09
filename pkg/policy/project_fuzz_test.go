@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/onsi/gomega"
 )
 
 // FuzzParseGitRemote proves the parser's core invariant for arbitrary input:
@@ -37,13 +37,15 @@ func FuzzParseGitRemote(f *testing.F) {
 			return
 		}
 
+		g := gomega.NewWithT(t)
+
 		clean := func(part string) bool {
 			return part != "" && !strings.ContainsAny(part, ":/ \t\r\n")
 		}
 
-		assert.True(t, clean(identity.Organization),
-			"organization %q contains separators or whitespace", identity.Organization)
-		assert.True(t, clean(identity.Repository),
-			"repository %q contains separators or whitespace", identity.Repository)
+		g.Expect(clean(identity.Organization)).
+			To(gomega.BeTrue(), "organization %q contains separators or whitespace", identity.Organization)
+		g.Expect(clean(identity.Repository)).
+			To(gomega.BeTrue(), "repository %q contains separators or whitespace", identity.Repository)
 	})
 }
