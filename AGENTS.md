@@ -29,7 +29,7 @@ nix flake check            # includes docs-gate + format + the package build
 ```
 pkg/policy/            # core: validate.go, generate.go, detect.go, suppress.go, severity.go, project.go, template.md (go:embed)
 pkg/provider/          # toolsdk self-registration (Spec with Detect + Repair, contact-email + severity-overrides options)
-cmd/securitymd/        # cobra CLI: validate, setup, status
+cmd/securitymd/        # cmdguard/fang CLI: validate, setup, status (typed flag structs, fang-styled execution)
 pkg/policy/testdata/   # SARIF/JSON goldens (refresh: go test ./pkg/policy -run TestReport_golden -update) + policy/*.md canonical fixtures
 scripts/               # fleet-securitymd-sweep.sh only (legacy scripts fully removed)
 test/acceptance/       # Ginkgo BDD specs
@@ -46,6 +46,7 @@ test/acceptance/       # Ginkgo BDD specs
 - **Contact default**: GitHub advisory link always; email only when explicitly provided (CLI `--email` / provider `contact-email` option). Deliberate — no fabricated `security@domain` addresses. Changing this fleet-wide is a Lars decision, not a code change
 - Stable kebab rule IDs (`missing-file`, `missing-header`, `unresolved-template`, …) — suppressions and configs key on them
 - Errors wrapped via `finding.NewValidationError`/`NewIOError`/`NewParseError`, never `fmt.Errorf`
+- **CLI layer is cmdguard v4** (2026-10-09, satisfies the library-policy cobra-companions rule): `cmdguard.NewCLI[appConfig]` root + typed flag structs (`validateFlags`/`setupFlags`/`statusFlags` with `flag:`/`values:` enum tags), `fang` styling bundled (ANSI-free when piped, verified by the contract test). Exit mapping stays in `main.go` (`exitCodeFor`); cmdguard prints execution errors exactly once — main must NOT print them again. fang capitalizes error headers, so contract assertions pin the domain message (`unknown policy location "bogus"`), not the frame
 
 ## Docs layout
 
@@ -66,19 +67,21 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 
 ## Testing patterns
 
-- Unit: `pkg/**/*_test.go`, testify, table-driven, `t.Parallel()`; SARIF/JSON goldens in `pkg/policy/testdata/golden/` (path entropy normalized; refresh with `-update` when the output contract intentionally changes)
+- Unit: `pkg/**/*_test.go`, Gomega (`NewWithT(t)` in stdlib tests; testify fully removed 2026-10-09 per the library-policy ban), table-driven, `t.Parallel()`; SARIF/JSON goldens in `pkg/policy/testdata/golden/` (path entropy normalized; refresh with `-update` when the output contract intentionally changes)
 - **Fixture single source**: ALL compliant/flawed policy texts come from `pkg/policy/testdata/policy/*.md` via `policyFixture`/`compliantPolicy`/`flawedPolicy`/`policyWithoutResponseTime` (fixtures_test.go) — unit, golden, suppression, severity, and acceptance tests share the same bytes; never re-inline a policy string
 - **CLI contract test** (`cmd/securitymd/contract_test.go`): re-execs the test binary via `TestMain` + `SECURITYMD_CONTRACT_CHILD=1` so `main()` runs for real and the exit code is what a shell sees; 16 scenarios pin README's exit table (findings vs operational vs escape hatches vs setup skips vs suppression expiry vs ANSI-free piped output). New CLI behavior that changes exit codes MUST get a scenario here
 - **README drift guard** (`pkg/policy/readme_drift_test.go`): README's two rule tables must equal the code tables (`sectionRules` + `contentRuleSeverities` + `missingFileSeverity`) in IDs AND severities — change rule code and README together or this fails
 - Fuzz: `FuzzParseGitRemote` in `pkg/policy/project_fuzz_test.go` — run `go test ./pkg/policy -run '^$' -fuzz FuzzParseGitRemote -fuzztime 45s`
 - Provider tests: full detect → repair → verify loop in a real temp git repo (`testhelpers_test.go` isolates git env; `version_cache_test.go` git fixtures need explicit author env vars to stay hermetic in the nix FOD)
 - BDD: Ginkgo `Describe/It/By` in `test/acceptance/`
-- `cmd/` prompt helpers are unit-tested (`prompt_test.go`); cobra wiring itself covered via provider + acceptance tests
+- `cmd/` prompt helpers are unit-tested (`prompt_test.go`); the cmdguard/fang wiring is covered end-to-end by the contract test (subprocess) + provider + acceptance tests
 
 ## Conventions
 
 - Emit `finding.Finding` only — no converter glue to other formats (family doctrine)
-- Lint config `.golangci.yml`: `pkg/` is fully linted; `cmd/` and `test/` excluded via paths. exhaustruct_v5 ignore-patterns must be fully anchored `^module/path.Struct$` — path-style patterns are silent no-ops
+- Lint config `.golangci.yml`: `pkg/` is fully linted; `cmd/` and `test/` excluded via paths. exhaustruct_v5 ignore-patterns must be fully anchored `^module/path.Struct$` — path-style patterns are silent no-ops. varnamelen `ignore-names: [g]` is deliberate (gomega's conventional receiver; same exemption cmdguard curates)
+- `.buildflow.yml` skips `go-structure-linter` (embedded snapshot ignores `.go-structure-linter.yaml`, which documents why `pkg/` must stay public — BuildFlow imports it cross-repo); standalone `go-structure-linter .` remains usable
+- CI coverage gate runs `go test -race` (buildflow's race-detector structural check demanded a configured home for it)
 - Suppressions in code need a reason comment (3 documented `nolint`/`#nosec` sites exist)
 - Deletions via `trash`, never `rm`
 - Config file was removed entirely on purpose (old `.template-security.yaml` never worked); knobs are CLI flags + the toolsdk option
@@ -88,12 +91,14 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 - **Auto-commit daemon bumps mtimes mid-session**: after any "auto-commit" notice (or unexpectedly clean `git status`), re-View a file before editing it — three "file modified since read" refusals in one day from editing from memory
 - `go install` is blocked by the bash tool security layer — use `go build -o <path> ./cmd/securitymd` instead
 - The stale LSP diagnostic `project_fuzz_test.go:40:17 unparam` is a cached false positive (actual golangci-lint: 0 issues); Go LSP `documentSymbol` is broken — use view+edit, not symbol replace
+- **Stale vendorHash does NOT print a got-hash**: nix short-circuits the vendor FOD to the old cached content (its hash still matches the declared one) and the build dies with `go: inconsistent vendoring` instead — `buildflow -s nix-hash-fix` cannot parse this class. Recovery: set `vendorHash` to the all-A fakeHash, run `nix build` once to capture `got: sha256-…`, paste the real hash (done 2026-10-09 for the cmdguard dep tree)
+- **BuildFlow result cache replays findings after their cause is deleted** (e.g. the gitignored `vendor/` finding surviving `trash vendor`): bypass with `BUILDFLOW_NO_RESULT_CACHE=1` for the verdict run
 
-## Known state (2026-10-09, post-publish pass)
+## Known state (2026-10-09, fleet-policy compliance pass)
 
-- All tests green, build green, `nix flake check` green, golangci-lint 0 issues, gofumpt clean, docs-gate exit 0 (re-verified after the expiry/provider/contract hardening)
-- **CI**: the workflow was `disabled_manually` on GitHub (pre-rebuild relic) — re-enabled 2026-10-09; the first real runner run is BLOCKED on Lars's GitHub Actions billing (run 37957194805: all jobs refused before any step, "payments have failed or spending limit"). `workflow_dispatch` is wired: after billing is fixed, prove it with `gh workflow run "Security Policy Validation" -R LarsArtmann/securitymd`
-- Publish state: repo renamed + master pushed + annotated tag `v1.0.0` + description/topics set + dogfood SECURITY.md regenerated (old file was a pre-rebuild relic advertising `security@github.com`/"MyCompany")
+- All tests green, build green, `nix flake check` green (new vendorHash `sha256-0sPYOSiu…` for the cmdguard dep tree), golangci-lint 0 findings, gofumpt clean, docs-gate exit 0, full `buildflow` gate PASSED (warnings only: link-scan 404s + token dupes), `library-policy` scan PASSED (testify gone; cobra companions fang+cmdguard present)
+- **CI**: the workflow was `disabled_manually` on GitHub (pre-rebuild relic) — re-enabled 2026-10-09; the first real runner run is BLOCKED on Lars's GitHub Actions billing (run 37957194805: all jobs refused before any step, "payments have failed or spending limit"). `workflow_dispatch` is wired: after billing is fixed, prove it with `gh workflow run "Security Policy Validation" -R LarsArtmann/securitymd`. The coverage step now runs `-race`
+- Publish state: repo renamed + PUBLIC + master pushed + annotated tag `v1.0.0` + description/topics set + dogfood SECURITY.md regenerated (old file was a pre-rebuild relic advertising `security@github.com`/"MyCompany")
 - Fleet rollout prep staged: `scripts/fleet-securitymd-sweep.sh` + announcement draft `docs/planning/2026-10-09_fleet-gate-announcement-draft.md` (execution Lars-gated)
 - Pre-rebuild docs fully archived + annotated (see docs/archive/pre-rebuild/README.md manifest)
 - BuildFlow-side finding (2026-10-09, verified at source): their `filterFindingsAtOrAbove` ignores `Suppression`; this repo's provider strips suppressed findings at the boundary — see TODO_LIST BuildFlow section

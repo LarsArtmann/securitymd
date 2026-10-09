@@ -120,7 +120,7 @@ Writes are atomic and idempotent (`go-atomic-write`). If any candidate policy al
 ## Architecture
 
 ```
-cmd/securitymd/        # CLI (cobra): validate, setup, status
+cmd/securitymd/        # CLI (cmdguard + fang): validate, setup, status
 pkg/policy/            # Core: detection candidates, content rules, embedded
                        # template, git identity, atomic generation
 pkg/provider/          # toolsdk.Spec: BuildFlow self-registration
