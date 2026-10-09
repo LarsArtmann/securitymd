@@ -5,7 +5,7 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 ## Direction
 
 - Stay a single-purpose, single-binary tool in the go-finding family; BuildFlow is the primary consumer, the CLI the manual escape hatch
-- Publish as open source (see TODO_LIST publish checklist) — fills a real gap: no dedicated SECURITY.md validator was found in OSS when last surveyed (2026-05, informal); **re-verify the landscape before publishing** and drop the claim if contradicted
+- Publish as open source (see TODO_LIST publish checklist) — fills a real gap: **unverified belief** that no dedicated SECURITY.md validator exists in OSS; survey the landscape before publishing and drop the claim if contradicted
 
 ## Raw ideas
 

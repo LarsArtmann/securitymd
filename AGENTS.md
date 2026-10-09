@@ -67,6 +67,6 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 
 ## Known state (2026-10-09)
 
-- All tests green, build green, golangci-lint 0 issues, `nix flake check` green (re-verified 2026-10-09 docs-health pass), BuildFlow integration verified live (detect+repair+re-detect clean)
+- All tests green, build green, `nix flake check` green (re-verified 2026-10-09, post docs-health pass), golangci-lint 0 issues (baseline 2026-10-09 02:02 session; no `.go` files changed since), BuildFlow integration verified live (detect+repair+re-detect clean)
 - Pre-rebuild docs fully archived + annotated (see docs/archive/pre-rebuild/README.md manifest)
 - Publishing checklist (needs Lars): rename GitHub repo → push → tag v1.0.0 → drop BuildFlow replaces/flake input → re-vendor → `nix run .#update-vendor-hash`
