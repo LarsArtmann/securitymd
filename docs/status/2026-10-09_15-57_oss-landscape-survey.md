@@ -32,6 +32,6 @@ Generation guidance and the "Add security policy" settings UI only — no valida
 
 ## Consequences
 
-- README/ROADMAP may claim "first dedicated SECURITY.md validator CLI" (with survey date), not "first to validate security policy content" (Scorecard contradicts the latter).
-- Differentiation line for the website/README: securitymd checks **section completeness with line-precise, machine-readable findings** (go-finding/SARIF) and **generates a compliant policy** — Scorecard scores heuristically inside a much larger checksuite, Repolinter checks presence only.
-- Re-survey before any "still first" claim in marketing copy older than ~6 months.
+~~- README/ROADMAP may claim "first dedicated SECURITY.md validator CLI" (with survey date), not "first to validate security policy content" (Scorecard contradicts the latter).~~ done — surveyed wording shipped in ROADMAP + README (16-48 a.3, 18-15 a.13)
+~~- Differentiation line for the website/README: securitymd checks **section completeness with line-precise, machine-readable findings** (go-finding/SARIF) and **generates a compliant policy** — Scorecard scores heuristically inside a much larger checksuite, Repolinter checks presence only.~~ done — wording carried in ROADMAP direction + README features
+~~- Re-survey before any "still first" claim in marketing copy older than ~6 months.~~ routed — ROADMAP promoted block now carries the re-survey cadence

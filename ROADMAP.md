@@ -5,7 +5,7 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 ## Direction
 
 - Stay a single-purpose, single-binary tool in the go-finding family; BuildFlow is the primary consumer, the CLI the manual escape hatch
-- Publish as open source — repo renamed + pushed + tagged `v1.0.0` 2026-10-09; repo is still PRIVATE, so the remaining button is the GitHub visibility flip (Lars), after which the module proxy/pkg.go.dev resolve. Fills a real gap: **verified 2026-10-09** that no dedicated SECURITY.md validator/linter CLI exists in OSS (survey: `docs/status/2026-10-09_15-57_oss-landscape-survey.md`); closest neighbor is OpenSSF Scorecard's heuristic Security-Policy scoring, so claims say "first dedicated validator CLI", never "first to validate policy content"
+- Publish as open source — repo renamed + pushed + tagged `v1.0.0` 2026-10-09; repo is still PRIVATE, so the remaining button is the GitHub visibility flip (Lars), after which the module proxy/pkg.go.dev resolve. Fills a real gap: **verified 2026-10-09** that no dedicated SECURITY.md validator/linter CLI exists in OSS (survey: `docs/status/archived/2026-10-09_15-57_oss-landscape-survey.md`); closest neighbor is OpenSSF Scorecard's heuristic Security-Policy scoring, so claims say "first dedicated validator CLI", never "first to validate policy content"
 
 ## Raw ideas
 
@@ -27,6 +27,19 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 - Verify before claiming: "config-free posture" (no config file) as an advertised feature
 - Sync `.golangci.yml` build-tags/go version with go.mod on every toolchain bump (currently tolerated skew)
 - Post-publish: nixpkgs PR packaging securitymd (the flake gives the derivation); Dependabot/renovate for fleet repos
+
+### Promoted from the hardening-session next-lists (2026-10-09 docs-health harvest)
+
+- Fuzz the severity-override parser (`parseSeverityOverrides`) — same corpus discipline as `FuzzParseGitRemote`
+- Property fuzz over `GenerateOptions`: a generated policy never contains `{{`
+- CLI-level golden for `--format json` stdout+exit combos beyond the single pinned scenario
+- Per-package coverage floors (or a `cmd/` ratchet) — repo-total 87.6% hides `cmd/` decay
+- golangci-lint into CI (needs a verified action SHA; decide the `cmd/` lint-exclusion question first)
+- Sweep script: CRLF-tolerant repos file + `--json` summary mode
+- One-off audit: gosec (inside golangci) vs govulncheck overlap gap
+- Re-survey the OSS landscape before any "still first" marketing claim older than ~6 months (baseline survey 2026-10-09: `docs/status/archived/2026-10-09_15-57_oss-landscape-survey.md`)
+- Contract test: replace fixture sentinel strings with a named resolver column
+- Concurrent-session claim protocol (heartbeat/lock file) — process idea from three reports
 
 ### Older ideas
 

@@ -4,7 +4,7 @@
 **Scope:** Everything mechanical about publishing `github.com/LarsArtmann/securitymd`, staged and pre-verified so the human steps are four commands and the robot steps are copy-paste. Input: plan 2026-10-09 M1; consumer wiring verified live in BuildFlow (go.mod:425 replace, flake.nix:122 input).
 **Rule:** every command below was either executed while writing this runbook (marked ✅) or is gated on the rename (marked ⏳).
 
-## 0. Pre-verified readiness (✅ done 2026-10-09)
+~~## 0. Pre-verified readiness (✅ done 2026-10-09)~~ done — all six checks green at staging time (table ✅)
 
 | Check                               | Command                                                                                | Result                                                                  |
 | ----------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -15,7 +15,7 @@
 | Gates green                         | `GOWORK=off go test ./... && GOWORK=off golangci-lint run && nix flake check`          | green (suppression-suite caveat resolved once the concurrent WIP lands) |
 | Output contract pinned              | `go test ./pkg/policy -run TestReport_golden` (plan M2)                                | green                                                                   |
 
-## 1. Lars: the four human steps
+~~## 1. Lars: the four human steps~~ done at 5c739ec — all four steps executed 2026-10-09 (dir+repo renamed, master pushed, tag v1.0.0 pushed); step 4 proxy verification blocked only by the private visibility flip (routed — TODO_LIST)
 
 ```bash
 # 1. Rename the local directory (fleet workspace may need re-registration)
@@ -36,7 +36,7 @@ GOPROXY=https://proxy.golang.org GOWORK=off go list -m github.com/LarsArtmann/se
 
 Then: `go install github.com/LarsArtmann/securitymd/cmd/securitymd@latest` from a scratch dir outside the fleet workspace.
 
-## 2. BuildFlow consumer: drop the scaffolding (⏳ after rename)
+~~## 2. BuildFlow consumer: drop the scaffolding (⏳ after rename)~~ superseded 2026-10-09 — BuildFlow retired vendoring (gotcha #229) and KEPT the flake input (FOD rework, verified green, AGENTS.md); the remaining consumer switch lives in TODO_LIST
 
 ```bash
 cd /home/lars/projects/BuildFlow
@@ -62,7 +62,7 @@ nix run .#update-vendor-hash
 nix build . && GOWORK=off go test ./...
 ```
 
-## 3. This repo: dogfood regeneration (⏳ after rename)
+~~## 3. This repo: dogfood regeneration (⏳ after rename)~~ done at 7ccba1c — SECURITY.md regenerated + validates green; metadata.yaml tags remain Lars-routed (TODO_LIST)
 
 ```bash
 cd /home/lars/projects/securitymd   # new path
@@ -74,11 +74,11 @@ securitymd validate                     # must exit 0
 # metadata.yaml still says template/archived — Lars decides fresh tags (TODO_LIST P0).
 ```
 
-## 4. Post-publish checklist
+~~## 4. Post-publish checklist~~ see per-item verdicts below
 
-- [ ] `pkg.go.dev/github.com/LarsArtmann/securitymd` renders (public README)
-- [ ] ROADMAP's "publish as open source" direction marked done
-- [ ] FEATURES row 13 (Published module) → FULLY_FUNCTIONAL
-- [ ] TODO_LIST P0 publish item checked off; M11 fleet sweep + M19 website unblock
-- [ ] GitHub repo description + topics (`security`, `sarif`, `security-policy`, `linter`)
-- [ ] Old repo redirect works: `git ls-remote git@github.com:LarsArtmann/template-SECURITY.git`
+~~- [ ] `pkg.go.dev/github.com/LarsArtmann/securitymd` renders (public README)~~ routed — TODO_LIST post-publish (blocked on the visibility flip)
+~~- [ ] ROADMAP's "publish as open source" direction marked done~~ done — ROADMAP direction updated in place 2026-10-09 (flip remains the open button)
+~~- [ ] FEATURES row 13 (Published module) → FULLY_FUNCTIONAL~~ routed — TODO_LIST visibility flip (row renumbered #20, PARTIALLY_FUNCTIONAL until public)
+~~- [ ] TODO_LIST P0 publish item checked off; M11 fleet sweep + M19 website unblock~~ done — consumed by the publish pass (18-15 a.1)
+~~- [ ] GitHub repo description + topics (`security`, `sarif`, `security-policy`, `linter`)~~ done at 5c739ec — description + 5 topics set (18-15 a.1)
+~~- [ ] Old repo redirect works: `git ls-remote git@github.com:LarsArtmann/template-SECURITY.git`~~ done at 5c739ec — redirect verified via git ls-remote on the old URL (18-15 a.1)
