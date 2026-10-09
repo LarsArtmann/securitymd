@@ -50,12 +50,12 @@ if [[ -n "$repos_file" ]]; then
 		line="${line%%#*}"
 		line="$(echo "$line" | tr -d '[:space:]')"
 		[[ -n "$line" ]] && repos+=("$line")
-	done < "$repos_file"
+	done <"$repos_file"
 fi
 
 [[ ${#repos[@]} -ge 1 ]] || usage
 
-if ! command -v buildflow > /dev/null 2>&1; then
+if ! command -v buildflow >/dev/null 2>&1; then
 	echo "error: buildflow not found on PATH (build it in the BuildFlow repository first)" >&2
 	exit 2
 fi
