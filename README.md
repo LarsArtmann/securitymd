@@ -32,6 +32,7 @@ securitymd setup --organization AcmeCorp --repository widget --email security@ac
 # Canonical location (.github/ or docs/) instead of the repo root
 securitymd setup --location docs
 securitymd validate --location docs
+securitymd status --location docs
 
 # Refresh a policy you own (writes SECURITY.md.<timestamp>.bak first)
 securitymd setup --force

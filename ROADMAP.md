@@ -9,6 +9,27 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 
 ## Raw ideas
 
+### Promoted from the 2026-10-09 execution report (section f, long tail)
+
+- `validate --repair`: detect + generate one-shot for CLI users
+- Suppression expiry: `securitymd:ignore(rule) until YYYY-MM-DD reason` via go-finding's time model — gated on Lars's yes/no (grammar change + golden refresh)
+- Provider `location` toolsdk option so BuildFlow repos pick `.github`/`docs` canonically
+- `--no-color` / `NO_COLOR` confirmation and docs; shell completions + man pages (cobra built-ins)
+- Windows CI leg (`.bak` timestamp format is already colon-free; verify the rest)
+- Benchmarks: `Detect` on a large repo — perf baseline before structure-aware validation
+- `securitymd list-rules`: machine-readable rule metadata for CI config UIs
+- `securitymd report --since`: diff two SARIF files, ratchet-lite without state
+- Org-level SECURITY.md inheritance (central policy, per-repo overrides)
+- SARIF `automationDetails`/run metadata embedding repo identity — go-finding upstream discussion first
+- Version stamp: flake package should stamp the git rev, not the static `0.1.0-dev`
+- Pre-commit hook recipe in README (validate on commit)
+- Naming audit: `--severity` (SARIF floor) vs `--set-severity` (override) confusion — rename or alias
+- Verify before claiming: "config-free posture" (no config file) as an advertised feature
+- Sync `.golangci.yml` build-tags/go version with go.mod on every toolchain bump (currently tolerated skew)
+- Post-publish: nixpkgs PR packaging securitymd (the flake gives the derivation); Dependabot/renovate for fleet repos
+
+### Older ideas
+
 - Markdown-structure-aware validation phase (headings/table parsing instead of substring heuristics) — gated on suppressions-first (shipped 2026-10-09); parity-test any port against the substring detector
 - GitHub Action wrapper (`securitymd-action`) for non-BuildFlow consumers — adopt after publish (needs an installed module)
 - golangci-lint plugin distribution of the detector — **verdict 2026-10-09: won't implement.** golangci's plugin ABI targets Go-AST analysis; a markdown policy linter shoehorned into it is architecture mismatch, and BuildFlow + CLI + (future) Action already cover distribution
