@@ -35,7 +35,6 @@
       perSystem =
         {
           config,
-          inputs,
           pkgs,
           ...
         }:
@@ -65,15 +64,17 @@
             for doc in "$repo"/README.md "$repo"/AGENTS.md "$repo"/TODO_LIST.md \
               "$repo"/ROADMAP.md "$repo"/FEATURES.md "$repo"/CHANGELOG.md; do
               [ -f "$doc" ] || continue
-              grep -ohE '`docs/[A-Za-z0-9_./ -]+`' "$doc" | tr -d '`' | sort -u | while read -r ref; do
+              # "|| true": grep exiting 1 on zero matches is not a failure.
+              refs="$(grep -ohE '`docs/[A-Za-z0-9_./-]+`' "$doc" | tr -d '`' | sort -u || true)"
+              for ref in $refs; do
                 case "$ref" in
                   docs/SECURITY.md | docs/reviews/) continue ;;
                 esac
                 if [ ! -e "$repo/$ref" ]; then
                   echo "docs-gate: dangling reference in $(basename "$doc"): $ref" >&2
-                  exit 1
+                  status=1
                 fi
-              done || status=1
+              done
             done
 
             exit "$status"
@@ -97,7 +98,7 @@
           checks.docs-gate =
             pkgs.runCommand "docs-gate"
               {
-                src = inputs.self;
+                src = self;
                 nativeBuildInputs = [ pkgs.bash ];
               }
               ''
