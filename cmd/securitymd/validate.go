@@ -24,9 +24,10 @@ const (
 var errPolicyFindings = errors.New("SECURITY.md validation failed: error-severity findings remain (see above)")
 
 var (
-	outputFormat    string
-	minimumSeverity string
-	severitySpecs   []string
+	outputFormat     string
+	minimumSeverity  string
+	severitySpecs    []string
+	validateLocation string
 )
 
 func newValidateCmd() *cobra.Command {
@@ -59,6 +60,8 @@ error-severity findings remain.`,
 		StringVar(&minimumSeverity, "severity", "info", "Minimum severity to report (info, warning, error, critical)")
 	cmd.Flags().StringSliceVar(&severitySpecs, "set-severity", nil,
 		"Override a rule's severity, rule=level (repeatable, e.g. --set-severity missing-file=warning)")
+	cmd.Flags().StringVar(&validateLocation, "location", policy.LocationRoot,
+		"Preferred canonical policy location (root, .github, docs)")
 
 	return cmd
 }
@@ -82,7 +85,12 @@ func validateFile(cmd *cobra.Command, filename string, overrides policy.Severity
 }
 
 func validateRepo(cmd *cobra.Command, overrides policy.SeverityOverrides) error {
-	findings, err := policy.Detect(cmd.Context())
+	candidates, err := policy.OrderedCandidates(validateLocation)
+	if err != nil {
+		return fmt.Errorf("invalid --location: %w", err)
+	}
+
+	findings, err := policy.DetectIn(cmd.Context(), candidates)
 	if err != nil {
 		return fmt.Errorf("detection failed: %w", err)
 	}
