@@ -1,0 +1,64 @@
+# Status Report — securitymd "done DONE" publish pass
+
+_Point-in-time: 2026-10-09 18:15. Continuation of `docs/status/2026-10-09_17-24_post-hardening-execution-status.md`: this pass executed that report's open items — the three section-(g) questions decided and implemented, the publish chain executed, and two more real defects found and fixed. Format `.md` (established for this repo's reports)._
+
+**Gate status at report time:** build ✅ · tests 4 packages, zero skips ✅ · golangci-lint 0 issues ✅ · gofumpt clean ✅ · docs-gate exit 0 ✅ · `nix flake check` all checks passed ✅ · actionlint clean ✅ · dogfood `validate` exit 0 ✅.
+
+---
+
+## a) FULLY DONE
+
+| #  | Work                                                                                                                                                                                                                                                                                                                                                                                                                                      | Evidence                                                            |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1  | **PUBLISH EXECUTED** — GitHub repo renamed `template-SECURITY` → `securitymd` (redirect verified via `git ls-remote` on the old URL), master pushed, annotated tag **`v1.0.0`** pushed, description + 5 topics set, runbook section 4 checklist consumed                                                                                                                                                                                  | `gh repo view`, `git ls-remote origin refs/tags/v1.0.0`             |
+| 2  | **The three open questions decided and executed**: ① publish now (done); ② suppression expiry built (see a.3); ③ exit-2 stays CLI-only, verdict recorded in TODO_LIST "Decided" so nobody re-opens it                                                                                                                                                                                                                                     | TODO_LIST "Decided" section                                         |
+| 3  | **Suppression expiry grammar shipped**: `securitymd:ignore(rule) [until YYYY-MM-DD] reason` — expiry grants the whole given UTC day (`ExpiresAt` = next midnight UTC), malformed dates inert (fail-safe), expired directives attach NOTHING anywhere so JSON/SARIF/gate/rendering all agree the debt is due                                                                                                                               | `pkg/policy/suppress.go`, 6 new unit tests + full-day boundary test |
+| 4  | **REAL BUG: `setup` crashed in CI.** The interactive-prompt gate used `ModeCharDevice`, which classifies `/dev/null` as a terminal — headless runs died with a prompt-EOF **exit 2** instead of skipping honestly. TTY detection now uses `go-isatty`; caught by the new setup contract scenarios                                                                                                                                         | `cmd/securitymd/prompt.go`                                          |
+| 5  | **REAL BUG: `setup` interrogated the user for a guaranteed no-op** — it prompted for identity even when a policy already exists (generation refuses by design); now skips the prompt entirely when any candidate policy exists                                                                                                                                                                                                            | `cmd/securitymd/setup.go`                                           |
+| 6  | **REAL GAP (BuildFlow side, verified at source): suppressed findings tripped the fleet gate.** BuildFlow's `filterFindingsAtOrAbove` filters on severity only — an in-file suppression would still fail `buildflow` runs, breaking the documented escape hatch. Fixed in THIS repo's provider contract: it now emits ACTIVE findings only (`policy.ActiveFindings`), pinned by a test; BuildFlow-side defense in depth filed in TODO_LIST | `pkg/provider/provider.go`, `provider_test.go`                      |
+| 7  | **Contract table grown 12 → 16 scenarios + ANSI-free test**: setup refusal → 0, identity-missing non-interactive → 0, unexpired `until` suppression → 0, expired `until` suppression → 1 (no suppression line), piped output carries no ANSI escapes; sentinel strings replaced by resolver functions                                                                                                                                     | `cmd/securitymd/contract_test.go`                                   |
+| 8  | **All-suppressed golden** (f.41): the escape hatch at full extent — JSON pins reason + `expiresAt`, SARIF pins the empty result set. Existing 8 goldens regenerated byte-identical (expiry change did not move any pinned bytes)                                                                                                                                                                                                          | `pkg/policy/testdata/golden/all-suppressed.*`                       |
+| 9  | **Drift-guard red run is now a permanent test** (b.3 closure): a mutated README (renamed rule ID) fails the guard end-to-end, and a severity flip fails the comparator — the guard can no longer rot green                                                                                                                                                                                                                                | `pkg/policy/readme_drift_test.go`                                   |
+| 10 | **Dogfood SECURITY.md regenerated** — the old file was a pre-rebuild relic advertising `security@github.com` and "MyCompany"; now renders `LarsArtmann/securitymd` with the GitHub-advisory link and validates green                                                                                                                                                                                                                      | `SECURITY.md`                                                       |
+| 11 | **CI workflow root-caused and re-enabled** — it had been `disabled_manually` on GitHub since the pre-rebuild era (runs in May/July failed in 3-5s), which is why it never ran despite valid triggers; `workflow_dispatch` added so the pipeline can be proven with one command once billing is fixed                                                                                                                                      | `gh workflow enable`, `.github/workflows/security-validation.yml`   |
+| 12 | **Naming audit closed without a rename** (f.15): `--severity` is load-bearing (BuildFlow's provider passes `--severity=warning`); the two flags do different jobs; README documents the distinction                                                                                                                                                                                                                                       | README "Two severity flags"                                         |
+| 13 | **Docs sync**: README (expiry grammar, exit-code CI block, flag distinction, NO_COLOR), DOMAIN_LANGUAGE (+suppression expiry, +active findings), CHANGELOG (+8 Added, +5 Fixed, duplicate Fixed section merged), FEATURES (rows 6/9/17/20), ROADMAP (4 items annotated DONE/RESOLVED), AGENTS (publish state, TTY gotcha, provider contract, daemon gotcha)                                                                               | eight files                                                         |
+
+## b) PARTIALLY DONE / BLOCKED
+
+1. **First real CI runner run is blocked by GitHub Actions BILLING** — run 37957194805 (2026-10-09): all three jobs refused before executing a single step: "recent account payments have failed or your spending limit needs to be increased". This is Lars's account, not the workflow: the YAML lints clean and every step was executed locally. After billing is fixed: `gh workflow run "Security Policy Validation" -R LarsArtmann/securitymd`.
+2. **`go install …@latest` / pkg.go.dev**: the repo is still PRIVATE, so the module proxy does not resolve. Everything else about publishing is done; the visibility flip is the one remaining button (tag is already cut, so the flip is sufficient).
+3. **BuildFlow consumer switch** (runbook section 2) stays deferred: while the repo is private it needs GOPRIVATE setup and buys nothing over the working local replace; it becomes mandatory right after the visibility flip.
+
+## c) NOT STARTED (unchanged, all recorded)
+
+Post-public-visibility chain: pkg.go.dev render check, GoReleaser/flake release workflow, `securitymd-action`, website, nixpkgs PR, Dependabot fleet, fleet announcement + sweep (draft + script ready, two placeholders Lars), metadata.yaml tags, docs/reviews convention. ROADMAP holds the long tail.
+
+## d) TOTALLY FUCKED UP
+
+1. **The CI workflow sat disabled for months while three reports called it "hardened".** The prior sessions verified every step locally and pinned action SHAs — and the workflow was `disabled_manually` at the GitHub level the whole time, so it could never have run anywhere. Nobody (me included) ever asked the one question that mattered: "does GitHub say this workflow is enabled?" Lesson: **verify the runtime state of the thing, not just its content** — `gh workflow list` takes ten seconds.
+2. **The old dogfood SECURITY.md was garbage and three "all gates green" reports never noticed.** It advertised `security@github.com` as the contact (GitHub's own address, not Lars's), said "MyCompany commits to…", and predated the rebuild — while the repo's own tool validated it green. The dogfood invariant test only proves the TEMPLATE self-validates, not that the REPO's actual file is current. Lesson: the fixture being green is not the artifact being right.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Endpoint checks for publish chains**: every publish step should end with an observation from the CONSUMER side (ls-remote, workflow list, `go list -m`), not the producer's exit code — the rename and the disabled-workflow finds both came from consumer-side probes.
+2. **TTY detection is a trap in Go**: `ModeCharDevice` includes `/dev/null`; anything "interactive" must go through isatty. Recorded in AGENTS.md so it survives.
+3. **Suppression semantics belong to the boundary**: each consumer (CLI gate, SARIF writer, BuildFlow gate) interprets suppression metadata differently; routing ALL gate decisions through `policy.ActiveFindings` at provider/CLI boundaries is the durable shape — SARIF's drop-on-attach behavior is go-finding's, documented, not fought.
+4. The duplicate `### Fixed` in CHANGELOG survived one full docs-health pass — the docs gate checks references and archives, not section structure. A structural lint for CHANGELOG (one section-type per release) would catch it; not built today.
+5. Contract tests caught two real bugs in one run (d.4 + a.4/a.5) — the pattern (re-exec the real binary, pin the shell-observable contract) is the highest-yield test investment in this repo. More scenarios beat more unit tests at the cmd layer.
+
+## f) NEXT (all routed, nothing lost)
+
+1. ★ **Lars: fix Actions billing**, then `gh workflow run "Security Policy Validation" -R LarsArtmann/securitymd` and watch the four hardened steps (TODO_LIST P0).
+2. ★ **Lars: visibility flip** — makes `go install github.com/LarsArtmann/securitymd/cmd/securitymd@v1.0.0` and pkg.go.dev work instantly.
+3. ★ BuildFlow consumer switch (runbook section 2) — after the flip; then re-run `buildflow -s securitymd --fix` e2e.
+4. Fleet announcement (fill date+channel) → sweep → flip CI default.
+5. ROADMAP long tail (annotated; `validate --repair`, `list-rules`, Windows CI, benchmarks, completions, version stamp, …).
+
+## g) ZERO OPEN QUESTIONS
+
+The three carried from the 17:24 report are decided and executed (publish ①, expiry ②, exit-2 ③). The only decisions left are genuinely yours: billing fix, visibility flip, fleet contact address, announcement date/channel.
+
+---
+
+_Publish state claims verified 18:10-18:15 via `gh repo view`, `git ls-remote`, `gh workflow list`, and the pushed refs. CI runner behavior explicitly NOT claimed (b.1, billing)._
