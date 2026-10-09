@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Suppression comments (`securitymd:ignore(rule) reason`): matched findings stay visible but exit-neutral; unknown rules or missing reasons are errors
 - Per-rule severity overrides: `validate --set-severity rule=level` and the provider tool option `severity-overrides` (`missing-file=warning` is the incremental-fleet-adoption unblocker)
 - `setup --force`: regenerates an existing policy in place after writing a timestamped `SECURITY.md.<timestamp>.bak` (refuse-by-default unchanged without it)
-- `--location root|.github|docs`: canonical write target for `setup` and preferred detection order for `validate` (candidate-order override)
+- `--location root|.github|docs`: canonical write target for `setup` and preferred detection order for `validate` and `status` (candidate-order override)
 - Interactive `setup`: prompts for org/repo when no git remote is derivable and stdin is a TTY; never prompts in CI or piped contexts
 - `README.md` as a provider trigger: docs-only repositories (no dependency manifests) now activate the provider
 - SARIF + JSON golden-file tests pinning the exact CLI output contract (`pkg/policy/golden_test.go`, refresh with `-update`); mutation/discrimination proof that the rule table is non-vacuous (3 sabotage targets, each caught by the suite)
@@ -27,12 +27,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Stable kebab-case rule IDs for suppressions and configurations
 - Provider contract tests including a full detect → repair → verify loop in a real temp git repo, plus a dogfood test pinning that the rendered template passes its own validator
 - Docs: all pre-rebuild status/planning/modularization reports annotated with inline resolutions and archived under `docs/archive/pre-rebuild/` (manifest inside); `docs/status/` now holds only post-rebuild reports
+- CLI subprocess contract test: 12 scenarios re-exec the real binary and pin README's exit-code table (clean/findings/operational/suppression escape hatches/severity escalation)
+- README drift guard: the documented rule tables must match the code's rule and severity tables (`sectionRules`, `contentRuleSeverities`, `missingFileSeverity`) — rule drift now fails the build instead of the docs
+- Single-source policy fixtures: `pkg/policy/testdata/policy/{compliant,flawed}.md` replace four hand-rolled string copies across unit, golden, suppression, severity, and acceptance tests
+- Suppression × severity-override combination tests: escalation of a suppressed finding keeps the evidence, stays exit-neutral, and (unsuppressed) trips the gate
+- CI hardening in `security-validation.yml`: 80% coverage floor (actual 87.6%), 30s `FuzzParseGitRemote` smoke, govulncheck (action v1.1.0, SHA-pinned), and the nix docs-gate as its own job (install-nix-action v31.11.1, SHA-pinned)
+- Fleet rollout prep: `scripts/fleet-securitymd-sweep.sh` (preview/`--fix` sweep across repo lists) and the announcement draft `docs/planning/2026-10-09_fleet-gate-announcement-draft.md` (execution Lars-gated)
+- Suppressed-finding goldens: JSON keeps the suppression evidence, SARIF export drops the finding — the asymmetry is now pinned byte-for-byte
 
 ### Changed
 
 - **Module renamed**: `github.com/LarsArtmann/template-SECURITY` → `github.com/LarsArtmann/securitymd`; binary is now `securitymd`
 - Rebuilt on go-finding + toolsdk + linter-autoconfigure-sdk + go-atomic-write; dropped viper (≈15 indirect deps) and go-finding/pipeline
 - `validate` now exits non-zero when error-severity findings remain (previously exited 0 for a missing SECURITY.md)
+
+### Fixed
+
+- **Exit-code contract now matches the docs**: findings exit 1, operational failures (bad flags, IO errors, refusals) exit 2 — previously every error exited 1, making README's `2` unreachable
+- **Critical-severity findings now trip the exit gate**: the gate used go-finding's `BySeverity` (equality), so a finding escalated to `critical` via `--set-severity` silently passed CI; the gate is now threshold-based (`BySeverityAtLeast(error)`)
+- `status` renders escalated (`critical`) findings as errors instead of warnings
 
 ### Removed
 

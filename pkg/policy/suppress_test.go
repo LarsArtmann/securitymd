@@ -11,7 +11,9 @@ import (
 func TestValidate_honors_suppression_comment(t *testing.T) {
 	t.Parallel()
 
-	content := policyWithoutResponseTime(t) + "\n<!-- securitymd:ignore(missing-response-time) commitment published in the support wiki -->\n"
+	content := policyWithoutResponseTime(
+		t,
+	) + "\n<!-- securitymd:ignore(missing-response-time) commitment published in the support wiki -->\n"
 
 	findings := validateContent(t, content)
 
@@ -45,7 +47,9 @@ func TestValidate_suppression_requires_reason(t *testing.T) {
 func TestValidate_suppression_text_counts_as_content(t *testing.T) {
 	t.Parallel()
 
-	content := policyWithoutResponseTime(t) + "\n<!-- securitymd:ignore(missing-response-time) we respond within 48 hours per wiki -->\n"
+	content := policyWithoutResponseTime(
+		t,
+	) + "\n<!-- securitymd:ignore(missing-response-time) we respond within 48 hours per wiki -->\n"
 
 	findings := validateContent(t, content)
 

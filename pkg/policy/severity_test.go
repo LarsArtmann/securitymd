@@ -1,8 +1,8 @@
 package policy
 
 import (
-	"time"
 	"testing"
+	"time"
 
 	finding "github.com/larsartmann/go-finding"
 	"github.com/stretchr/testify/assert"
@@ -161,7 +161,7 @@ func TestSeverityOverrides_suppressed_findings_stay_exit_neutral(t *testing.T) {
 		return finding.Filter(active, finding.BySeverityAtLeast(finding.SeverityError))
 	}
 
-	suppressed := validateContent(t, policyWithoutResponseTime(t) +
+	suppressed := validateContent(t, policyWithoutResponseTime(t)+
 		"\n<!-- securitymd:ignore(missing-response-time) tracked in the support wiki -->\n")
 	assert.Empty(t, activeErrors(ApplySeverityOverrides(suppressed, overrides)),
 		"an escalated-but-suppressed finding must not activate: the escape hatch holds")

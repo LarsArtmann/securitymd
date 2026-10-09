@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,9 +25,7 @@ func codeRuleSeverities() map[finding.RuleName]finding.Severity {
 		severities[rule.rule] = rule.severity
 	}
 
-	for rule, severity := range contentRuleSeverities {
-		severities[rule] = severity
-	}
+	maps.Copy(severities, contentRuleSeverities)
 
 	severities[RuleMissingFile] = missingFileSeverity
 
@@ -44,7 +43,7 @@ func readmeDocumentedSeverities(t *testing.T) map[finding.RuleName]finding.Sever
 	documented := make(map[finding.RuleName]finding.Severity)
 	section := ""
 
-	for _, line := range strings.Split(string(content), "\n") {
+	for line := range strings.SplitSeq(string(content), "\n") {
 		if strings.HasPrefix(line, "### ") {
 			section = line
 

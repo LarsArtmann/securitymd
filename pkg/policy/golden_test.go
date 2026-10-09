@@ -63,9 +63,12 @@ func TestReport_golden_output_contract(t *testing.T) {
 				// error-severity contact rule: the finding stays visible with
 				// suppression metadata in JSON and SARIF, while
 				// unresolved-template remains active (the exit gate).
-				suppressed := strings.Replace(flawedPolicy(t),
+				suppressed := strings.Replace(
+					flawedPolicy(t),
 					"Please email {{.ContactEmail}}",
-					"<!-- securitymd:ignore(missing-contact) organization email pending -->\nPlease email {{.ContactEmail}}", 1)
+					"<!-- securitymd:ignore(missing-contact) organization email pending -->\nPlease email {{.ContactEmail}}",
+					1,
+				)
 
 				path := filepath.Join(dir, "SECURITY.md")
 				require.NoError(t, os.WriteFile(path, []byte(suppressed), 0o600))

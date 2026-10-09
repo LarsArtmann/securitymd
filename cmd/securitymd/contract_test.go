@@ -98,11 +98,11 @@ func TestCLI_exit_code_contract(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		policy    string
-		args      []string
-		wantExit  int
-		wantOut   []string
+		name       string
+		policy     string
+		args       []string
+		wantExit   int
+		wantOut    []string
 		notWantOut []string
 	}{
 		{
