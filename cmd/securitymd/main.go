@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mattn/go-isatty"
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 )
 
@@ -30,6 +31,8 @@ var (
 type appConfig struct{}
 
 func main() {
+	disableForcedColorWhenPiped()
+
 	cli, err := cmdguard.NewCLI[appConfig](
 		"securitymd",
 		"Validate and generate SECURITY.md files",
@@ -58,6 +61,23 @@ from the embedded template — never overwriting an existing file.`),
 	// plain when piped); the returned error exists for exit-code mapping only.
 	if err := cli.Execute(context.Background()); err != nil {
 		os.Exit(exitCodeFor(err))
+	}
+}
+
+// disableForcedColorWhenPiped keeps piped output ANSI-free even in ambient
+// environments that force color: fang renders through colorprofile, which
+// honors CLICOLOR_FORCE/TTY_FORCE for pipes and ignores NO_COLOR there, so a
+// shell that exports CLICOLOR_FORCE=1 would otherwise leak escape sequences
+// into the machine-readable output CI and the BuildFlow provider consume
+// (pinned by TestCLI_piped_output_is_ansi_free). TTY detection must go
+// through go-isatty; ModeCharDevice misclassifies /dev/null as a terminal.
+func disableForcedColorWhenPiped() {
+	if isatty.IsTerminal(os.Stdout.Fd()) {
+		return
+	}
+
+	for _, variable := range []string{"CLICOLOR_FORCE", "TTY_FORCE"} {
+		_ = os.Unsetenv(variable)
 	}
 }
 

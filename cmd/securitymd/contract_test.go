@@ -135,13 +135,16 @@ func runCLIWithEnv(t *testing.T, dir string, extraEnv []string, args ...string) 
 // (fatih/color disables color on non-TTY stdout and for NO_COLOR/TERM=dumb,
 // and cmdguard's fang rendering degrades to plain text the same way —
 // the subprocess's pipe exercises the non-TTY branch CI depends on).
+// CLICOLOR_FORCE=1 is set deliberately: colorprofile would otherwise honor
+// it for pipes (ignoring NO_COLOR there), so the CLI's own guard must strip
+// it — an ambient color-forcing shell must not break machine parsers.
 func TestCLI_piped_output_is_ansi_free(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
 
 	dir := repoWithPolicy(t, fixturePolicy(t, "flawed.md"))
 
-	exitCode, output := runCLIWithEnv(t, dir, []string{"NO_COLOR=1"}, "validate")
+	exitCode, output := runCLIWithEnv(t, dir, []string{"NO_COLOR=1", "CLICOLOR_FORCE=1"}, "validate")
 
 	g.Expect(exitCode).To(gomega.Equal(exitFindings))
 	g.Expect(output).NotTo(gomega.ContainSubstring("\x1b["),
