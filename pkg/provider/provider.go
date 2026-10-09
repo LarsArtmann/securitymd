@@ -25,9 +25,15 @@ import (
 // points to GitHub private vulnerability reporting.
 const optionContactEmail = "contact-email"
 
+// optionSeverityOverrides remaps finding severities per rule via tool_options
+// (`tool_options: {securitymd: {severity-overrides: "missing-file=warning"}}`)
+// — the fleet adoption unblocker. Format: rule=level[,rule=level...].
+const optionSeverityOverrides = "severity-overrides"
+
 // triggerManifests are the project indicators that activate securitymd: any
-// repository carrying a dependency manifest, a nix flake, or CI workflows
-// deserves a security policy.
+// repository carrying a dependency manifest, a nix flake, CI workflows, or a
+// README deserves a security policy — docs-only repos activate too, since a
+// published project without a policy is exactly the one that needs one.
 var triggerManifests = []string{ //nolint:gochecknoglobals // declarative trigger table, read-only after init
 	"**/go.mod",
 	"package.json",
@@ -35,6 +41,7 @@ var triggerManifests = []string{ //nolint:gochecknoglobals // declarative trigge
 	"pyproject.toml",
 	"requirements.txt",
 	"flake.nix",
+	"README.md",
 	".github/workflows/*.yml",
 	".github/workflows/*.yaml",
 }
@@ -60,8 +67,14 @@ var Provider = toolsdk.Register(toolsdk.Spec{
 		Default: "",
 		Description: "Security contact email baked into a generated SECURITY.md (optional; " +
 			"default points to GitHub private vulnerability reporting)",
+	}, {
+		Name:    optionSeverityOverrides,
+		Kind:    toolsdk.OptionKindString,
+		Default: "",
+		Description: "Per-rule severity overrides as rule=level[,rule=level...] (optional; " +
+			"e.g. missing-file=warning for incremental fleet adoption)",
 	}},
-	Detect: finding.NamedDetectorFunc(string(policy.ToolName), policy.Detect),
+	Detect: finding.NamedDetectorFunc(string(policy.ToolName), detectWithOptions),
 	Repair: toolsdk.RepairerFunc(func(ctx context.Context) (toolsdk.RepairResult, error) {
 		result, err := policy.Generate(ctx, policy.GenerateOptions{
 			ContactEmail: contactEmailFromContext(ctx),
@@ -75,6 +88,22 @@ var Provider = toolsdk.Register(toolsdk.Spec{
 	}),
 })
 
+// detectWithOptions runs the policy detector, then applies the repo's
+// severity overrides so consumers see the severities the repo actually chose.
+func detectWithOptions(ctx context.Context) ([]finding.Finding, error) {
+	findings, err := policy.Detect(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("securitymd detect: %w", err)
+	}
+
+	overrides, err := severityOverridesFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("securitymd %s: %w", optionSeverityOverrides, err)
+	}
+
+	return policy.ApplySeverityOverrides(findings, overrides), nil
+}
+
 // contactEmailFromContext reads the optional contact-email tool option.
 func contactEmailFromContext(ctx context.Context) string {
 	values, ok := toolsdk.OptionsFromContext(ctx)
@@ -85,4 +114,22 @@ func contactEmailFromContext(ctx context.Context) string {
 	email, _ := values[optionContactEmail].(string)
 
 	return email
+}
+
+// severityOverridesFromContext parses the optional severity-overrides tool
+// option; an unset or empty option means no overrides.
+func severityOverridesFromContext(ctx context.Context) (policy.SeverityOverrides, error) {
+	values, ok := toolsdk.OptionsFromContext(ctx)
+	if !ok {
+		return policy.SeverityOverrides{}, nil
+	}
+
+	spec, _ := values[optionSeverityOverrides].(string)
+
+	overrides, err := policy.ParseSeverityOverrides(spec)
+	if err != nil {
+		return nil, fmt.Errorf("parse option: %w", err)
+	}
+
+	return overrides, nil
 }

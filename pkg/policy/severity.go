@@ -43,7 +43,7 @@ type SeverityOverrides map[finding.RuleName]finding.Severity
 func ParseSeverityOverrides(spec string) (SeverityOverrides, error) {
 	overrides := make(SeverityOverrides)
 
-	for _, part := range strings.Split(spec, ",") {
+	for part := range strings.SplitSeq(spec, ",") {
 		part = strings.TrimSpace(part)
 		if part == "" {
 			continue
@@ -103,13 +103,11 @@ func ApplySeverityOverrides(findings []finding.Finding, overrides SeverityOverri
 		return findings
 	}
 
-	adjusted := make([]finding.Finding, len(findings))
-	for i, f := range findings {
-		if severity, ok := overrides[f.Rule]; ok {
-			f.Severity = severity
+	adjusted := slices.Clone(findings)
+	for i, candidate := range adjusted {
+		if severity, ok := overrides[candidate.Rule]; ok {
+			adjusted[i].Severity = severity
 		}
-
-		adjusted[i] = f
 	}
 
 	return adjusted
@@ -117,6 +115,7 @@ func ApplySeverityOverrides(findings []finding.Finding, overrides SeverityOverri
 
 func ruleIDNames() []string {
 	ids := KnownRuleIDs()
+
 	names := make([]string, 0, len(ids))
 	for _, id := range ids {
 		names = append(names, string(id))

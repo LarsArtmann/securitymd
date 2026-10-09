@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -14,9 +15,9 @@ import (
 // The comment suppresses the listed rules for the entire policy file. The
 // reason is REQUIRED: a marker without a reason is inert, so a stripped
 // rationale never silently silences a rule. Unknown rule names are inert
-// (a typo must fail safe, not suppress nothing silently-by-accident).
-// missing-file cannot be suppressed: with no file there is no content to
-// carry the comment — a repository must have a policy.
+// (a typo must fail safe, not suppress silently-by-accident). missing-file
+// cannot be suppressed: with no file there is no content to carry the
+// comment — a repository must have a policy.
 const suppressionMarker = "securitymd:ignore("
 
 // applySuppressions marks findings whose rule is suppressed by an in-file
@@ -29,17 +30,16 @@ func applySuppressions(lines []string, findings []finding.Finding) []finding.Fin
 		return findings
 	}
 
-	marked := make([]finding.Finding, len(findings))
-	for i, f := range findings {
-		if reason, ok := reasons[string(f.Rule)]; ok {
-			f.Suppression = &finding.Suppression{
-				Kind:   finding.SuppressionInSource,
-				Rule:   f.Rule,
-				Reason: reason,
+	marked := slices.Clone(findings)
+	for i, candidate := range marked {
+		if reason, ok := reasons[string(candidate.Rule)]; ok {
+			marked[i].Suppression = &finding.Suppression{
+				Kind:      finding.SuppressionInSource,
+				Rule:      candidate.Rule,
+				Reason:    reason,
+				ExpiresAt: nil,
 			}
 		}
-
-		marked[i] = f
 	}
 
 	return marked
@@ -51,52 +51,43 @@ func parseSuppressions(lines []string) map[string]string {
 	reasons := make(map[string]string)
 
 	for _, line := range lines {
-		markerIndex := strings.Index(line, suppressionMarker)
-		if markerIndex < 0 {
+		_, afterMarker, found := strings.Cut(line, suppressionMarker)
+		if !found {
 			continue
 		}
 
-		rules, reason, ok := parseSuppressionComment(line[markerIndex+len(suppressionMarker):])
+		ruleList, reason, ok := parseSuppressionComment(afterMarker)
 		if !ok {
 			continue
 		}
 
-		for _, rule := range rules {
-			reasons[rule] = reason
+		for rule := range strings.SplitSeq(ruleList, ",") {
+			rule = strings.TrimSpace(rule)
+			if rule != "" {
+				reasons[rule] = reason
+			}
 		}
 	}
 
 	return reasons
 }
 
-// parseSuppressionComment parses the comma-separated rule list up to the
-// closing parenthesis, then the required reason. ok=false marks the comment
-// malformed (missing paren, empty rule list, or empty reason) and inert.
-func parseSuppressionComment(rest string) (rules []string, reason string, ok bool) {
-	closing := strings.Index(rest, ")")
-	if closing < 0 {
-		return nil, "", false
+// parseSuppressionComment parses the comma-separated rule list before the
+// closing parenthesis, then the required reason. The third result marks the
+// comment malformed (missing paren, empty rule list, or empty reason); a
+// malformed comment is inert.
+func parseSuppressionComment(rest string) (string, string, bool) {
+	ruleList, reason, found := strings.Cut(rest, ")")
+	if !found {
+		return "", "", false
 	}
 
-	ruleList := strings.TrimSpace(rest[:closing])
-	reason = trimCommentTerminator(rest[closing+1:])
-	if ruleList == "" || reason == "" {
-		return nil, "", false
+	reason = trimCommentTerminator(reason)
+	if strings.TrimSpace(ruleList) == "" || reason == "" {
+		return "", "", false
 	}
 
-	rules = make([]string, 0, 4)
-	for _, rule := range strings.Split(ruleList, ",") {
-		rule = strings.TrimSpace(rule)
-		if rule != "" {
-			rules = append(rules, rule)
-		}
-	}
-
-	if len(rules) == 0 {
-		return nil, "", false
-	}
-
-	return rules, reason, true
+	return ruleList, reason, true
 }
 
 // trimCommentTerminator strips the HTML comment's closing "-->" so that

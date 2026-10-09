@@ -30,6 +30,15 @@ func TestProvider_registered_and_shaped(t *testing.T) {
 		toolsdk.ErrUnknownOption)
 }
 
+// A docs-only repo (README.md, no dependency manifests) must still activate:
+// published projects without a policy are exactly the ones that need one.
+func TestProvider_activates_on_docs_only_repos(t *testing.T) {
+	t.Parallel()
+
+	assert.Contains(t, Provider.Trigger.Files, "README.md")
+	assert.Contains(t, Provider.Inputs, "README.md")
+}
+
 func TestProvider_detect_then_repair_then_verify(t *testing.T) {
 	t.Parallel()
 
@@ -123,4 +132,34 @@ func TestProvider_contact_email_option_flows_into_repair(t *testing.T) {
 	_, err := Provider.Repair.Repair(ctx)
 	require.NoError(t, err)
 	assert.Contains(t, mustRead(filepath.Join(gitRepo, "SECURITY.md")), "security@acme.com")
+}
+
+func TestProvider_severity_overrides_downgrade_findings(t *testing.T) {
+	t.Parallel()
+
+	ctx := finding.WithWorkingDir(
+		toolsdk.WithOptions(t.Context(), toolsdk.OptionValues{"severity-overrides": "missing-file=warning"}),
+		t.TempDir(),
+	)
+
+	findings, err := Provider.Detect.Detect(ctx)
+	require.NoError(t, err)
+	require.Len(t, findings, 1)
+	assert.Equal(t, finding.SeverityWarning, findings[0].Severity,
+		"tool_options severity-overrides must reach the detector output")
+}
+
+func TestProvider_invalid_severity_override_fails_with_clear_error(t *testing.T) {
+	t.Parallel()
+
+	ctx := finding.WithWorkingDir(
+		toolsdk.WithOptions(t.Context(), toolsdk.OptionValues{"severity-overrides": "missing-file=fatal"}),
+		t.TempDir(),
+	)
+
+	_, err := Provider.Detect.Detect(ctx)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "severity-overrides")
+	assert.Contains(t, err.Error(), "fatal", "the error must name the offending value")
 }
