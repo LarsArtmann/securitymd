@@ -1,5 +1,7 @@
 # Template-SECURITY Status Report
 
+> **Decided & superseded** — verdict was "**PURGE & SIMPLIFY (STRONGEST RECOMMENDATION)**" (quoted from §Final Recommendation below); the purge executed the same day as the simplified MVP (`2025-12-11_23-41`), and the 2026-10-08 rebuild (`1c55390`) later deleted the entire tree anyway. All options, steps, and Phase-3 items carry inline verdicts; nothing remains open.
+
 ## 📅 Date: 2025-12-11 23:05 CET
 
 ## 🎯 Phase: ARCHITECTURE REASSESSMENT NEEDED
@@ -58,29 +60,29 @@ Instead of completing Phase 3 (16% remaining), I started building enterprise-gra
 
 #### **HIGH IMPACT, LOW WORK (4% each):**
 
-1. **Error Handling Improvement**
+~~1. **Error Handling Improvement**~~ done — rebuilt on finding.FindingError family (2026-05-05 session 2)
    - Better user error messages
    - Graceful failure handling
    - Status codes and suggestions
 
-2. **CLI Help System**
+~~2. **CLI Help System**~~ moot — CLI rebuilt (cmd/securitymd); cobra help
    - Comprehensive help commands
    - Usage examples and tutorials
    - Interactive guidance
 
-3. **Version Management**
+~~3. **Version Management**~~ NOT-DO — version stays ldflags metadata
    - Auto-version from git tags
    - Version information display
    - Update notifications
 
-4. **Binary Distribution**
+~~4. **Binary Distribution**~~ routed — TODO_LIST publish checklist
    - Multi-platform builds
    - Release automation
    - Installation scripts
 
 #### **MEDIUM IMPACT, LOW WORK (4% total):**
 
-5. **Documentation Enhancement**
+~~5. **Documentation Enhancement**~~ done at 519916d/72085c2/4a8987a — README + full docs pass
    - Updated README with Phase 2 features
    - Usage examples and tutorials
    - API documentation
@@ -139,9 +141,9 @@ Instead of completing Phase 3 (16% remaining), I started building enterprise-gra
 
 Should I:
 
-1. **PURGE** - Delete all over-engineered code and return to simple Phase 3?
-2. **INTEGRATE** - Fix all integration issues and complete architecture?
-3. **HYBRID** - Keep useful parts, delete over-complex parts?
+~~1. **PURGE** - Delete all over-engineered code and return to simple Phase 3?~~ resolved — chosen (via the 23-41 simplified MVP): enterprise packages purged the same day
+~~2. **INTEGRATE** - Fix all integration issues and complete architecture?~~ rejected — never taken
+~~3. **HYBRID** - Keep useful parts, delete over-complex parts?~~ superseded by full purge, then by the 2026-10-08 rebuild
 
 ### **STEP 2: EXECUTE DECISION**
 
@@ -167,10 +169,10 @@ Finish Phase 3 simple improvements to reach 80% value target.
 
 **How:**
 
-1. Delete: `internal/types/`, `internal/domain/`, `internal/repository/`, `internal/service/`
-2. Restore: `internal/security_tool.go` to working state
-3. Complete: Simple Phase 3 improvements
-4. Achieve: 80/20 target with 64% + 16% = 80%
+~~1. Delete: `internal/types/`, `internal/domain/`, `internal/repository/`, `internal/service/`~~ done — eventually deleted wholesale at 1c55390
+~~2. Restore: `internal/security_tool.go` to working state~~ moot — security_tool.go itself deleted at 1c55390
+~~3. Complete: Simple Phase 3 improvements~~ superseded — Phase 3 never completed as sketched; the rebuild delivered the end state
+~~4. Achieve: 80/20 target with 64% + 16% = 80%~~ moot — percentage framing dropped; the rebuild is the delivered value
 
 **Timeline:** 2 hours
 **Result:** Perfect 80/20 implementation

@@ -1,5 +1,7 @@
 # Template-Security Project Status Report
 
+> **Superseded** — this MVP tree was later migrated to go-finding (2026-05), then deleted entirely in the 2026-10-08 securitymd rebuild (`1c55390`), which kept the simplified scope (SECURITY.md only) and shipped the missing pieces: tests, CI, JSON/SARIF output, BuildFlow integration. Recommendation below was "Option A (Ship v1.0 Minimal)" — ~~neither A/B/C shipped then~~; the rebuild (2026-10-08) is the delivered v1. All open items carry inline verdicts.
+
 **Date**: 2025-12-11_23-41\
 **Status**: SIMPLIFIED & FOCUSED ON SECURITY.MD ONLY\
 **Scope**: v1.0 - MVP Release Candidate
@@ -177,24 +179,24 @@ LAST_UPDATED="2025-12-11"
 
 ### IMMEDIATE (This Week)
 
-- [ ] **Add comprehensive unit tests** for all functions
-- [ ] **Fix GitHub workflow** to test simplified codebase
-- [ ] **Create installation script** (install.sh)
-- [ ] **Add basic error messages** with user guidance
+~~- [ ] **Add comprehensive unit tests** for all functions~~ done — pkg/policy + pkg/provider unit tests, all green
+~~- [ ] **Fix GitHub workflow** to test simplified codebase~~ done at 72085c2 — build+test+self-validate
+~~- [ ] **Create installation script** (install.sh)~~ NOT-DO — `go install …@latest` after publish (TODO_LIST checklist); no install.sh
+~~- [ ] **Add basic error messages** with user guidance~~ done — finding.FindingError family with actionable messages
 
 ### SHORT TERM (2 Weeks)
 
-- [ ] **Add multiple templates** (basic, detailed, enterprise)
-- [ ] **Implement configuration file** support
-- [ ] **Add JSON output format** for validation results
-- [ ] **Create GitHub Action** for automated SECURITY.md validation
+~~- [ ] **Add multiple templates** (basic, detailed, enterprise)~~ NOT-DO — one canonical embedded template by design
+~~- [ ] **Implement configuration file** support~~ NOT-DO — config system removed on purpose (CHANGELOG breaking change)
+~~- [ ] **Add JSON output format** for validation results~~ done — CLI `--format json` (golden test routed in TODO_LIST)
+~~- [ ] **Create GitHub Action** for automated SECURITY.md validation~~ done — CI workflow validates with the tool itself
 
 ### MEDIUM TERM (1 Month)
 
-- [ ] **Advanced validation rules** (email format, URL validation)
-- [ ] **Auto-detection improvements** (smarter project detection)
-- [ ] **Integration testing** for end-to-end workflows
-- [ ] **Binary releases** for multiple platforms
+~~- [ ] **Advanced validation rules** (email format, URL validation)~~ done — 11 stable rules incl. multi-signal contact detection
+~~- [ ] **Auto-detection improvements** (smarter project detection)~~ done — git-remote identity parsing (pkg/policy/project.go)
+~~- [ ] **Integration testing** for end-to-end workflows~~ done — provider detect→repair→verify loop in a real git repo
+~~- [ ] **Binary releases** for multiple platforms~~ routed — TODO_LIST publish checklist
 
 ---
 
@@ -261,16 +263,16 @@ LAST_UPDATED="2025-12-11"
 
 ### IMMEDIATE DECISIONS NEEDED
 
-1. **Target User**: Open source maintainers OR enterprise security teams?
-2. **Distribution Method**: CLI only OR GitHub Action too?
-3. **Template Strategy**: Simple 1-template OR multiple variants?
-4. **Testing Priority**: Unit tests OR integration tests first?
+~~1. **Target User**: Open source maintainers OR enterprise security teams?~~ resolved — OSS maintainers: the tool validates GitHub's expected sections and ships as a BuildFlow provider
+~~2. **Distribution Method**: CLI only OR GitHub Action too?~~ resolved — CLI + BuildFlow provider (no standalone Action; CI uses the tool directly)
+~~3. **Template Strategy**: Simple 1-template OR multiple variants?~~ resolved — one canonical embedded template, dogfood-tested
+~~4. **Testing Priority**: Unit tests OR integration tests first?~~ resolved — both shipped (unit + provider loop + BDD acceptance)
 
 ### FUTURE DIRECTIONS
 
-1. **Platform Integration**: GitHub Marketplace, GitLab, Bitbucket?
-2. **Enterprise Features**: Compliance frameworks (if demand exists)?
-3. **Commercial Model**: Open source with premium features?
+~~1. **Platform Integration**: GitHub Marketplace, GitLab, Bitbucket?~~ NOT-DO — GitHub-centric by design
+~~2. **Enterprise Features**: Compliance frameworks (if demand exists)?~~ NOT-DO — enterprise scope abandoned in Dec 2025, never returned
+~~3. **Commercial Model**: Open source with premium features?~~ NOT-DO — stays simple open source
 
 ---
 

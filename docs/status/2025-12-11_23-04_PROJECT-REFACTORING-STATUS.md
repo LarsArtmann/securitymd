@@ -1,5 +1,7 @@
 # Template Security - Project Refactoring Status Report
 
+> **Superseded** — the build errors and files described here (v2 `internal/errors` era) were resolved/purged the same day by the simplified MVP (`2025-12-11_23-41`); the tree was deleted in the 2026-10-08 rebuild (`1c55390`). All open items carry inline verdicts; nothing remains open.
+
 **Date:** 2025-12-11\
 **Time:** 23:04:53 CET\
 **Status:** PARTIAL PROGRESS - BUILD ISSUES PERSIST\
@@ -84,24 +86,24 @@ internal/errors/errors.go:325:56: cannot use ce.Component (value of type func() 
 
 ### 🚨 CRITICAL (Fix Build)
 
-1. **Fix ValidationError struct** - Add missing Field field
-2. **Resolve Component() conflict** - Rename either field or method
-3. **Test compilation** - Ensure `go build` works
-4. **Run basic tests** - Verify functionality works
+~~1. **Fix ValidationError struct** - Add missing Field field~~ moot — internal/errors package purged in the Dec 2025 simplification; tree deleted at 1c55390
+~~2. **Resolve Component() conflict** - Rename either field or method~~ moot — same
+~~3. **Test compilation** - Ensure `go build` works~~ moot — the rebuild compiles green (build verified 2026-10-09)
+~~4. **Run basic tests** - Verify functionality works~~ moot — superseded by the rebuild's three green suites
 
 ### ⚡ HIGH PRIORITY
 
-5. **Simplify security_tool.go** - Remove unnecessary complexity
-6. **Update setup.go** - Focus only on SECURITY.md generation
-7. **Test validation** - Verify SECURITY.md validation works
-8. **Update GitHub Actions** - Focus on validation workflow
+~~5. **Simplify security_tool.go** - Remove unnecessary complexity~~ moot — deleted at 1c55390
+~~6. **Update setup.go** - Focus only on SECURITY.md generation~~ moot — cmd rewritten (cmd/securitymd/setup.go)
+~~7. **Test validation** - Verify SECURITY.md validation works~~ done — pkg/policy/validate_test.go + BDD specs
+~~8. **Update GitHub Actions** - Focus on validation workflow~~ done at 72085c2 — workflow rewritten
 
 ### 📋 MEDIUM PRIORITY
 
-9. **Remove unused templates** - Keep only SECURITY.md template
-10. **Simplify domain models** - Remove complex types not needed
-11. **Update documentation** - Ensure all docs match new purpose
-12. **Add validation examples** - Show expected outputs
+~~9. **Remove unused templates** - Keep only SECURITY.md template~~ done — one embedded canonical template
+~~10. **Simplify domain models** - Remove complex types not needed~~ done at 1c55390 — domain types deleted entirely
+~~11. **Update documentation** - Ensure all docs match new purpose~~ done at 72085c2/4a8987a — docs pass
+~~12. **Add validation examples** - Show expected outputs~~ done — README documents rules and exit codes
 
 ## 🔄 Architecture Assessment
 
@@ -149,11 +151,11 @@ A simple CLI tool that:
 
 ### Future Enhancements (Post-MVP)
 
-1. GitHub API integration for repo detection
-2. Advanced semantic validation
-3. Custom validation rules
-4. Template customization
-5. Integration with CI/CD pipelines
+~~1. GitHub API integration for repo detection~~ NOT-DO — identity comes from git remote parsing, no GitHub API
+~~2. Advanced semantic validation~~ partial — 11 stable rules today; structure-aware pass is a ROADMAP idea
+~~3. Custom validation rules~~ NOT-DO — stable rule IDs; per-rule severity is the TODO_LIST knob
+~~4. Template customization~~ NOT-DO — single canonical template by design
+~~5. Integration with CI/CD pipelines~~ done — CI self-validates; BuildFlow provider is the fleet path
 
 ## 🤔 Decision Points Needed
 
@@ -187,16 +189,16 @@ A simple CLI tool that:
 
 ### Immediate Success
 
-- [ ] Application builds without errors
-- [ ] `template-security validate` command works
-- [ ] Basic validation checks function correctly
+~~- [ ] Application builds without errors~~ done — build green (verified 2026-10-09)
+~~- [ ] `template-security validate` command works~~ moot — binary renamed securitymd; validate exists and works
+~~- [ ] Basic validation checks function correctly~~ done — 11 rules, all tested
 
 ### Full Success
 
-- [ ] All justfile commands work
-- [ ] SECURITY.md validation is comprehensive
-- [ ] Generation/upsert functionality works
-- [ ] CI/CD integration is functional
+~~- [ ] All justfile commands work~~ moot — justfile removed at 9d3094a; go test is the suite entry
+~~- [ ] SECURITY.md validation is comprehensive~~ done — required sections + quality checks + missing-file
+~~- [ ] Generation/upsert functionality works~~ done-as-narrower — generation exists; upsert deliberately never (never-overwrite by design)
+~~- [ ] CI/CD integration is functional~~ done at 72085c2
 
 ---
 

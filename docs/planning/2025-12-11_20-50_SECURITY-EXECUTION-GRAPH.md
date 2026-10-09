@@ -1,5 +1,7 @@
 # Template Security Execution Graph
 
+> **Executed, then superseded** — the graph's Phase 1–2 ran on 2025-12-11; the 2026-10-08 securitymd rebuild (`1c55390`) delivered the end state (focused SECURITY.md tool) while dropping Phase 3's extras. Open-looking items below carry inline verdicts.
+
 ```mermaid
 graph TD
     A[Start: Over-Engineered System] --> B{Phase 1: 1% Effort → 51% Results}
@@ -113,17 +115,17 @@ graph TD
 
 ### 🚀 Nice to Haves (Phase 2)
 
-- **GitHub Integration**: Auto-detect repo info, suggest improvements
-- **CI/CD Hooks**: Prevent broken SECURITY.md in PRs
-- **Smart Variables**: Context-aware variable substitution
-- **Better UX**: Helpful error messages, better help
+- ~~**GitHub Integration**: Auto-detect repo info, suggest improvements~~ done — identity parsed from git remote (pkg/policy/project.go)
+- ~~**CI/CD Hooks**: Prevent broken SECURITY.md in PRs~~ done at 72085c2 — CI self-validates
+- ~~**Smart Variables**: Context-aware variable substitution~~ moot — variable detector purged Dec 2025; template renders identity + optional email
+- ~~**Better UX**: Helpful error messages, better help~~ done — finding-based messages with fix strategies
 
 ### 🌟 Advanced Features (Phase 3)
 
-- **Auto-completion**: Shell completion for CLI
-- **Configuration**: .template-security.yaml config
-- **Templates**: Industry-specific templates
-- **Testing**: Automated policy validation
+- ~~**Auto-completion**: Shell completion for CLI~~ NOT-DO — cobra ships default completion
+- ~~**Configuration**: .template-security.yaml config~~ NOT-DO — config system removed on purpose
+- ~~**Templates**: Industry-specific templates~~ NOT-DO — one canonical embedded template
+- ~~**Testing**: Automated policy validation~~ done — unit + provider + BDD suites
 
 ### ❌ Avoid (Over-Engineering)
 

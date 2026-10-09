@@ -1,5 +1,7 @@
 # Template Security 80/20 Implementation Plan
 
+> **Executed, then superseded** — Phase 1 ran on 2025-12-11 (see `../status/2025-12-11_21-52_*`), Phase 2 partially; the tree was deleted in the 2026-10-08 securitymd rebuild (`1c55390`), which kept the plan's spirit (focused SECURITY.md tool) and dropped its Phase 3 extras. The task tables below are the historical December plan, not an open backlog.
+
 **Date**: 2025-12-11 20:50
 **Focus**: 80/20 Principle - Maximum Value, Minimum Effort
 **Objective**: Transform over-engineered system into focused SECURITY.md generator
@@ -48,7 +50,7 @@
 
 1. **Fix SECURITY.md Template** - Better variables, sections, GitHub best practices
 2. **Add Simple Validation** - Check for required sections only
-3. **Fix Project Detection** - Better org/domain detection
+~~3. **Fix Project Detection** - Better org/domain detection~~ done — executed Dec 2025; rebuilt as pkg/policy/project.go (git-remote identity)
 4. **Improve Justfile** - Add quick commands
 
 ### Phase 2: Integration & Automation (4% → 64%)
@@ -115,10 +117,10 @@ Low Impact     |      | █    | █   |
 
 ### Critical Path (Execute in Order)
 
-1. **Fix SECURITY.md Template** - Immediate impact on all users
-2. **Add Simple Validation** - Prevent common mistakes
+~~1. **Fix SECURITY.md Template** - Immediate impact on all users~~ done — executed Dec 2025 (Phase 1); superseded by the embedded canonical template
+~~2. **Add Simple Validation** - Prevent common mistakes~~ done — executed Dec 2025; lives on as pkg/policy/validate.go (11 rules)
 3. **Fix Project Detection** - Better default values
-4. **Improve Justfile** - Better developer experience
+~~4. **Improve Justfile** - Better developer experience~~ moot — justfile removed at 9d3094a (flake.nix is the task layer now)
 
 ### Risk Mitigation
 
