@@ -1,5 +1,7 @@
 # BDD Tests Review
 
+> **Adopted, then superseded** — the recommendation (Ginkgo + Gomega, user-centric acceptance specs in `test/acceptance/`) was implemented and survives in the rebuild: 7 specs, all green. The review's target files (`internal/*_test.go`) are gone (`1c55390`).
+
 **Project:** template-SECURITY
 **Date:** 2026-03-28
 **Status:** Critical - No BDD tests exist

@@ -1,5 +1,7 @@
 # Template Security - Architecture Improvement Plan
 
+> **Superseded** — plan against the deleted tree; items either shipped in some later era or are NOT-DO by the rebuild's design. All numbered items carry inline verdicts.
+
 ## Analysis Summary
 
 ### Current Issues

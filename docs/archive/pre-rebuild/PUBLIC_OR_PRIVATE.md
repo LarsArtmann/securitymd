@@ -120,26 +120,26 @@ Making this public would:
 
 #### Must-Fix Before Public (estimated 2-3 hours)
 
-- [ ] **Fix `go.mod` `replace` directive** — Either publish `go-composable-business-types` first, or remove the dependency and inline the minimal types used (`IDID`, `PolicyID`)
-- [ ] **Run `go mod tidy`** — Ensure clean dependency graph
-- [ ] **Fix CI workflow Go version** — Align `setup-go` with `go.mod` version (1.26)
-- [ ] **Replace placeholder config values** — Update `.template-security.yaml` and `SECURITY.md` with real values or clearly mark as examples
-- [ ] **Remove or archive stale internal docs** — `BDD_TESTS_REVIEW.md`, `IMPROVEMENT_PLAN.md`, `PROJECT_SPLIT_EXECUTIVE_REPORT.md`, `docs/status/*` are internal working documents that create a negative impression
+~~- [ ] **Fix `go.mod` `replace` directive** — Either publish `go-composable-business-types` first, or remove the dependency and inline the minimal types used (`IDID`, `PolicyID`)~~ done — dependency removed entirely (1c55390); BuildFlow's later replace is intentional local wiring
+~~- [ ] **Run `go mod tidy`** — Ensure clean dependency graph~~ done — clean deps (go-finding family only)
+~~- [ ] **Fix CI workflow Go version** — Align `setup-go` with `go.mod` version (1.26)~~ done at 72085c2 — go-version-file: go.mod
+~~- [ ] **Replace placeholder config values** — Update `.template-security.yaml` and `SECURITY.md` with real values or clearly mark as examples~~ done at 1c55390 — config file deleted; own SECURITY.md regen sits in the publish checklist
+~~- [ ] **Remove or archive stale internal docs** — `BDD_TESTS_REVIEW.md`, `IMPROVEMENT_PLAN.md`, `PROJECT_SPLIT_EXECUTIVE_REPORT.md`, `docs/status/*` are internal working documents that create a negative impression~~ done at 72085c2 + docs-health pass 2026-10-09 (this archive IS that)
 
 #### Should-Fix Before Public (estimated 1-2 hours)
 
-- [ ] **Add a `.goreleaser.yml`** or at minimum document the `go install` path works
-- [ ] **Update README.md** — Remove emojis (per project convention), add contribution guidelines, clarify the project status
-- [ ] **Remove `metadata.yaml` `archived` tag** — Or confirm the project IS archived and decide accordingly
-- [ ] **Tag v0.1.0** — Create the first release to signal intent
+~~- [ ] **Add a `.goreleaser.yml`** or at minimum document the `go install` path works~~ routed — publish checklist documents go install; goreleaser NOT-DO
+~~- [ ] **Update README.md** — Remove emojis (per project convention), add contribution guidelines, clarify the project status~~ done at 519916d — README rewritten for securitymd
+~~- [ ] **Remove `metadata.yaml` `archived` tag** — Or confirm the project IS archived and decide accordingly~~ routed — still stale (template/archived tags) — flagged to TODO_LIST 2026-10-09
+~~- [ ] **Tag v0.1.0** — Create the first release to signal intent~~ routed — publish checklist (tag v1.0.0)
 
 #### Nice-to-Have Post-Public
 
-- [ ] Extract `ProjectDetector` into `projectmeta` (per `PARTS.md` plan)
-- [ ] Replace `viper` with `koanf` (per architecture guidelines)
-- [ ] Complete BDD test suite
-- [ ] Publish as GitHub Action
-- [ ] Clean up legacy shell scripts
+~~- [ ] Extract `ProjectDetector` into `projectmeta` (per `PARTS.md` plan)~~ NOT-DO — detection lives in pkg/policy/project.go
+~~- [ ] Replace `viper` with `koanf` (per architecture guidelines)~~ done at 1c55390 — viper dropped, no replacement needed
+~~- [ ] Complete BDD test suite~~ done — 7 Ginkgo specs, green
+~~- [ ] Publish as GitHub Action~~ NOT-DO — CI uses the tool directly; BuildFlow provider is the fleet path
+~~- [ ] Clean up legacy shell scripts~~ done at 1c55390
 
 ---
 
@@ -161,6 +161,8 @@ Making this public would:
 ## Final Verdict
 
 **Conditionally make public.** The project solves a genuine unsolved problem in the OSS ecosystem and carries zero security risk. However, publishing in its current state would create a poor first impression due to stale dependencies, placeholder values, and unfinished refactoring.
+
+> **Resolution (2026-10-09)** — the condition is met: the 2026-10-08 rebuild did the cleanup (deps clean, placeholders gone, docs truthful). The publish decision itself is routed to the TODO_LIST publish checklist. The one surviving loose end from this doc's own should-fix list: `metadata.yaml` still carries stale `template`/`archived` tags (also flagged to TODO_LIST).
 
 **Recommended path:**
 

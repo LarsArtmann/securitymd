@@ -1,5 +1,7 @@
 # PARTS.md — Component Analysis & Extraction Potential
 
+> **Superseded** — analyzes the deleted `internal/` tree; no extraction ever happened. Verdicts on the Action Items below. Fittingly, this doc's Phase-2 idea "consider publishing `securitymd`" predicted the 2026-10-08 rebuild's name.
+
 > Analysis of template-SECURITY for reusable library/SDK extraction opportunities
 >
 > **Last Updated:** 2026-03-03
