@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 	"github.com/LarsArtmann/securitymd/pkg/policy"
 	"github.com/fatih/color"
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 	finding "github.com/larsartmann/go-finding"
 )
 
