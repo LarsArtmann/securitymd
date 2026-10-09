@@ -241,6 +241,8 @@ linters:
       ignore-map-index: true
       ignore-type-asserts: true
       min-length: 3
+      ignore-names:
+        - g
     wrapcheck:
       ignore-sigs:
         - .Errorf(
