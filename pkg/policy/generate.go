@@ -125,9 +125,11 @@ func renderForIdentity(ctx context.Context, dir string, identity RepoIdentity, c
 }
 
 // versionCell fills the Supported Versions table: the latest git tag when
-// available, an honest placeholder otherwise.
+// available, an honest placeholder otherwise. The tag lookup is cached per
+// directory (see lookupLatestTag) so a run's repeated renders cost one
+// `git describe`.
 func versionCell(ctx context.Context, dir string) string {
-	if tag := LatestTag(ctx, dir); tag != "" {
+	if tag := lookupLatestTag(ctx, dir); tag != "" {
 		return tag
 	}
 

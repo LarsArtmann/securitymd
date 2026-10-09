@@ -37,13 +37,13 @@ func FuzzParseGitRemote(f *testing.F) {
 			return
 		}
 
-		clean := func(kind, part string) bool {
+		clean := func(part string) bool {
 			return part != "" && !strings.ContainsAny(part, ":/ \t\r\n")
 		}
 
-		assert.True(t, clean("organization", identity.Organization),
+		assert.True(t, clean(identity.Organization),
 			"organization %q contains separators or whitespace", identity.Organization)
-		assert.True(t, clean("repository", identity.Repository),
+		assert.True(t, clean(identity.Repository),
 			"repository %q contains separators or whitespace", identity.Repository)
 	})
 }
