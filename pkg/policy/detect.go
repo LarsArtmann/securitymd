@@ -18,6 +18,12 @@ const RuleMissingFile = finding.RuleName("missing-file")
 // validates it. A missing file is itself an error finding with a direct fix
 // strategy: the provider's Repair generates one.
 func Detect(ctx context.Context) ([]finding.Finding, error) {
+	return DetectIn(ctx, CandidateLocations)
+}
+
+// DetectIn is Detect with an explicit candidate order (see OrderedCandidates)
+// for repositories that treat .github/ or docs/ as their policy home.
+func DetectIn(ctx context.Context, candidates []string) ([]finding.Finding, error) {
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("securitymd detection cancelled: %w", ctx.Err())
@@ -26,9 +32,9 @@ func Detect(ctx context.Context) ([]finding.Finding, error) {
 
 	dir := autoconfigure.WorkingDir(ctx)
 
-	path, found := autoconfigure.FirstExisting(dir, CandidateLocations...)
+	path, found := autoconfigure.FirstExisting(dir, candidates...)
 	if !found {
-		f, err := missingFileFinding(ctx, dir)
+		f, err := missingFileFinding(ctx, dir, candidates)
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +53,12 @@ func Detect(ctx context.Context) ([]finding.Finding, error) {
 // Report wraps Detect's findings in a finding.Report for the CLI's JSON and
 // SARIF outputs.
 func Report(ctx context.Context) (*finding.Report, error) {
-	findings, err := Detect(ctx)
+	return ReportIn(ctx, CandidateLocations)
+}
+
+// ReportIn is Report with an explicit candidate order (see OrderedCandidates).
+func ReportIn(ctx context.Context, candidates []string) (*finding.Report, error) {
+	findings, err := DetectIn(ctx, candidates)
 	if err != nil {
 		return nil, err
 	}
@@ -59,13 +70,13 @@ func Report(ctx context.Context) (*finding.Report, error) {
 	return report, nil
 }
 
-func missingFileFinding(ctx context.Context, dir string) (finding.Finding, error) {
+func missingFileFinding(ctx context.Context, dir string, candidates []string) (finding.Finding, error) {
 	builder := finding.NewBuilder(
 		RuleMissingFile,
 		ToolName,
-		"No SECURITY.md found (looked in "+dir+" for "+strings.Join(CandidateLocations, ", ")+")",
+		"No SECURITY.md found (looked in "+dir+" for "+strings.Join(candidates, ", ")+")",
 		finding.SeverityError,
-		finding.FilePos(finding.FilePath(CandidateLocations[0])),
+		finding.FilePos(finding.FilePath(candidates[0])),
 	).
 		WithCategory(finding.CategorySecurity).
 		WithTags(finding.TagSecurity).

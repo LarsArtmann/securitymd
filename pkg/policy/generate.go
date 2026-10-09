@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"os"
 	"path/filepath"
 	"text/template"
 	"time"
@@ -33,7 +34,24 @@ type GenerateOptions struct {
 
 	// DryRun renders the policy but skips the write.
 	DryRun bool
+
+	// Location is the canonical write target: "root" (default), ".github",
+	// or "docs". An empty value means "root".
+	Location string
+
+	// Force regenerates an existing policy in place after backing it up
+	// (SECURITY.md.<timestamp>.bak next to it). Refuse-by-default stays:
+	// without Force an existing policy is never touched.
+	Force bool
 }
+
+// Policy locations accepted by GenerateOptions.Location and the CLI's
+// --location flags.
+const (
+	LocationRoot   = "root"
+	LocationGitHub = ".github"
+	LocationDocs   = "docs"
+)
 
 // GenerateResult describes what a Generate run did (or, under DryRun, would do).
 type GenerateResult struct {
@@ -43,25 +61,48 @@ type GenerateResult struct {
 	// Wrote reports that the file was actually written this run.
 	Wrote bool
 
+	// BackupPath is the timestamped backup of the previous policy, set only
+	// when an existing policy was Force-regenerated.
+	BackupPath string
+
 	// Description is the human-readable outcome for CLI and BuildFlow output.
 	Description string
 }
 
 // Generate renders the embedded canonical template and writes SECURITY.md to
 // the repository root — atomically, and ONLY when no policy file exists yet:
-// securitymd never overwrites a human-authored policy. Skips (no error) when
-// the identity cannot be derived, telling the caller what is missing.
+// securitymd never overwrites a human-authored policy. The Force option is
+// the explicit escape hatch: it regenerates an existing policy in place and
+// backs the previous content up first. Skips (no error) when the identity
+// cannot be derived, telling the caller what is missing.
 func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error) {
 	dir := opts.Directory
 	if dir == "" {
 		dir = autoconfigure.WorkingDir(ctx)
 	}
 
-	if existing, found := autoconfigure.FirstExisting(dir, CandidateLocations...); found {
-		return GenerateResult{
-			Path:        existing,
-			Description: existing + " already exists — securitymd never overwrites an existing policy",
-		}, nil
+	target, err := policyTarget(dir, opts.Location)
+	if err != nil {
+		return GenerateResult{}, err
+	}
+
+	existing, found := autoconfigure.FirstExisting(dir, CandidateLocations...)
+	if found {
+		if !opts.Force {
+			return GenerateResult{
+				Path:        existing,
+				Description: existing + " already exists — securitymd never overwrites an existing policy",
+			}, nil
+		}
+
+		if existing != target {
+			return GenerateResult{
+				Path: existing,
+				Description: fmt.Sprintf(
+					"%s already exists — regenerating at %s would create two policies; move the file first or drop --location",
+					existing, target),
+			}, nil
+		}
 	}
 
 	identity := RepoIdentity{Organization: opts.Organization, Repository: opts.Repository}
@@ -71,7 +112,7 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 
 	if !identity.IsComplete() {
 		return GenerateResult{
-			Path: filepath.Join(dir, CandidateLocations[0]),
+			Path: target,
 			Description: "could not derive organization/repository from the git remote — " +
 				"pass --organization and --repository (or add a git remote)",
 		}, nil
@@ -83,24 +124,73 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 			identity.Organization, identity.Repository, err)
 	}
 
-	target := filepath.Join(dir, CandidateLocations[0])
-
 	if opts.DryRun {
-		return GenerateResult{
-			Path:        target,
-			Description: "dry-run: would create " + target,
-		}, nil
+		description := "dry-run: would create " + target
+		if found && opts.Force {
+			description = "dry-run: would back up and regenerate " + target
+		}
+
+		return GenerateResult{Path: target, Description: description}, nil
+	}
+
+	backupPath, err := backupExisting(found, existing)
+	if err != nil {
+		return GenerateResult{}, err
 	}
 
 	if _, err := atomicwrite.WriteIfChanged(target, []byte(content)); err != nil {
 		return GenerateResult{}, fmt.Errorf("write %s: %w", target, err)
 	}
 
-	return GenerateResult{
-		Path:        target,
-		Wrote:       true,
-		Description: fmt.Sprintf("created %s for %s/%s", target, identity.Organization, identity.Repository),
-	}, nil
+	result := GenerateResult{
+		Path:  target,
+		Wrote: true,
+		Description: fmt.Sprintf("created %s for %s/%s",
+			target, identity.Organization, identity.Repository),
+	}
+
+	if backupPath != "" {
+		result.BackupPath = backupPath
+		result.Description = fmt.Sprintf("regenerated %s for %s/%s (previous policy backed up to %s)",
+			target, identity.Organization, identity.Repository, backupPath)
+	}
+
+	return result, nil
+}
+
+// policyTarget maps a Location option to its write path under dir.
+func policyTarget(dir, location string) (string, error) {
+	switch location {
+	case "", LocationRoot:
+		return filepath.Join(dir, CandidateLocations[0]), nil
+	case LocationGitHub:
+		return filepath.Join(dir, ".github", CandidateLocations[0]), nil
+	case LocationDocs:
+		return filepath.Join(dir, "docs", CandidateLocations[0]), nil
+	default:
+		return "", fmt.Errorf("unknown policy location %q (want %s, %s, or %s)",
+			location, LocationRoot, LocationGitHub, LocationDocs)
+	}
+}
+
+// backupExisting copies the existing policy to a timestamped .bak file next
+// to it. found=false (nothing to back up) is a no-op returning "".
+func backupExisting(found bool, existing string) (string, error) {
+	if !found {
+		return "", nil
+	}
+
+	previous, err := os.ReadFile(existing)
+	if err != nil {
+		return "", fmt.Errorf("read %s for backup: %w", existing, err)
+	}
+
+	backupPath := existing + "." + time.Now().Format("20060102T150405") + ".bak"
+	if _, err := atomicwrite.WriteIfChanged(backupPath, previous); err != nil {
+		return "", fmt.Errorf("write backup %s: %w", backupPath, err)
+	}
+
+	return backupPath, nil
 }
 
 // templateData is the render input for template.md.

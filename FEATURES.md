@@ -22,7 +22,7 @@ _Audit: 2026-10-09, post-rebuild (module `github.com/LarsArtmann/securitymd`). E
 | #  | Feature                          | Status               | Gap                                                                                                          |
 | -- | -------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
 | 9  | Multi-format output (JSON/SARIF) | FULLY_FUNCTIONAL     | none — output contract pinned by golden-file tests (JSON + SARIF 2.1.0; clean, mixed, missing-file fixtures) |
-| 10 | Trigger breadth                  | PARTIALLY_FUNCTIONAL | Docs-only repos without dependency manifests don't activate the provider                                     |
+| 10 | Trigger breadth                  | FULLY_FUNCTIONAL     | none — README.md activates docs-only repos (coverage test pins the trigger)                                  |
 | 11 | CLI unit tests                   | PARTIALLY_FUNCTIONAL | `cmd/` untested directly; behavior covered via acceptance/provider tests                                     |
-| 12 | Nix package output               | MISSING              | flake exposes devshells only (no `packages.<system>.securitymd` build)                                       |
+| 12 | Nix package output               | FULLY_FUNCTIONAL     | none — `packages.<system>.securitymd` builds sandboxed (Go 1.27 pinned, git fixture tests pass in FOD)       |
 | 13 | Published module                 | MISSING              | Not on GitHub yet — `go install …@latest` impossible (publish checklist in TODO_LIST)                        |

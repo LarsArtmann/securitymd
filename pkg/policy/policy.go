@@ -6,7 +6,11 @@
 // template atomically and never overwrites an existing policy.
 package policy
 
-import "github.com/larsartmann/go-finding"
+import (
+	"fmt"
+
+	"github.com/larsartmann/go-finding"
+)
 
 // ToolName is the stable namespace for findings, BuildFlow tool selection
 // (`buildflow -s securitymd`), and suppressions.
@@ -19,4 +23,31 @@ var CandidateLocations = []string{ //nolint:gochecknoglobals // fixed discovery 
 	"SECURITY.md",
 	".github/SECURITY.md",
 	"docs/SECURITY.md",
+}
+
+// OrderedCandidates returns the candidate locations with the preferred
+// canonical location first — for repositories that treat .github/ or docs/
+// as their policy home. Unknown preferences are rejected; the default order
+// is returned unchanged for "" and LocationRoot.
+func OrderedCandidates(preference string) ([]string, error) {
+	switch preference {
+	case "", LocationRoot:
+		return CandidateLocations, nil
+	case LocationGitHub, LocationDocs:
+	default:
+		return nil, fmt.Errorf("unknown policy location %q (want %s, %s, or %s)",
+			preference, LocationRoot, LocationGitHub, LocationDocs)
+	}
+
+	preferred := preference + "/" + CandidateLocations[0]
+	order := make([]string, 0, len(CandidateLocations))
+	order = append(order, preferred)
+
+	for _, candidate := range CandidateLocations {
+		if candidate != preferred {
+			order = append(order, candidate)
+		}
+	}
+
+	return order, nil
 }
