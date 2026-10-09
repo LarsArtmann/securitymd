@@ -77,6 +77,28 @@ func TestReport_golden_output_contract(t *testing.T) {
 			},
 		},
 		{
+			name: "all-suppressed",
+			setup: func(t *testing.T, dir string) context.Context {
+				t.Helper()
+
+				// Every finding the flawed fixture produces is silenced by
+				// one unexpired until-suppression: the escape hatch at full
+				// extent. JSON pins the evidence (reason + expiry); SARIF
+				// pins that a fully-suppressed report exports zero results.
+				allSuppressed := strings.Replace(
+					flawedPolicy(t),
+					"Please email {{.ContactEmail}}",
+					"<!-- securitymd:ignore(missing-contact,missing-response-time,unresolved-template) until 2999-01-01 deferred debt with an expiry -->\nPlease email {{.ContactEmail}}",
+					1,
+				)
+
+				path := filepath.Join(dir, "SECURITY.md")
+				require.NoError(t, os.WriteFile(path, []byte(allSuppressed), 0o600))
+
+				return withWorkingDir(t.Context(), dir)
+			},
+		},
+		{
 			name: "missing-file",
 			setup: func(t *testing.T, dir string) context.Context {
 				t.Helper()

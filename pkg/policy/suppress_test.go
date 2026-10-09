@@ -2,6 +2,7 @@ package policy
 
 import (
 	"testing"
+	"time"
 
 	finding "github.com/larsartmann/go-finding"
 	"github.com/stretchr/testify/assert"
@@ -115,6 +116,84 @@ func TestValidate_missing_file_cannot_be_suppressed(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, findings, 1)
 	assert.Nil(t, findings[0].Suppression)
+}
+
+func TestValidate_suppression_until_keeps_evidence(t *testing.T) {
+	t.Parallel()
+
+	content := policyWithoutResponseTime(t) +
+		"\n<!-- securitymd:ignore(missing-response-time) until 2999-01-01 debt tracked in the roadmap -->\n"
+
+	findings := validateContent(t, content)
+
+	suppressed := findingsSuppressedByRule(findings, "missing-response-time")
+	require.Len(t, suppressed, 1, "an unexpired until-suppression still silences the rule")
+
+	assert.Equal(t, "debt tracked in the roadmap", suppressed[0].Suppression.Reason)
+	require.NotNil(t, suppressed[0].Suppression.ExpiresAt)
+	assert.Equal(t,
+		time.Date(2999, 1, 2, 0, 0, 0, 0, time.UTC),
+		*suppressed[0].Suppression.ExpiresAt,
+		"until grants the whole given UTC day: expiry is the next midnight")
+}
+
+func TestValidate_suppression_expired_carries_no_metadata(t *testing.T) {
+	t.Parallel()
+
+	content := policyWithoutResponseTime(t) +
+		"\n<!-- securitymd:ignore(missing-response-time) until 2020-01-01 long-past deferral -->\n"
+
+	findings := validateContent(t, content)
+
+	assert.Contains(t, ruleIDs(findings), "missing-response-time",
+		"an expired suppression must not silence anything")
+	for _, f := range findings {
+		assert.Nil(t, f.Suppression,
+			"an expired directive attaches nothing: every consumer must see plain debt")
+	}
+}
+
+func TestValidate_suppression_until_requires_reason(t *testing.T) {
+	t.Parallel()
+
+	content := policyWithoutResponseTime(t) + "\n<!-- securitymd:ignore(missing-response-time) until 2999-01-01 -->\n"
+
+	findings := validateContent(t, content)
+
+	assert.Empty(t, findingsSuppressedByRule(findings, "missing-response-time"),
+		"an until-clause does not replace the required reason")
+}
+
+func TestValidate_suppression_malformed_until_is_inert(t *testing.T) {
+	t.Parallel()
+
+	content := policyWithoutResponseTime(t) +
+		"\n<!-- securitymd:ignore(missing-response-time) until 17-05-2030 wrong date order -->\n"
+
+	findings := validateContent(t, content)
+
+	assert.Empty(t, findingsSuppressedByRule(findings, "missing-response-time"),
+		"an unparsable date must fail safe: no suppression, not an indefinite one")
+	assert.Contains(t, ruleIDs(findings), "missing-response-time")
+}
+
+// TestSuppressionDirective_fullDayGrant pins the boundary directly: the
+// suppression holds through the last nanosecond of the until-day and is gone
+// the moment the next day starts.
+func TestSuppressionDirective_fullDayGrant(t *testing.T) {
+	t.Parallel()
+
+	directive, ok := parseSuppressionReason("until 2030-05-17 tracked debt")
+	require.True(t, ok)
+	require.NotNil(t, directive.expiresAt)
+
+	lastMomentOfDay := time.Date(2030, 5, 17, 23, 59, 59, 999999999, time.UTC)
+	assert.True(t, directive.activeAt(lastMomentOfDay),
+		"active through the end of the until-day")
+
+	firstMomentAfter := time.Date(2030, 5, 18, 0, 0, 0, 0, time.UTC)
+	assert.False(t, directive.activeAt(firstMomentAfter),
+		"expired the instant the next day begins")
 }
 
 func findingsSuppressedByRule(findings []finding.Finding, rule string) []finding.Finding {
