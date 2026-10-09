@@ -7,6 +7,7 @@
 package policy
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-finding"
@@ -15,6 +16,14 @@ import (
 // ToolName is the stable namespace for findings, BuildFlow tool selection
 // (`buildflow -s securitymd`), and suppressions.
 const ToolName finding.ToolName = "securitymd"
+
+// policyDirMode is the permission for directories Generate creates for
+// non-root policy locations (.github/, docs/).
+const policyDirMode = 0o750
+
+// errUnknownPolicyLocation is wrapped by every invalid --location rejection;
+// callers can match it with errors.Is.
+var errUnknownPolicyLocation = errors.New("unknown policy location")
 
 // CandidateLocations lists the SECURITY.md locations GitHub recognizes, in
 // priority order. The first entry is the canonical write target when none
@@ -35,8 +44,8 @@ func OrderedCandidates(preference string) ([]string, error) {
 		return CandidateLocations, nil
 	case LocationGitHub, LocationDocs:
 	default:
-		return nil, fmt.Errorf("unknown policy location %q (want %s, %s, or %s)",
-			preference, LocationRoot, LocationGitHub, LocationDocs)
+		return nil, fmt.Errorf("%w %q (want %s, %s, or %s)",
+			errUnknownPolicyLocation, preference, LocationRoot, LocationGitHub, LocationDocs)
 	}
 
 	preferred := preference + "/" + CandidateLocations[0]

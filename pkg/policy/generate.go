@@ -69,6 +69,35 @@ type GenerateResult struct {
 	Description string
 }
 
+// existingDecision resolves what Generate must do about a policy that is
+// already present: skip honestly (refuse-by-default), refuse a second
+// location, or proceed to an in-place Force regeneration.
+func existingDecision(existing, target string, found, force bool) (GenerateResult, bool) {
+	if !found {
+		return GenerateResult{}, false
+	}
+
+	if !force {
+		return GenerateResult{
+			Path:        existing,
+			Description: existing + " already exists — securitymd never overwrites an existing policy",
+		}, true
+	}
+
+	if existing != target {
+		return GenerateResult{
+			Path: existing,
+			Description: fmt.Sprintf(
+				"%s already exists — regenerating at %s would create two policies; move the file first or drop --location",
+				existing,
+				target,
+			),
+		}, true
+	}
+
+	return GenerateResult{}, false
+}
+
 // Generate renders the embedded canonical template and writes SECURITY.md to
 // the repository root — atomically, and ONLY when no policy file exists yet:
 // securitymd never overwrites a human-authored policy. The Force option is
@@ -87,22 +116,10 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 	}
 
 	existing, found := autoconfigure.FirstExisting(dir, CandidateLocations...)
-	if found {
-		if !opts.Force {
-			return GenerateResult{
-				Path:        existing,
-				Description: existing + " already exists — securitymd never overwrites an existing policy",
-			}, nil
-		}
 
-		if existing != target {
-			return GenerateResult{
-				Path: existing,
-				Description: fmt.Sprintf(
-					"%s already exists — regenerating at %s would create two policies; move the file first or drop --location",
-					existing, target),
-			}, nil
-		}
+	decision, done := existingDecision(existing, target, found, opts.Force)
+	if done {
+		return decision, nil
 	}
 
 	identity := RepoIdentity{Organization: opts.Organization, Repository: opts.Repository}
@@ -140,7 +157,7 @@ func Generate(ctx context.Context, opts GenerateOptions) (GenerateResult, error)
 
 	// Non-root locations (.github/, docs/) may live in directories that do
 	// not exist yet; the atomic writer cannot create parents itself.
-	if err := os.MkdirAll(filepath.Dir(target), 0o750); err != nil {
+	if err := os.MkdirAll(filepath.Dir(target), policyDirMode); err != nil {
 		return GenerateResult{}, fmt.Errorf("create %s: %w", filepath.Dir(target), err)
 	}
 
@@ -174,8 +191,8 @@ func policyTarget(dir, location string) (string, error) {
 	case LocationDocs:
 		return filepath.Join(dir, "docs", CandidateLocations[0]), nil
 	default:
-		return "", fmt.Errorf("unknown policy location %q (want %s, %s, or %s)",
-			location, LocationRoot, LocationGitHub, LocationDocs)
+		return "", fmt.Errorf("%w %q (want %s, %s, or %s)",
+			errUnknownPolicyLocation, location, LocationRoot, LocationGitHub, LocationDocs)
 	}
 }
 
