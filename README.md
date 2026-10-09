@@ -17,7 +17,8 @@ A CLI tool and [BuildFlow](https://github.com/LarsArtmann/BuildFlow) provider th
 ## 🚀 Quick Start
 
 ```bash
-# Install (once the repo is renamed/published under LarsArtmann/securitymd)
+# Install (works once the repo is PUBLIC — tag v1.0.0 is already cut;
+# until the visibility flip, build from source: go build ./cmd/securitymd)
 go install github.com/LarsArtmann/securitymd/cmd/securitymd@latest
 
 # Validate the current repository's policy
