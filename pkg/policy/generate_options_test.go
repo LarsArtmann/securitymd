@@ -5,16 +5,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 func TestGenerate_force_regenerates_in_place_with_backup(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 	existing := filepath.Join(dir, "SECURITY.md")
-	require.NoError(t, os.WriteFile(existing, []byte("# Stale hand-written policy\n"), 0o600))
+	g.Expect(os.WriteFile(existing, []byte("# Stale hand-written policy\n"), 0o600)).To(gomega.Succeed())
 
 	result, err := Generate(t.Context(), GenerateOptions{
 		Directory:    dir,
@@ -22,25 +22,28 @@ func TestGenerate_force_regenerates_in_place_with_backup(t *testing.T) {
 		Repository:   "widget",
 		Force:        true,
 	})
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	assert.True(t, result.Wrote)
-	assert.NotEmpty(t, result.BackupPath)
-	assert.Contains(t, result.Description, "backed up")
+	g.Expect(result.Wrote).To(gomega.BeTrue())
+	g.Expect(result.BackupPath).NotTo(gomega.BeEmpty())
+	g.Expect(result.Description).To(gomega.ContainSubstring("backed up"))
 
 	backup, err := os.ReadFile(result.BackupPath)
-	require.NoError(t, err)
-	assert.Equal(t, "# Stale hand-written policy\n", string(backup), "the backup must carry the previous policy")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(backup).To(gomega.Equal([]byte("# Stale hand-written policy\n")),
+		"the backup must carry the previous policy")
 
-	assert.Contains(t, mustRead(t, existing), "AcmeCorp/widget", "the policy must be regenerated in place")
+	g.Expect(mustRead(t, existing)).To(gomega.ContainSubstring("AcmeCorp/widget"),
+		"the policy must be regenerated in place")
 }
 
 func TestGenerate_force_dry_run_writes_nothing(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 	existing := filepath.Join(dir, "SECURITY.md")
-	require.NoError(t, os.WriteFile(existing, []byte("# Hand-written\n"), 0o600))
+	g.Expect(os.WriteFile(existing, []byte("# Hand-written\n"), 0o600)).To(gomega.Succeed())
 
 	result, err := Generate(t.Context(), GenerateOptions{
 		Directory:    dir,
@@ -49,23 +52,24 @@ func TestGenerate_force_dry_run_writes_nothing(t *testing.T) {
 		Force:        true,
 		DryRun:       true,
 	})
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	assert.False(t, result.Wrote)
-	assert.Empty(t, result.BackupPath)
-	assert.Contains(t, result.Description, "dry-run")
-	assert.Equal(t, "# Hand-written\n", mustRead(t, existing))
+	g.Expect(result.Wrote).To(gomega.BeFalse())
+	g.Expect(result.BackupPath).To(gomega.BeEmpty())
+	g.Expect(result.Description).To(gomega.ContainSubstring("dry-run"))
+	g.Expect(mustRead(t, existing)).To(gomega.Equal("# Hand-written\n"))
 
 	backups, _ := filepath.Glob(filepath.Join(dir, "*.bak"))
-	assert.Empty(t, backups, "dry-run must not write a backup")
+	g.Expect(backups).To(gomega.BeEmpty(), "dry-run must not write a backup")
 }
 
 func TestGenerate_force_refuses_second_policy_location(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 	existing := filepath.Join(dir, "SECURITY.md")
-	require.NoError(t, os.WriteFile(existing, []byte("# Root policy\n"), 0o600))
+	g.Expect(os.WriteFile(existing, []byte("# Root policy\n"), 0o600)).To(gomega.Succeed())
 
 	result, err := Generate(t.Context(), GenerateOptions{
 		Directory:    dir,
@@ -74,12 +78,12 @@ func TestGenerate_force_refuses_second_policy_location(t *testing.T) {
 		Location:     LocationDocs,
 		Force:        true,
 	})
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	assert.False(t, result.Wrote)
-	assert.Contains(t, result.Description, "two policies")
-	assert.Equal(t, "# Root policy\n", mustRead(t, existing))
-	assert.NoFileExists(t, filepath.Join(dir, "docs", "SECURITY.md"))
+	g.Expect(result.Wrote).To(gomega.BeFalse())
+	g.Expect(result.Description).To(gomega.ContainSubstring("two policies"))
+	g.Expect(mustRead(t, existing)).To(gomega.Equal("# Root policy\n"))
+	g.Expect(filepath.Join(dir, "docs", "SECURITY.md")).NotTo(gomega.BeAnExistingFile())
 }
 
 func TestGenerate_location_writes_canonical_target(t *testing.T) {
@@ -98,6 +102,8 @@ func TestGenerate_location_writes_canonical_target(t *testing.T) {
 		t.Run(test.location, func(t *testing.T) {
 			t.Parallel()
 
+			g := gomega.NewWithT(t)
+
 			dir := t.TempDir()
 
 			result, err := Generate(t.Context(), GenerateOptions{
@@ -106,15 +112,16 @@ func TestGenerate_location_writes_canonical_target(t *testing.T) {
 				Repository:   "widget",
 				Location:     test.location,
 			})
-			require.NoError(t, err)
-			require.True(t, result.Wrote)
-			assert.FileExists(t, filepath.Join(dir, test.relPath))
+			g.Expect(err).NotTo(gomega.HaveOccurred())
+			g.Expect(result.Wrote).To(gomega.BeTrue())
+			g.Expect(filepath.Join(dir, test.relPath)).To(gomega.BeAnExistingFile())
 		})
 	}
 }
 
 func TestGenerate_unknown_location_is_an_error(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	result, err := Generate(t.Context(), GenerateOptions{
 		Directory:    t.TempDir(),
@@ -122,27 +129,28 @@ func TestGenerate_unknown_location_is_an_error(t *testing.T) {
 		Repository:   "widget",
 		Location:     "nowhere",
 	})
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unknown policy location")
-	assert.Empty(t, result.Path)
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("unknown policy location"))
+	g.Expect(result.Path).To(gomega.BeEmpty())
 }
 
 func TestOrderedCandidates_prefers_canonical_location(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	defaultOrder, err := OrderedCandidates("")
-	require.NoError(t, err)
-	assert.Equal(t, CandidateLocations, defaultOrder)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(defaultOrder).To(gomega.Equal(CandidateLocations))
 
 	githubOrder, err := OrderedCandidates(LocationGitHub)
-	require.NoError(t, err)
-	assert.Equal(t, []string{".github/SECURITY.md", "SECURITY.md", "docs/SECURITY.md"}, githubOrder)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(githubOrder).To(gomega.Equal([]string{".github/SECURITY.md", "SECURITY.md", "docs/SECURITY.md"}))
 
 	docsOrder, err := OrderedCandidates(LocationDocs)
-	require.NoError(t, err)
-	assert.Equal(t, []string{"docs/SECURITY.md", "SECURITY.md", ".github/SECURITY.md"}, docsOrder)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(docsOrder).To(gomega.Equal([]string{"docs/SECURITY.md", "SECURITY.md", ".github/SECURITY.md"}))
 
 	_, err = OrderedCandidates("nowhere")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unknown policy location")
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("unknown policy location"))
 }

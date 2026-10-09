@@ -5,12 +5,12 @@ import (
 	"time"
 
 	finding "github.com/larsartmann/go-finding"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 func TestKnownRuleIDs_covers_every_rule(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	ids := KnownRuleIDs()
 
@@ -27,10 +27,11 @@ func TestKnownRuleIDs_covers_every_rule(t *testing.T) {
 		"no-version-info",
 		"missing-file",
 	} {
-		assert.Contains(t, ids, finding.RuleName(expected))
+		g.Expect(ids).To(gomega.ContainElement(finding.RuleName(expected)))
 	}
 
-	assert.Len(t, ids, 11, "a new rule must be added to the known-ID table in the same change")
+	g.Expect(ids).To(gomega.HaveLen(11),
+		"a new rule must be added to the known-ID table in the same change")
 }
 
 func TestParseSeverityOverrides(t *testing.T) {
@@ -38,81 +39,89 @@ func TestParseSeverityOverrides(t *testing.T) {
 
 	t.Run("parses a downgrade spec", func(t *testing.T) {
 		t.Parallel()
+		g := gomega.NewWithT(t)
 
 		overrides, err := ParseSeverityOverrides("missing-file=warning, too-short=info")
-		require.NoError(t, err)
+		g.Expect(err).NotTo(gomega.HaveOccurred())
 
-		assert.Equal(t, SeverityOverrides{
+		g.Expect(overrides).To(gomega.Equal(SeverityOverrides{
 			"missing-file": finding.SeverityWarning,
 			"too-short":    finding.SeverityInfo,
-		}, overrides)
+		}))
 	})
 
 	t.Run("empty spec means no overrides", func(t *testing.T) {
 		t.Parallel()
+		g := gomega.NewWithT(t)
 
 		overrides, err := ParseSeverityOverrides("")
-		require.NoError(t, err)
-		assert.Empty(t, overrides)
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(overrides).To(gomega.BeEmpty())
 	})
 
 	t.Run("rejects unknown rule with the known list", func(t *testing.T) {
 		t.Parallel()
+		g := gomega.NewWithT(t)
 
 		_, err := ParseSeverityOverrides("missing-fiel=warning")
 
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), `unknown rule "missing-fiel"`)
-		assert.Contains(t, err.Error(), "missing-file", "the error must name the accepted values")
+		g.Expect(err).To(gomega.HaveOccurred())
+		g.Expect(err.Error()).To(gomega.ContainSubstring(`unknown rule "missing-fiel"`))
+		g.Expect(err.Error()).To(gomega.ContainSubstring("missing-file"),
+			"the error must name the accepted values")
 	})
 
 	t.Run("rejects invalid severity", func(t *testing.T) {
 		t.Parallel()
+		g := gomega.NewWithT(t)
 
 		_, err := ParseSeverityOverrides("missing-file=fatal")
 
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), `invalid severity "fatal"`)
-		assert.Contains(t, err.Error(), "missing-file")
+		g.Expect(err).To(gomega.HaveOccurred())
+		g.Expect(err.Error()).To(gomega.ContainSubstring(`invalid severity "fatal"`))
+		g.Expect(err.Error()).To(gomega.ContainSubstring("missing-file"))
 	})
 
 	t.Run("rejects malformed part", func(t *testing.T) {
 		t.Parallel()
+		g := gomega.NewWithT(t)
 
 		_, err := ParseSeverityOverrides("missing-file-warning")
 
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "want rule=severity")
+		g.Expect(err).To(gomega.HaveOccurred())
+		g.Expect(err.Error()).To(gomega.ContainSubstring("want rule=severity"))
 	})
 }
 
 func TestApplySeverityOverrides_downgrades_missing_file(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	findings, err := Detect(withWorkingDir(t.Context(), t.TempDir()))
-	require.NoError(t, err)
-	require.Len(t, findings, 1)
-	require.Equal(t, finding.SeverityError, findings[0].Severity)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(findings).To(gomega.HaveLen(1))
+	g.Expect(findings[0].Severity).To(gomega.Equal(finding.SeverityError))
 
 	overrides, err := ParseSeverityOverrides("missing-file=warning")
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	adjusted := ApplySeverityOverrides(findings, overrides)
-	require.Len(t, adjusted, 1)
-	assert.Equal(t, finding.SeverityWarning, adjusted[0].Severity,
+	g.Expect(adjusted).To(gomega.HaveLen(1))
+	g.Expect(adjusted[0].Severity).To(gomega.Equal(finding.SeverityWarning),
 		"the adoption unblocker: missing-file downgraded to warning")
-	assert.Nil(t, adjusted[0].Suppression,
+	g.Expect(adjusted[0].Suppression).To(gomega.BeNil(),
 		"severity overrides must not masquerade as suppressions")
 }
 
 func TestApplySeverityOverrides_empty_is_noop(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	findings := validateContent(t, policyWithoutResponseTime(t))
-	require.NotEmpty(t, findings)
+	g.Expect(findings).NotTo(gomega.BeEmpty())
 
-	assert.Equal(t, findings, ApplySeverityOverrides(findings, SeverityOverrides{}),
-		"an empty override map must return the findings unchanged")
+	g.Expect(ApplySeverityOverrides(findings, SeverityOverrides{})).
+		To(gomega.Equal(findings), "an empty override map must return the findings unchanged")
 }
 
 // The CLI composes the two escape hatches: Validate applies in-file
@@ -121,26 +130,27 @@ func TestApplySeverityOverrides_empty_is_noop(t *testing.T) {
 // report flagged as unproven.
 func TestSeverityOverrides_combine_with_suppressions(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	content := policyWithoutResponseTime(t) +
 		"\n<!-- securitymd:ignore(missing-response-time) tracked in the support wiki -->\n"
 
 	findings := validateContent(t, content)
-	require.Len(t, findings, 1)
-	require.NotNil(t, findings[0].Suppression, "precondition: the warning is suppressed")
+	g.Expect(findings).To(gomega.HaveLen(1))
+	g.Expect(findings[0].Suppression).NotTo(gomega.BeNil(), "precondition: the warning is suppressed")
 
 	overrides, err := ParseSeverityOverrides("missing-response-time=critical")
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	adjusted := ApplySeverityOverrides(findings, overrides)
-	require.Len(t, adjusted, 1)
+	g.Expect(adjusted).To(gomega.HaveLen(1))
 
-	assert.Equal(t, finding.SeverityCritical, adjusted[0].Severity,
+	g.Expect(adjusted[0].Severity).To(gomega.Equal(finding.SeverityCritical),
 		"the override rewrites severity even on a suppressed finding")
-	assert.NotNil(t, adjusted[0].Suppression,
+	g.Expect(adjusted[0].Suppression).NotTo(gomega.BeNil(),
 		"the override must not strip the suppression evidence")
-	assert.True(t, adjusted[0].IsSuppressedAt(time.Now()),
-		"severity escalation must not resurrect a suppressed finding")
+	g.Expect(adjusted[0].IsSuppressedAt(time.Now())).
+		To(gomega.BeTrue(), "severity escalation must not resurrect a suppressed finding")
 }
 
 // The gate contract the CLI implements: suppressed findings never trip exit 1,
@@ -149,9 +159,10 @@ func TestSeverityOverrides_combine_with_suppressions(t *testing.T) {
 // keeps CI green, not the override being harmless.
 func TestSeverityOverrides_suppressed_findings_stay_exit_neutral(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	overrides, err := ParseSeverityOverrides("missing-response-time=critical")
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	activeErrors := func(findings []finding.Finding) []finding.Finding {
 		active := finding.Filter(findings, func(f finding.Finding) bool {
@@ -163,10 +174,10 @@ func TestSeverityOverrides_suppressed_findings_stay_exit_neutral(t *testing.T) {
 
 	suppressed := validateContent(t, policyWithoutResponseTime(t)+
 		"\n<!-- securitymd:ignore(missing-response-time) tracked in the support wiki -->\n")
-	assert.Empty(t, activeErrors(ApplySeverityOverrides(suppressed, overrides)),
-		"an escalated-but-suppressed finding must not activate: the escape hatch holds")
+	g.Expect(activeErrors(ApplySeverityOverrides(suppressed, overrides))).
+		To(gomega.BeEmpty(), "an escalated-but-suppressed finding must not activate: the escape hatch holds")
 
 	unsuppressed := validateContent(t, policyWithoutResponseTime(t))
-	assert.NotEmpty(t, activeErrors(ApplySeverityOverrides(unsuppressed, overrides)),
-		"the same escalation without an in-file suppression activates")
+	g.Expect(activeErrors(ApplySeverityOverrides(unsuppressed, overrides))).
+		NotTo(gomega.BeEmpty(), "the same escalation without an in-file suppression activates")
 }

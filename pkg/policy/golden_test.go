@@ -11,8 +11,7 @@ import (
 	"testing"
 
 	finding "github.com/larsartmann/go-finding"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 var updateGolden = flag.Bool("update", false, "overwrite golden files with current output")
@@ -38,7 +37,7 @@ func TestReport_golden_output_contract(t *testing.T) {
 
 				ctx := withWorkingDir(t.Context(), dir)
 				_, err := Generate(ctx, GenerateOptions{Organization: "AcmeCorp", Repository: "widget"})
-				require.NoError(t, err)
+				gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
 
 				return ctx
 			},
@@ -49,7 +48,7 @@ func TestReport_golden_output_contract(t *testing.T) {
 				t.Helper()
 
 				path := filepath.Join(dir, "SECURITY.md")
-				require.NoError(t, os.WriteFile(path, []byte(flawedPolicy(t)), 0o600))
+				gomega.NewWithT(t).Expect(os.WriteFile(path, []byte(flawedPolicy(t)), 0o600)).To(gomega.Succeed())
 
 				return withWorkingDir(t.Context(), dir)
 			},
@@ -71,7 +70,7 @@ func TestReport_golden_output_contract(t *testing.T) {
 				)
 
 				path := filepath.Join(dir, "SECURITY.md")
-				require.NoError(t, os.WriteFile(path, []byte(suppressed), 0o600))
+				gomega.NewWithT(t).Expect(os.WriteFile(path, []byte(suppressed), 0o600)).To(gomega.Succeed())
 
 				return withWorkingDir(t.Context(), dir)
 			},
@@ -93,7 +92,7 @@ func TestReport_golden_output_contract(t *testing.T) {
 				)
 
 				path := filepath.Join(dir, "SECURITY.md")
-				require.NoError(t, os.WriteFile(path, []byte(allSuppressed), 0o600))
+				gomega.NewWithT(t).Expect(os.WriteFile(path, []byte(allSuppressed), 0o600)).To(gomega.Succeed())
 
 				return withWorkingDir(t.Context(), dir)
 			},
@@ -116,7 +115,7 @@ func TestReport_golden_output_contract(t *testing.T) {
 			ctx := test.setup(t, dir)
 
 			report, err := Report(ctx)
-			require.NoError(t, err)
+			gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
 
 			assertGolden(t, test.name+".json", normalizeOutput(t, dir, renderReportJSON(t, report)))
 			assertGolden(t, test.name+".sarif", normalizeOutput(t, dir, renderReportSARIF(t, ctx, report)))
@@ -128,7 +127,7 @@ func renderReportJSON(t *testing.T, report *finding.Report) string {
 	t.Helper()
 
 	var buf bytes.Buffer
-	require.NoError(t, report.WriteJSON(&buf))
+	gomega.NewWithT(t).Expect(report.WriteJSON(&buf)).To(gomega.Succeed())
 
 	return buf.String()
 }
@@ -137,7 +136,7 @@ func renderReportSARIF(t *testing.T, ctx context.Context, report *finding.Report
 	t.Helper()
 
 	var buf bytes.Buffer
-	require.NoError(t, report.WriteSARIFWithOpts(ctx, &buf))
+	gomega.NewWithT(t).Expect(report.WriteSARIFWithOpts(ctx, &buf)).To(gomega.Succeed())
 
 	return buf.String()
 }
@@ -156,16 +155,19 @@ func normalizeOutput(t *testing.T, dir, output string) string {
 
 func assertGolden(t *testing.T, name, got string) {
 	t.Helper()
+	g := gomega.NewWithT(t)
 
 	golden := filepath.Join("testdata", "golden", name)
 	if *updateGolden {
-		require.NoError(t, os.MkdirAll(filepath.Dir(golden), 0o750))
-		require.NoError(t, os.WriteFile(golden, []byte(got), 0o600))
+		g.Expect(os.MkdirAll(filepath.Dir(golden), 0o750)).To(gomega.Succeed())
+		g.Expect(os.WriteFile(golden, []byte(got), 0o600)).To(gomega.Succeed())
 
 		return
 	}
 
 	want, err := os.ReadFile(golden)
-	require.NoError(t, err, "golden file missing; regenerate with go test ./pkg/policy -run TestReport_golden -update")
-	assert.Equal(t, string(want), got, "output contract drifted; inspect the diff, or if intended refresh with -update")
+	g.Expect(err).NotTo(gomega.HaveOccurred(),
+		"golden file missing; regenerate with go test ./pkg/policy -run TestReport_golden -update")
+	g.Expect(got).To(gomega.Equal(string(want)),
+		"output contract drifted; inspect the diff, or if intended refresh with -update")
 }

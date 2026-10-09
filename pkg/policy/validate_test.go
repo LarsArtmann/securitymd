@@ -7,8 +7,7 @@ import (
 	"testing"
 
 	finding "github.com/larsartmann/go-finding"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 // compliantPolicy lives in testdata/policy/compliant.md (see fixtures_test.go):
@@ -17,12 +16,13 @@ import (
 
 func validateContent(t *testing.T, content string) []finding.Finding {
 	t.Helper()
+	g := gomega.NewWithT(t)
 
 	path := filepath.Join(t.TempDir(), "SECURITY.md")
-	require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
+	g.Expect(os.WriteFile(path, []byte(content), 0o600)).To(gomega.Succeed())
 
 	findings, err := Validate(path)
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	return findings
 }
@@ -40,7 +40,8 @@ func TestValidate_accepts_compliant_policy(t *testing.T) {
 	t.Parallel()
 
 	findings := validateContent(t, compliantPolicy(t))
-	assert.Empty(t, findings, "a compliant policy must yield zero findings")
+	gomega.NewWithT(t).Expect(findings).
+		To(gomega.BeEmpty(), "a compliant policy must yield zero findings")
 }
 
 func TestValidate_reports_each_missing_section(t *testing.T) {
@@ -65,11 +66,13 @@ func TestValidate_reports_each_missing_section(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
+			g := gomega.NewWithT(t)
+
 			broken := strings.ReplaceAll(compliant, test.remove, "")
 			findings := validateContent(t, broken)
 
 			for _, expected := range test.expectIDs {
-				assert.Contains(t, ruleIDs(findings), expected)
+				g.Expect(ruleIDs(findings)).To(gomega.ContainElement(expected))
 			}
 		})
 	}
@@ -77,17 +80,19 @@ func TestValidate_reports_each_missing_section(t *testing.T) {
 
 func TestValidate_accepts_advisory_link_as_contact(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	content := strings.ReplaceAll(compliantPolicy(t),
 		"Email us at security@example.com with any security issues.",
 		"Report via https://github.com/AcmeCorp/widget/security/advisories/new privately.")
 
 	findings := validateContent(t, content)
-	assert.NotContains(t, ruleIDs(findings), "missing-contact")
+	g.Expect(ruleIDs(findings)).NotTo(gomega.ContainElement("missing-contact"))
 }
 
 func TestValidate_flags_unresolved_template_variables_with_line(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	findings := validateContent(t, "# Security Policy\n\nContact {{.ContactEmail}} for issues.\n")
 
@@ -99,10 +104,10 @@ func TestValidate_flags_unresolved_template_variables_with_line(t *testing.T) {
 		}
 	}
 
-	require.Len(t, unresolved, 1)
-	assert.Equal(t, 3, unresolved[0].Position.Line,
+	g.Expect(unresolved).To(gomega.HaveLen(1))
+	g.Expect(unresolved[0].Position.Line).To(gomega.Equal(3),
 		"unresolved-template must point at the exact offending line")
-	assert.Equal(t, finding.SeverityError, unresolved[0].Severity)
+	g.Expect(unresolved[0].Severity).To(gomega.Equal(finding.SeverityError))
 }
 
 func TestValidate_flags_thin_and_placeholder_content(t *testing.T) {
@@ -129,14 +134,17 @@ func TestValidate_flags_thin_and_placeholder_content(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
+			g := gomega.NewWithT(t)
+
 			findings := validateContent(t, test.content)
-			assert.Subset(t, ruleIDs(findings), test.expectIDs)
+			g.Expect(ruleIDs(findings)).To(gomega.ContainElements(test.expectIDs))
 		})
 	}
 }
 
 func TestValidate_generated_template_passes(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 
@@ -146,19 +154,20 @@ func TestValidate_generated_template_passes(t *testing.T) {
 		Repository:   "widget",
 		ContactEmail: "security@acme.com",
 	})
-	require.NoError(t, err)
-	require.True(t, result.Wrote)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(result.Wrote).To(gomega.BeTrue())
 
 	findings := validateContent(t, mustRead(t, result.Path))
-	assert.Empty(t, findings,
+	g.Expect(findings).To(gomega.BeEmpty(),
 		"the embedded template must satisfy its own validator (dogfood invariant)")
 }
 
 func mustRead(t *testing.T, path string) string {
 	t.Helper()
+	g := gomega.NewWithT(t)
 
 	content, err := os.ReadFile(path)
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	return string(content)
 }

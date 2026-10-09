@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/onsi/gomega"
 )
 
 func TestGenerate_creates_policy_and_reports(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 
@@ -20,20 +20,21 @@ func TestGenerate_creates_policy_and_reports(t *testing.T) {
 		Repository:   "widget",
 		ContactEmail: "security@acme.com",
 	})
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	assert.True(t, result.Wrote)
-	assert.Equal(t, filepath.Join(dir, "SECURITY.md"), result.Path)
-	assert.FileExists(t, result.Path)
+	g.Expect(result.Wrote).To(gomega.BeTrue())
+	g.Expect(result.Path).To(gomega.Equal(filepath.Join(dir, "SECURITY.md")))
+	g.Expect(result.Path).To(gomega.BeAnExistingFile())
 
 	content := mustRead(t, result.Path)
-	assert.Contains(t, content, "security@acme.com")
-	assert.Contains(t, content, "AcmeCorp/widget")
-	assert.NotContains(t, content, "{{", "no template variables may leak")
+	g.Expect(content).To(gomega.ContainSubstring("security@acme.com"))
+	g.Expect(content).To(gomega.ContainSubstring("AcmeCorp/widget"))
+	g.Expect(content).NotTo(gomega.ContainSubstring("{{"), "no template variables may leak")
 }
 
 func TestGenerate_advisory_only_when_no_email(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 
@@ -42,15 +43,16 @@ func TestGenerate_advisory_only_when_no_email(t *testing.T) {
 		Organization: "AcmeCorp",
 		Repository:   "widget",
 	})
-	require.NoError(t, err)
-	require.True(t, result.Wrote)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(result.Wrote).To(gomega.BeTrue())
 
 	content := mustRead(t, result.Path)
-	assert.Contains(t, content, "security/advisories/new")
+	g.Expect(content).To(gomega.ContainSubstring("security/advisories/new"))
 }
 
 func TestGenerate_dry_run_writes_nothing(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 
@@ -60,47 +62,50 @@ func TestGenerate_dry_run_writes_nothing(t *testing.T) {
 		Repository:   "widget",
 		DryRun:       true,
 	})
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	assert.False(t, result.Wrote)
-	assert.NoFileExists(t, filepath.Join(dir, "SECURITY.md"))
-	assert.Contains(t, result.Description, "dry-run")
+	g.Expect(result.Wrote).To(gomega.BeFalse())
+	g.Expect(filepath.Join(dir, "SECURITY.md")).NotTo(gomega.BeAnExistingFile())
+	g.Expect(result.Description).To(gomega.ContainSubstring("dry-run"))
 }
 
 func TestGenerate_never_overwrites_existing_policy(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 	existing := filepath.Join(dir, "SECURITY.md")
-	require.NoError(t, os.WriteFile(existing, []byte("# Our own policy\n"), 0o600))
+	g.Expect(os.WriteFile(existing, []byte("# Our own policy\n"), 0o600)).To(gomega.Succeed())
 
 	result, err := Generate(t.Context(), GenerateOptions{
 		Directory:    dir,
 		Organization: "AcmeCorp",
 		Repository:   "widget",
 	})
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	assert.False(t, result.Wrote)
-	assert.Contains(t, result.Description, "never overwrites")
-	assert.Equal(t, "# Our own policy\n", mustRead(t, existing))
+	g.Expect(result.Wrote).To(gomega.BeFalse())
+	g.Expect(result.Description).To(gomega.ContainSubstring("never overwrites"))
+	g.Expect(mustRead(t, existing)).To(gomega.Equal("# Our own policy\n"))
 }
 
 func TestGenerate_skips_without_identity(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 
 	result, err := Generate(t.Context(), GenerateOptions{Directory: dir})
-	require.NoError(t, err)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	assert.False(t, result.Wrote)
-	assert.Contains(t, result.Description, "organization/repository")
-	assert.NoFileExists(t, filepath.Join(dir, "SECURITY.md"))
+	g.Expect(result.Wrote).To(gomega.BeFalse())
+	g.Expect(result.Description).To(gomega.ContainSubstring("organization/repository"))
+	g.Expect(filepath.Join(dir, "SECURITY.md")).NotTo(gomega.BeAnExistingFile())
 }
 
 func TestGenerate_uses_working_dir_from_context(t *testing.T) {
 	t.Parallel()
+	g := gomega.NewWithT(t)
 
 	dir := t.TempDir()
 	ctx := withWorkingDir(t.Context(), dir)
@@ -109,7 +114,7 @@ func TestGenerate_uses_working_dir_from_context(t *testing.T) {
 		Organization: "AcmeCorp",
 		Repository:   "widget",
 	})
-	require.NoError(t, err)
-	require.True(t, result.Wrote)
-	assert.Equal(t, filepath.Join(dir, "SECURITY.md"), result.Path)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(result.Wrote).To(gomega.BeTrue())
+	g.Expect(result.Path).To(gomega.Equal(filepath.Join(dir, "SECURITY.md")))
 }
