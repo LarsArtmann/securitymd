@@ -15,10 +15,10 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 - Baseline/ratchet mode for incremental fleet adoption — **verdict 2026-10-09: defer.** Severity overrides (`--set-severity missing-file=warning`) already unblock incremental adoption; a baseline file adds stateful machinery with no fleet demand yet. Revisit at ~50 adopting repos
 - Localized finding descriptions (English-only today) — **verdict 2026-10-09: defer.** Findings are machine-consumed (SARIF/CI logs); translation maintenance has zero current user signal
 - Website/docs launch once published (website-launch pattern)
-- Feedback upstream: exhaustruct ignore-patterns must be anchored struct patterns (path-based ones are silent no-ops) — note to golangci-lint-auto-configure
-- Proposal to linter-autoconfigure-sdk: first-class byte-faithful `SaveBytes` (or doc rename for `SaveJSONBytes`)
-- Record the "nix FOD ignores local replaces" lesson in crush-config `references/lessons.md` (cross-project lesson)
-- Update the nix-private-go-repos skill: nixpkgs `gotools` bundles an older Go than go.mod's floor, so treefmt's goimports fails in-sandbox with a toolchain-download attempt (found 2026-10-09 in securitymd's flake check)
+- Feedback upstream: exhaustruct ignore-patterns — **verdict 2026-10-09: no defect to file.** Verified at source (golangci-lint-auto-configure `linter_settings.go:244`): the curated patterns are already anchored type-form (`net/http.Client`, ...), and the v4→v5 key migration carries type-form values, so nothing path-based is emitted
+- Proposal to linter-autoconfigure-sdk: byte-faithful `SaveBytes` — **verdict 2026-10-09: resolved upstream.** SDK v0.8.0's `SaveJSONBytes` is already byte-faithful ("no newline is appended or trimmed") with `MarshalJSONIndented` as the bytes helper; only the naming nit remains, not worth an issue
+- ✅ Recorded the "nix FOD ignores local replaces" lesson in crush-config `references/lessons.md` (2026-10-09)
+- ✅ Updated the nix-private-go-repos skill: nixpkgs `gotools` bundles an older Go than go.mod's floor, so treefmt's goimports fails in-sandbox with a toolchain-download attempt (verified 2026-10-09 in securitymd's flake.nix)
 
 ## Open questions
 
