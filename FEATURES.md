@@ -15,6 +15,8 @@ _Audit: 2026-10-09, post-rebuild (module `github.com/LarsArtmann/securitymd`). E
 | 7 | Dogfood invariant            | FULLY_FUNCTIONAL | Generated template must pass its own validator — pinned by test                                                       | `pkg/policy/validate_test.go`                             |
 | 8 | BDD acceptance tests         | FULLY_FUNCTIONAL | 7 Ginkgo specs                                                                                                        | `test/acceptance/validation_test.go`                      |
 
+**Mutation proof (2026-10-09):** the rule table is proven non-vacuous. Sabotaging `missing-contact`'s patterns (7 tests red across unit + golden + acceptance), neutering the `too-short` threshold 20→0 (1 test red), and shifting the `unresolved-template` line off by one (2 tests red: line-precision unit test + golden) each failed the suite; reverting restored green. The SARIF/JSON goldens act as an independent net on every mutation.
+
 ## Partial / gaps
 
 | #  | Feature                          | Status               | Gap                                                                                   |

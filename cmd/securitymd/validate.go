@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/LarsArtmann/securitymd/pkg/policy"
 	"github.com/fatih/color"
@@ -24,6 +26,7 @@ var errPolicyFindings = errors.New("SECURITY.md validation failed: error-severit
 var (
 	outputFormat    string
 	minimumSeverity string
+	severitySpecs   []string
 )
 
 func newValidateCmd() *cobra.Command {
@@ -36,12 +39,17 @@ Checks the candidate locations (SECURITY.md, .github/SECURITY.md,
 docs/SECURITY.md); a missing file is itself an error finding. Exits 1 when
 error-severity findings remain.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			file, _ := cmd.Flags().GetString("file")
-			if file != "" {
-				return validateFile(cmd, file)
+			overrides, err := parseSeverityFlag(severitySpecs)
+			if err != nil {
+				return err
 			}
 
-			return validateRepo(cmd)
+			file, _ := cmd.Flags().GetString("file")
+			if file != "" {
+				return validateFile(cmd, file, overrides)
+			}
+
+			return validateRepo(cmd, overrides)
 		},
 	}
 
@@ -49,30 +57,47 @@ error-severity findings remain.`,
 	cmd.Flags().StringVar(&outputFormat, "format", outputFormatText, "Output format (text, json, sarif)")
 	cmd.Flags().
 		StringVar(&minimumSeverity, "severity", "info", "Minimum severity to report (info, warning, error, critical)")
+	cmd.Flags().StringSliceVar(&severitySpecs, "set-severity", nil,
+		"Override a rule's severity, rule=level (repeatable, e.g. --set-severity missing-file=warning)")
 
 	return cmd
 }
 
-func validateFile(cmd *cobra.Command, filename string) error {
+func parseSeverityFlag(specs []string) (policy.SeverityOverrides, error) {
+	overrides, err := policy.ParseSeverityOverrides(strings.Join(specs, ","))
+	if err != nil {
+		return nil, fmt.Errorf("--set-severity: %w", err)
+	}
+
+	return overrides, nil
+}
+
+func validateFile(cmd *cobra.Command, filename string, overrides policy.SeverityOverrides) error {
 	findings, err := policy.Validate(filename)
 	if err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	report := finding.NewReport(finding.ToolInfo{Name: string(policy.ToolName), Version: version})
-	report.AddFindings(findings)
-	report.ComputeSummary()
-
-	return outputFindings(cmd, report)
+	return outputFindings(cmd, buildReport(findings, overrides))
 }
 
-func validateRepo(cmd *cobra.Command) error {
-	report, err := policy.Report(cmd.Context())
+func validateRepo(cmd *cobra.Command, overrides policy.SeverityOverrides) error {
+	findings, err := policy.Detect(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("detection failed: %w", err)
 	}
 
-	return outputFindings(cmd, report)
+	return outputFindings(cmd, buildReport(findings, overrides))
+}
+
+// buildReport applies severity overrides and aggregates the findings; the
+// summary therefore always reflects the severities the user actually sees.
+func buildReport(findings []finding.Finding, overrides policy.SeverityOverrides) *finding.Report {
+	report := finding.NewReportFromFindings(
+		finding.ToolInfo{Name: string(policy.ToolName), Version: version},
+		policy.ApplySeverityOverrides(findings, overrides))
+
+	return report
 }
 
 func outputFindings(cmd *cobra.Command, report *finding.Report) error {
@@ -115,20 +140,29 @@ func printFindings(findings []finding.Finding) {
 			location = fmt.Sprintf("%s:%d", location, f.Position.Line)
 		}
 
-		if f.Severity == finding.SeverityError {
+		switch {
+		case f.Suppression != nil:
+			color.Cyan("🔇 [%s] %s (%s)\n    🔇 suppressed: %s", f.Rule, f.Message, location, f.Suppression.Reason)
+		case f.Severity == finding.SeverityError:
 			color.Red("❌ [%s] %s (%s)", f.Rule, f.Message, location)
-		} else {
+		default:
 			color.Yellow("⚠️  [%s] %s (%s)", f.Rule, f.Message, location)
 		}
 
-		if f.Suggestion != "" {
+		if f.Suppression == nil && f.Suggestion != "" {
 			fmt.Printf("    💡 %s\n", f.Suggestion)
 		}
 	}
 }
 
+// hasErrors gates the exit code on ACTIVE findings only: suppressed findings
+// stay visible in the output but never fail CI — that is the escape hatch.
 func hasErrors(findings []finding.Finding) bool {
-	return len(finding.Filter(findings, finding.BySeverity(finding.SeverityError))) > 0
+	active := finding.Filter(findings, func(f finding.Finding) bool {
+		return !f.IsSuppressedAt(time.Now())
+	})
+
+	return len(finding.Filter(active, finding.BySeverity(finding.SeverityError))) > 0
 }
 
 func parseSeverity(severity string) finding.Severity {

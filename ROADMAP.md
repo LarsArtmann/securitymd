@@ -5,7 +5,7 @@ _Long-term direction and raw ideas. Actionable items live in TODO_LIST.md; gradu
 ## Direction
 
 - Stay a single-purpose, single-binary tool in the go-finding family; BuildFlow is the primary consumer, the CLI the manual escape hatch
-- Publish as open source (see TODO_LIST publish checklist) — fills a real gap: **unverified belief** that no dedicated SECURITY.md validator exists in OSS; survey the landscape before publishing and drop the claim if contradicted
+- Publish as open source (see TODO_LIST publish checklist) — fills a real gap: **verified 2026-10-09** that no dedicated SECURITY.md validator/linter CLI exists in OSS (survey: `docs/status/2026-10-09_15-57_oss-landscape-survey.md`); closest neighbor is OpenSSF Scorecard's heuristic Security-Policy scoring, so claims say "first dedicated validator CLI", never "first to validate policy content"
 
 ## Raw ideas
 
