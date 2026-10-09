@@ -61,31 +61,36 @@ Instead of completing Phase 3 (16% remaining), I started building enterprise-gra
 #### **HIGH IMPACT, LOW WORK (4% each):**
 
 ~~1. **Error Handling Improvement**~~ done — rebuilt on finding.FindingError family (2026-05-05 session 2)
-   - Better user error messages
-   - Graceful failure handling
-   - Status codes and suggestions
+
+- Better user error messages
+- Graceful failure handling
+- Status codes and suggestions
 
 ~~2. **CLI Help System**~~ moot — CLI rebuilt (cmd/securitymd); cobra help
-   - Comprehensive help commands
-   - Usage examples and tutorials
-   - Interactive guidance
+
+- Comprehensive help commands
+- Usage examples and tutorials
+- Interactive guidance
 
 ~~3. **Version Management**~~ NOT-DO — version stays ldflags metadata
-   - Auto-version from git tags
-   - Version information display
-   - Update notifications
+
+- Auto-version from git tags
+- Version information display
+- Update notifications
 
 ~~4. **Binary Distribution**~~ routed — TODO_LIST publish checklist
-   - Multi-platform builds
-   - Release automation
-   - Installation scripts
+
+- Multi-platform builds
+- Release automation
+- Installation scripts
 
 #### **MEDIUM IMPACT, LOW WORK (4% total):**
 
 ~~5. **Documentation Enhancement**~~ done at 519916d/72085c2/4a8987a — README + full docs pass
-   - Updated README with Phase 2 features
-   - Usage examples and tutorials
-   - API documentation
+
+- Updated README with Phase 2 features
+- Usage examples and tutorials
+- API documentation
 
 ---
 

@@ -143,13 +143,14 @@ README/CHANGELOG/AGENTS rewritten; legacy docs archived.
 ~~4. **No `TODO_LIST.md`** — No tracked TODO list~~ done at 4a8987a
 ~~5. **No flake.nix** — AGENTS.md mandates nix flakes, project has justfile + shell scripts~~ done at 9d3094a (2026-06-17)
 ~~6. **`scripts/` directory** — 5 shell scripts (build.sh, compliance-check.sh, etc.) exist but:~~ done at 1c55390 — scripts/ deleted (~1,300 lines)
-   - Not integrated with any build system
-   - `build.sh` duplicates functionality of `go build`
-   - `compliance-check.sh` (8.8KB) and `security-setup.sh` (16KB) — legacy pre-Go shell scripts
-~~7. **`report/` and `reports/` directories** — Empty directories, purpose unclear~~ done — directories/artifacts gone (reports/ trashed 2026-10-08, .gitignore covers it)
-~~8. **No `AGENTS.md` at project level** — Only global ~/.config/crush/AGENTS.md exists~~ done — AGENTS.md rewritten for the rebuild at 72085c2
-~~9. **SARIF output not tested** — No test for `-format sarif`~~ routed — TODO_LIST keeps the SARIF golden-file test for the rebuilt CLI
-~~10. **JSON output not tested** — No test for `-format json`~~ routed — same TODO_LIST golden-file item covers output-format testing
+
+- Not integrated with any build system
+- `build.sh` duplicates functionality of `go build`
+- `compliance-check.sh` (8.8KB) and `security-setup.sh` (16KB) — legacy pre-Go shell scripts
+  ~~7. **`report/` and `reports/` directories** — Empty directories, purpose unclear~~ done — directories/artifacts gone (reports/ trashed 2026-10-08, .gitignore covers it)
+  ~~8. **No `AGENTS.md` at project level** — Only global ~/.config/crush/AGENTS.md exists~~ done — AGENTS.md rewritten for the rebuild at 72085c2
+  ~~9. **SARIF output not tested** — No test for `-format sarif`~~ routed — TODO_LIST keeps the SARIF golden-file test for the rebuilt CLI
+  ~~10. **JSON output not tested** — No test for `-format json`~~ routed — same TODO_LIST golden-file item covers output-format testing
 
 ### Missing Quality Infrastructure
 
@@ -248,33 +249,33 @@ While `setup.go` and `validate.go` were inlined to closures, `status.go` still p
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| #  | Priority | Task                                                                                    | Impact | Effort |
-| -- | -------- | --------------------------------------------------------------------------------------- | ------ | ------ |
-~~| 1  | 🔴 P0    | Resolve type split brain — delete unused `internal/types/` or integrate with go-finding | High   | 2h     |~~ done — deleted at 1c55390
-~~| 2  | 🔴 P0    | Add tests for `cmd/` — validate, setup, status commands                                 | High   | 3h     |~~ NOT-DO — provider + acceptance coverage in the successor
-~~| 3  | 🔴 P0    | Fix CI workflow — Go 1.26, add test step, add golangci-lint step                        | High   | 1h     |~~ done at 72085c2 (build+test+self-validate; lint stays local)
-~~| 4  | 🔴 P0    | Delete dead shell scripts in `scripts/` (or migrate to nix)                             | Medium | 30m    |~~ done at 1c55390
-~~| 5  | 🔴 P0    | Delete empty `report/` and `reports/` directories                                       | Low    | 1m     |~~ done — gone
-~~| 6  | 🟠 P1    | Reduce `runSetup` complexity from 19 to <10                                             | High   | 1h     |~~ moot — deleted
-~~| 7  | 🟠 P1    | Test JSON output format (`-format json`)                                                | Medium | 30m    |~~ routed — TODO_LIST golden-file item
-~~| 8  | 🟠 P1    | Test SARIF output format (`-format sarif`)                                              | Medium | 30m    |~~ routed — TODO_LIST golden-file item
-~~| 9  | 🟠 P1    | Fix all lint warnings (52 → 0)                                                          | Medium | 2h     |~~ done — 0 issues since rebuild
-~~| 10 | 🟠 P1    | Create project-level `AGENTS.md` with build/test/lint commands                          | Medium | 30m    |~~ done at 72085c2
-~~| 11 | 🟠 P1    | Create `FEATURES.md` feature inventory                                                  | Medium | 1h     |~~ done at 4a8987a
-~~| 12 | 🟠 P1    | Create `TODO_LIST.md` from codebase analysis                                            | Medium | 1h     |~~ done at 4a8987a
-~~| 13 | 🟡 P2    | Convert CLI globals to struct-based command state                                       | Medium | 1h     |~~ moot — rebuilt CLI has no flag globals
-~~| 14 | 🟡 P2    | Inline `runStatus` in `status.go` (consistent with setup/validate pattern)              | Low    | 10m    |~~ moot — status.go rewritten
-~~| 15 | 🟡 P2    | Update `README.md` with go-finding integration details                                  | Medium | 30m    |~~ done at 519916d
-~~| 16 | 🟡 P2    | Update `CHANGELOG.md` for sessions 1–3                                                  | Low    | 30m    |~~ done at 72085c2
-~~| 17 | 🟡 P2    | Update `IMPROVEMENT_PLAN.md` to reflect current state                                   | Medium | 30m    |~~ done — archived at 72085c2
-~~| 18 | 🟡 P2    | Add `CONTRIBUTING.md`                                                                   | Medium | 30m    |~~ done at 8864cb7
-~~| 19 | 🟡 P2    | Migrate justfile → flake.nix (per AGENTS.md mandate)                                    | High   | 3h     |~~ done at 9d3094a
-~~| 20 | 🟢 P3    | Add goreleaser for release automation                                                   | Medium | 2h     |~~ NOT-DO
-~~| 21 | 🟢 P3    | Add coverage enforcement (minimum threshold in CI)                                      | Medium | 30m    |~~ NOT-DO
-~~| 22 | 🟢 P3    | Review `BDD_TESTS_REVIEW.md` for freshness                                              | Low    | 15m    |~~ done — archived at 72085c2
-~~| 23 | 🟢 P3    | Review and clean legacy docs (PARTS.md, PROJECT_SPLIT_EXECUTIVE_REPORT.md)              | Low    | 30m    |~~ done 2026-10-09 (this pass)
-~~| 24 | 🟢 P3    | Add end-to-end CLI tests (exec-based, test the binary)                                  | High   | 2h     |~~ done — provider loop tests
-~~| 25 | 🟢 P3    | Add version tagging and release workflow                                                | Medium | 1h     |~~ routed — TODO_LIST publish checklist
+| #  | Priority | Task  | Impact                                                                                  | Effort |
+| -- | -------- | ----- | --------------------------------------------------------------------------------------- | ------ |
+| ~~ | 1        | 🔴 P0 | Resolve type split brain — delete unused `internal/types/` or integrate with go-finding | High   |
+| ~~ | 2        | 🔴 P0 | Add tests for `cmd/` — validate, setup, status commands                                 | High   |
+| ~~ | 3        | 🔴 P0 | Fix CI workflow — Go 1.26, add test step, add golangci-lint step                        | High   |
+| ~~ | 4        | 🔴 P0 | Delete dead shell scripts in `scripts/` (or migrate to nix)                             | Medium |
+| ~~ | 5        | 🔴 P0 | Delete empty `report/` and `reports/` directories                                       | Low    |
+| ~~ | 6        | 🟠 P1 | Reduce `runSetup` complexity from 19 to <10                                             | High   |
+| ~~ | 7        | 🟠 P1 | Test JSON output format (`-format json`)                                                | Medium |
+| ~~ | 8        | 🟠 P1 | Test SARIF output format (`-format sarif`)                                              | Medium |
+| ~~ | 9        | 🟠 P1 | Fix all lint warnings (52 → 0)                                                          | Medium |
+| ~~ | 10       | 🟠 P1 | Create project-level `AGENTS.md` with build/test/lint commands                          | Medium |
+| ~~ | 11       | 🟠 P1 | Create `FEATURES.md` feature inventory                                                  | Medium |
+| ~~ | 12       | 🟠 P1 | Create `TODO_LIST.md` from codebase analysis                                            | Medium |
+| ~~ | 13       | 🟡 P2 | Convert CLI globals to struct-based command state                                       | Medium |
+| ~~ | 14       | 🟡 P2 | Inline `runStatus` in `status.go` (consistent with setup/validate pattern)              | Low    |
+| ~~ | 15       | 🟡 P2 | Update `README.md` with go-finding integration details                                  | Medium |
+| ~~ | 16       | 🟡 P2 | Update `CHANGELOG.md` for sessions 1–3                                                  | Low    |
+| ~~ | 17       | 🟡 P2 | Update `IMPROVEMENT_PLAN.md` to reflect current state                                   | Medium |
+| ~~ | 18       | 🟡 P2 | Add `CONTRIBUTING.md`                                                                   | Medium |
+| ~~ | 19       | 🟡 P2 | Migrate justfile → flake.nix (per AGENTS.md mandate)                                    | High   |
+| ~~ | 20       | 🟢 P3 | Add goreleaser for release automation                                                   | Medium |
+| ~~ | 21       | 🟢 P3 | Add coverage enforcement (minimum threshold in CI)                                      | Medium |
+| ~~ | 22       | 🟢 P3 | Review `BDD_TESTS_REVIEW.md` for freshness                                              | Low    |
+| ~~ | 23       | 🟢 P3 | Review and clean legacy docs (PARTS.md, PROJECT_SPLIT_EXECUTIVE_REPORT.md)              | Low    |
+| ~~ | 24       | 🟢 P3 | Add end-to-end CLI tests (exec-based, test the binary)                                  | High   |
+| ~~ | 25       | 🟢 P3 | Add version tagging and release workflow                                                | Medium |
 
 ---
 

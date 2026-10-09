@@ -22,7 +22,7 @@ All 7 mandated `2026-0*` files were read, fully resolved inline (537 strikethrou
 
 **What could you have done better?**
 
-- **Hand-typed spec keys twice** against the skill's explicit "never hand-type from memory" rule. First instance (f2) silently duplicated 6 keys — `sort -u` collapsed them and I only noticed via a 59→53 count discrepancy. Second instance (fd) I wrote checkbox keys with a `- [ ] ` prefix the tool does not use → **all 14 keys unmatched**, one wasted verify cycle.
+- **Hand-typed spec keys twice** against the skill's explicit "never hand-type from memory" rule. First instance (f2) silently duplicated 6 keys — `sort -u` collapsed them and I only noticed via a 59→53 count discrepancy. Second instance (fd) I wrote checkbox keys with a `- [ ]` prefix the tool does not use → **all 14 keys unmatched**, one wasted verify cycle.
 - **Three edit-tool refusals from stale reads** after annotate-tool mutations (f1, f2, README). The workflow loop needed a rule I only applied later: re-View after every tool write before manual edits.
 - **`grep -rLn` exit-code misread twice** — I printed contradictory `GATE_PASS`/`GATE_FAIL` labels before falling back to a per-file loop. This is a variant of the documented "never trust a piped exit code" lesson (2026-10-09 02:02 report, item d4). Repeated a known lesson in a new costume.
 - One multiedit reported "Applied 1 of 2" (f7 appendix; the struck row no longer matched my old_string) — caught by inspecting output, but it should have been predicted: post-strike lines must be re-read before editing.

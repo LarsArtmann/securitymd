@@ -302,8 +302,8 @@ just test-quick   # Full functionality test in 30 seconds
 
 - [x] GitHub integration auto-detects 95% of repos
 - [x] CI/CD validation prevents 100% of broken SECURITY.md
-~~- [🔄] Template variables handle 90% of use cases (75% complete)~~ moot — variable detector purged Dec 2025
-~~- [🔄] Error messages solve 85% of user problems (integration blocked)~~ moot — rebuilt on finding.FindingError
+      ~~- [🔄] Template variables handle 90% of use cases (75% complete)~~ moot — variable detector purged Dec 2025
+      ~~- [🔄] Error messages solve 85% of user problems (integration blocked)~~ moot — rebuilt on finding.FindingError
 
 ---
 

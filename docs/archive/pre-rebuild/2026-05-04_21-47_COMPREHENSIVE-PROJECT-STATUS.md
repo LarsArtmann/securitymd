@@ -283,33 +283,33 @@ Unreleased entry documents the rebuild with all breaking changes.
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #  | Priority | Task                                                                                                            | Effort   | Impact                |
-| -- | -------- | --------------------------------------------------------------------------------------------------------------- | -------- | --------------------- |
-~~| 1  | P0       | Fix SECURITY.md with real contact info                                                                          | 5 min    | Blocks release        |~~ routed — TODO_LIST publish checklist (advisory-only contact default)
-~~| 2  | P0       | Fix CI workflow Go version (1.21 → 1.26.2)                                                                      | 10 min   | CI is broken          |~~ done at 72085c2 — CI follows go.mod now
-~~| 3  | P0       | Update `go-composable-business-types-usage.md` to reference `go-branded-id`                                     | 30 min   | Misleading docs       |~~ done 2026-10-09 — archived (docs-health pass)
-~~| 4  | P0       | Replace placeholder values in `.template-security.yaml`                                                         | 5 min    | Bad defaults          |~~ done at 1c55390 — config deleted
-~~| 5  | P1       | Fix or remove `.go-arch-lint.yml`                                                                               | 30 min   | False confidence      |~~ done at 1c55390 — deleted
-~~| 6  | P1       | Write CHANGELOG entries for all work since v0.1.0                                                               | 1 hour   | Release readiness     |~~ done at 72085c2
-~~| 7  | P1       | Complete branded ID integration (factory functions, meaningful brands)                                          | 2 hours  | Type safety           |~~ NOT-DO — removed 2026-05-05
-~~| 8  | P1       | Replace viper with koanf in `security_tool.go`                                                                  | 2 hours  | Project standards     |~~ done at 1c55390 (dropped)
-~~| 9  | P1       | Update `PUBLIC_OR_PRIVATE.md` — remove "replace directive" issue (still exists but pointing to correct lib now) | 30 min   | Accurate status       |~~ done at 72085c2 — archived, verdict quoted in manifest
-~~| 10 | P1       | Add CLI integration tests (build binary, run validate/setup/status)                                             | 3 hours  | Confidence            |~~ done — provider loop + BDD tests
-~~| 11 | P1       | Migrate justfile to flake.nix                                                                                   | 3 hours  | Project standards     |~~ done at 9d3094a
-~~| 12 | P1       | Update IMPROVEMENT_PLAN.md to reflect current reality                                                           | 1 hour   | Accurate planning     |~~ done at 72085c2 — archived
-~~| 13 | P2       | Remove or refactor `scripts/security-setup.sh` (duplicates Go `setup` command)                                  | 1 hour   | Reduce confusion      |~~ done at 1c55390 (deleted)
-~~| 14 | P2       | Remove or refactor `scripts/validate-policies.sh` (duplicates Go `validate` command)                            | 30 min   | Reduce confusion      |~~ done at 1c55390 (deleted)
-~~| 15 | P2       | Implement Go equivalents for `scripts/compliance-check.sh` (GDPR/SOC2/ISO27001)                                 | 4 hours  | Feature parity        |~~ NOT-DO — out of scope post-rebuild
-~~| 16 | P2       | Implement Go equivalents for `scripts/generate-metrics.sh` (metrics/Prometheus)                                 | 4 hours  | Feature parity        |~~ NOT-DO — out of scope post-rebuild
-~~| 17 | P2       | Remove `scripts/build.sh` (replaced by `go build` or flake.nix)                                                 | 5 min    | Cleanup               |~~ done at 1c55390
-~~| 18 | P2       | Add structured logging (replace `fmt.Printf` with `slog`)                                                       | 2 hours  | Observability         |~~ Won't implement
-~~| 19 | P2       | Add `version` subcommand to CLI                                                                                 | 30 min   | User experience       |~~ NOT-DO
-~~| 20 | P2       | Tune `.golangci.yml` — reduce from 80+ linters to project-appropriate set                                       | 1 hour   | Build speed           |~~ done pre-rebuild (f29259c)
-~~| 21 | P2       | Update `BDD_TESTS_REVIEW.md` — BDD tests now exist (score should be updated)                                    | 30 min   | Accurate docs         |~~ done at 72085c2 — archived
-~~| 22 | P3       | Add pre-commit hook for SECURITY.md validation                                                                  | 1 hour   | Developer experience  |~~ NOT-DO (BuildFlow gate)
-~~| 23 | P3       | Extract `projectmeta` library (as described in PARTS.md)                                                        | 2-3 days | Reusability           |~~ NOT-DO
-~~| 24 | P3       | Add benchmarks for validation and template processing                                                           | 1 hour   | Performance awareness |~~ Won't implement
-~~| 25 | P3       | Decide: make this repo public or private (per PUBLIC_OR_PRIVATE.md analysis)                                    | Decision | Direction             |~~ routed — TODO_LIST publish decision (PUBLIC_OR_PRIVATE: conditionally make public)
+| #  | Priority | Task | Effort                                                                                                          | Impact   |
+| -- | -------- | ---- | --------------------------------------------------------------------------------------------------------------- | -------- |
+| ~~ | 1        | P0   | Fix SECURITY.md with real contact info                                                                          | 5 min    |
+| ~~ | 2        | P0   | Fix CI workflow Go version (1.21 → 1.26.2)                                                                      | 10 min   |
+| ~~ | 3        | P0   | Update `go-composable-business-types-usage.md` to reference `go-branded-id`                                     | 30 min   |
+| ~~ | 4        | P0   | Replace placeholder values in `.template-security.yaml`                                                         | 5 min    |
+| ~~ | 5        | P1   | Fix or remove `.go-arch-lint.yml`                                                                               | 30 min   |
+| ~~ | 6        | P1   | Write CHANGELOG entries for all work since v0.1.0                                                               | 1 hour   |
+| ~~ | 7        | P1   | Complete branded ID integration (factory functions, meaningful brands)                                          | 2 hours  |
+| ~~ | 8        | P1   | Replace viper with koanf in `security_tool.go`                                                                  | 2 hours  |
+| ~~ | 9        | P1   | Update `PUBLIC_OR_PRIVATE.md` — remove "replace directive" issue (still exists but pointing to correct lib now) | 30 min   |
+| ~~ | 10       | P1   | Add CLI integration tests (build binary, run validate/setup/status)                                             | 3 hours  |
+| ~~ | 11       | P1   | Migrate justfile to flake.nix                                                                                   | 3 hours  |
+| ~~ | 12       | P1   | Update IMPROVEMENT_PLAN.md to reflect current reality                                                           | 1 hour   |
+| ~~ | 13       | P2   | Remove or refactor `scripts/security-setup.sh` (duplicates Go `setup` command)                                  | 1 hour   |
+| ~~ | 14       | P2   | Remove or refactor `scripts/validate-policies.sh` (duplicates Go `validate` command)                            | 30 min   |
+| ~~ | 15       | P2   | Implement Go equivalents for `scripts/compliance-check.sh` (GDPR/SOC2/ISO27001)                                 | 4 hours  |
+| ~~ | 16       | P2   | Implement Go equivalents for `scripts/generate-metrics.sh` (metrics/Prometheus)                                 | 4 hours  |
+| ~~ | 17       | P2   | Remove `scripts/build.sh` (replaced by `go build` or flake.nix)                                                 | 5 min    |
+| ~~ | 18       | P2   | Add structured logging (replace `fmt.Printf` with `slog`)                                                       | 2 hours  |
+| ~~ | 19       | P2   | Add `version` subcommand to CLI                                                                                 | 30 min   |
+| ~~ | 20       | P2   | Tune `.golangci.yml` — reduce from 80+ linters to project-appropriate set                                       | 1 hour   |
+| ~~ | 21       | P2   | Update `BDD_TESTS_REVIEW.md` — BDD tests now exist (score should be updated)                                    | 30 min   |
+| ~~ | 22       | P3   | Add pre-commit hook for SECURITY.md validation                                                                  | 1 hour   |
+| ~~ | 23       | P3   | Extract `projectmeta` library (as described in PARTS.md)                                                        | 2-3 days |
+| ~~ | 24       | P3   | Add benchmarks for validation and template processing                                                           | 1 hour   |
+| ~~ | 25       | P3   | Decide: make this repo public or private (per PUBLIC_OR_PRIVATE.md analysis)                                    | Decision |
 
 ---
 

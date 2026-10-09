@@ -171,33 +171,33 @@ The deep integration session (commit `4cfba19`) did NOT include all files. Six f
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| #  | Priority | Task                                                       | Effort | Impact                        |
-| -- | -------- | ---------------------------------------------------------- | ------ | ----------------------------- |
-~~| 1  | P0       | **Commit uncommitted deep integration changes**            | 2min   | Uncommitted work at risk      |~~ done — committed by the auto-git daemon the same night
-~~| 2  | P0       | Fix `.golangci.yml` — relax CLI-inappropriate rules        | 30min  | Eliminates 80%+ warnings      |~~ done session 3 (f29259c, d6614d6)
-~~| 3  | P0       | Remove unused `printSuccess`/`printError` from cmd_helpers | 5min   | Dead code                     |~~ done session 3 (d6614d6)
-~~| 4  | P1       | Add CLI tests for `cmd/template-security`                  | 2h     | 0% → 80% coverage             |~~ NOT-DO — provider + acceptance coverage in the successor
-~~| 5  | P1       | Wire `pipeline.New()` + `Run()` in validate command        | 1h     | Full pipeline orchestration   |~~ NOT-DO — BuildFlow DAG is the pipeline now
-~~| 6  | P1       | Compose with go-finding govet + staticcheck detectors      | 1h     | Multi-tool pipeline           |~~ NOT-DO — same
-~~| 7  | P1       | Test `DetectFile()` convenience function                   | 30min  | 0% → 100% coverage            |~~ moot — deleted at 1c55390
-~~| 8  | P1       | Add SARIF output test                                      | 30min  | Untested feature              |~~ routed — TODO_LIST golden-file test
-~~| 9  | P1       | Use `finding.Merge()` in validate.go                       | 15min  | Use library instead of custom |~~ moot
-~~| 10 | P1       | Use `finding.SortBySeverity()` in PrintResults             | 15min  | Better output ordering        |~~ moot
-~~| 11 | P2       | Fix nil context in tests → `context.TODO()`                | 5min   | Correctness                   |~~ done
-~~| 12 | P2       | Add `--output` flag for file-based SARIF output            | 30min  | CI/CD file output             |~~ NOT-DO — BuildFlow consumes stdout; no file-output flag
-~~| 13 | P2       | Test `project_detector.go`                                 | 1h     | Untested complex code         |~~ done — pkg/policy/project_test.go
-~~| 14 | P2       | Convert `file://` URIs in SARIF output                     | 30min  | SARIF compliance              |~~ routed — TODO_LIST SARIF golden-file test covers URI shape
-~~| 15 | P2       | Update `README.md` with go-finding integration docs        | 30min  | Documentation                 |~~ done at 519916d — README rewritten for securitymd
-~~| 16 | P2       | Add `docs/adr/` for go-finding migration decision          | 30min  | Architecture docs             |~~ NOT-DO — decision recorded in CHANGELOG + status reports
-~~| 17 | P2       | Add `FEATURES.md` audit                                    | 1h     | Documentation                 |~~ done at 4a8987a
-~~| 18 | P2       | Add `TODO_LIST.md`                                         | 1h     | Project management            |~~ done at 4a8987a
-~~| 19 | P3       | Add GitHub Actions SARIF upload step                       | 30min  | CI/CD                         |~~ NOT-DO — BuildFlow path
-~~| 20 | P3       | Add exit codes by severity                                 | 30min  | CLI usability                 |~~ done — 0/1/2 semantics in the rebuilt CLI
-~~| 21 | P3       | Configurable validation rules via YAML                     | 2h     | Extensibility                 |~~ routed — TODO_LIST per-rule severity item
-~~| 22 | P3       | Add goreleaser config                                      | 1h     | Distribution                  |~~ NOT-DO
-~~| 23 | P3       | Add nix flake build                                        | 1h     | Build automation              |~~ done at 9d3094a
-~~| 24 | P3       | Update `CHANGELOG.md`                                      | 15min  | Changelog hygiene             |~~ done at 72085c2
-~~| 25 | P3       | Clean up stale docs in `docs/status/` and `docs/planning/` | 30min  | Housekeeping                  |~~ done 2026-10-09 (this pass)
+| #  | Priority | Task | Effort                                                     | Impact |
+| -- | -------- | ---- | ---------------------------------------------------------- | ------ |
+| ~~ | 1        | P0   | **Commit uncommitted deep integration changes**            | 2min   |
+| ~~ | 2        | P0   | Fix `.golangci.yml` — relax CLI-inappropriate rules        | 30min  |
+| ~~ | 3        | P0   | Remove unused `printSuccess`/`printError` from cmd_helpers | 5min   |
+| ~~ | 4        | P1   | Add CLI tests for `cmd/template-security`                  | 2h     |
+| ~~ | 5        | P1   | Wire `pipeline.New()` + `Run()` in validate command        | 1h     |
+| ~~ | 6        | P1   | Compose with go-finding govet + staticcheck detectors      | 1h     |
+| ~~ | 7        | P1   | Test `DetectFile()` convenience function                   | 30min  |
+| ~~ | 8        | P1   | Add SARIF output test                                      | 30min  |
+| ~~ | 9        | P1   | Use `finding.Merge()` in validate.go                       | 15min  |
+| ~~ | 10       | P1   | Use `finding.SortBySeverity()` in PrintResults             | 15min  |
+| ~~ | 11       | P2   | Fix nil context in tests → `context.TODO()`                | 5min   |
+| ~~ | 12       | P2   | Add `--output` flag for file-based SARIF output            | 30min  |
+| ~~ | 13       | P2   | Test `project_detector.go`                                 | 1h     |
+| ~~ | 14       | P2   | Convert `file://` URIs in SARIF output                     | 30min  |
+| ~~ | 15       | P2   | Update `README.md` with go-finding integration docs        | 30min  |
+| ~~ | 16       | P2   | Add `docs/adr/` for go-finding migration decision          | 30min  |
+| ~~ | 17       | P2   | Add `FEATURES.md` audit                                    | 1h     |
+| ~~ | 18       | P2   | Add `TODO_LIST.md`                                         | 1h     |
+| ~~ | 19       | P3   | Add GitHub Actions SARIF upload step                       | 30min  |
+| ~~ | 20       | P3   | Add exit codes by severity                                 | 30min  |
+| ~~ | 21       | P3   | Configurable validation rules via YAML                     | 2h     |
+| ~~ | 22       | P3   | Add goreleaser config                                      | 1h     |
+| ~~ | 23       | P3   | Add nix flake build                                        | 1h     |
+| ~~ | 24       | P3   | Update `CHANGELOG.md`                                      | 15min  |
+| ~~ | 25       | P3   | Clean up stale docs in `docs/status/` and `docs/planning/` | 30min  |
 
 ---
 

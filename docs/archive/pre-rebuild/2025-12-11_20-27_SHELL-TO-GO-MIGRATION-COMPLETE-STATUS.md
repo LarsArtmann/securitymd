@@ -296,8 +296,8 @@ ENTRYPOINT ["template-security"]
 - [x] **Core Migration**: Shell → Go conversion complete
 - [x] **Feature Parity**: 100% compatibility achieved
 - [x] **Performance Goals**: 10x improvement exceeded
-~~- [ ] **Documentation**: Complete migration guide~~ NOT-DO — v2-SDK era purged in the 2025-12-11 simplification; README rewritten at 519916d
-~~- [ ] **User Testing**: Community feedback collection~~ NOT-DO — pre-publish concern; publish checklist routed in TODO_LIST
+      ~~- [ ] **Documentation**: Complete migration guide~~ NOT-DO — v2-SDK era purged in the 2025-12-11 simplification; README rewritten at 519916d
+      ~~- [ ] **User Testing**: Community feedback collection~~ NOT-DO — pre-publish concern; publish checklist routed in TODO_LIST
 
 ### Phase 2: Enhancement (Week 3-4)
 

@@ -167,33 +167,33 @@ The project has **88+ golangci-lint warnings** that were NOT introduced by this 
 
 ## F) TOP 25 THINGS TO DO NEXT
 
-| #  | Priority | Task                                                            | Effort | Impact                       |
-| -- | -------- | --------------------------------------------------------------- | ------ | ---------------------------- |
-~~| 1  | P0       | Fix `.golangci.yml` — relax CLI-inappropriate rules             | 30min  | Eliminates 80%+ warnings     |~~ done session 3 (f29259c, d6614d6)
-~~| 2  | P0       | Add CLI tests for `cmd/template-security`                       | 2h     | 0% → 80% coverage gap closed |~~ NOT-DO — successor: provider + acceptance coverage
-~~| 3  | P0       | Remove unused `printSuccess`/`printError` functions             | 5min   | Dead code elimination        |~~ done session 3 (d6614d6)
-~~| 4  | P1       | Add `-format sarif` flag using `report.WriteSARIF()`            | 30min  | CI/CD integration value      |~~ done session 2; rebuilt CLI ships it
-~~| 5  | P1       | Add `-severity` filter flag using `finding.BySeverityAtLeast()` | 30min  | CLI usability                |~~ done session 2
-~~| 6  | P1       | Use `report.WriteJSON()` instead of manual JSON in validate.go  | 30min  | Code dedup                   |~~ done session 2
-~~| 7  | P1       | Implement `pipeline.Detector` for `SecurityValidator`           | 1h     | Ecosystem integration        |~~ done session 2; superseded by toolsdk provider (1c55390)
-~~| 8  | P1       | Test `project_detector.go`                                      | 1h     | Untested complex code        |~~ done — pkg/policy/project_test.go
-~~| 9  | P1       | Migrate `SecurityError` to `finding.FindingError`               | 1h     | Consistency                  |~~ done session 2
-~~| 10 | P1       | Use `finding.Builder` API in validator                          | 30min  | Cleaner code                 |~~ done session 2
-~~| 11 | P2       | Fix JSON tags in `types.go` (camelCase)                         | 15min  | Lint compliance              |~~ moot — deleted at 1c55390
-~~| 12 | P2       | Add package comments to all packages                            | 15min  | Lint compliance              |~~ moot — lint 0 issues in rebuild
-~~| 13 | P2       | Add `go.Finding` category tags to all findings                  | 15min  | Better filtering             |~~ done session 2 — WithCategory wired
-~~| 14 | P2       | Add confidence scores to findings                               | 15min  | Richer output                |~~ done session 2 — WithConfidence wired
-~~| 15 | P2       | Update `README.md` to mention go-finding integration            | 15min  | Documentation                |~~ done at 519916d — README rewritten for securitymd
-~~| 16 | P2       | Update `SECURITY.md` template                                   | 30min  | Template quality             |~~ done — embedded canonical template (pkg/policy/template.md)
-~~| 17 | P2       | Add `Makefile` or `flake.nix` build                             | 1h     | Build automation             |~~ done at 9d3094a (flake.nix; never Makefile)
-~~| 18 | P2       | Add GitHub Actions SARIF upload step                            | 30min  | CI/CD                        |~~ NOT-DO — BuildFlow is the CI path
-~~| 19 | P2       | Add configuration file for validation rules                     | 2h     | Extensibility                |~~ NOT-DO — config system removed on purpose (CHANGELOG breaking change)
-~~| 20 | P3       | Add `docs/adr/` for go-finding migration decision               | 30min  | Architecture docs            |~~ NOT-DO — decision recorded in CHANGELOG + status reports instead
-~~| 21 | P3       | Add `FEATURES.md` — audit actual features                       | 1h     | Documentation                |~~ done at 4a8987a
-~~| 22 | P3       | Add `TODO_LIST.md` — comprehensive task list                    | 1h     | Project management           |~~ done at 4a8987a
-~~| 23 | P3       | Clean up stale docs in `docs/status/` and `docs/planning/`      | 30min  | Housekeeping                 |~~ done 2026-10-09 (this pass)
-~~| 24 | P3       | Add goreleaser config for binary releases                       | 1h     | Distribution                 |~~ NOT-DO
-~~| 25 | P3       | Update `CHANGELOG.md` with go-finding migration entry           | 15min  | Changelog hygiene            |~~ done at 72085c2
+| #  | Priority | Task | Effort                                                          | Impact |
+| -- | -------- | ---- | --------------------------------------------------------------- | ------ |
+| ~~ | 1        | P0   | Fix `.golangci.yml` — relax CLI-inappropriate rules             | 30min  |
+| ~~ | 2        | P0   | Add CLI tests for `cmd/template-security`                       | 2h     |
+| ~~ | 3        | P0   | Remove unused `printSuccess`/`printError` functions             | 5min   |
+| ~~ | 4        | P1   | Add `-format sarif` flag using `report.WriteSARIF()`            | 30min  |
+| ~~ | 5        | P1   | Add `-severity` filter flag using `finding.BySeverityAtLeast()` | 30min  |
+| ~~ | 6        | P1   | Use `report.WriteJSON()` instead of manual JSON in validate.go  | 30min  |
+| ~~ | 7        | P1   | Implement `pipeline.Detector` for `SecurityValidator`           | 1h     |
+| ~~ | 8        | P1   | Test `project_detector.go`                                      | 1h     |
+| ~~ | 9        | P1   | Migrate `SecurityError` to `finding.FindingError`               | 1h     |
+| ~~ | 10       | P1   | Use `finding.Builder` API in validator                          | 30min  |
+| ~~ | 11       | P2   | Fix JSON tags in `types.go` (camelCase)                         | 15min  |
+| ~~ | 12       | P2   | Add package comments to all packages                            | 15min  |
+| ~~ | 13       | P2   | Add `go.Finding` category tags to all findings                  | 15min  |
+| ~~ | 14       | P2   | Add confidence scores to findings                               | 15min  |
+| ~~ | 15       | P2   | Update `README.md` to mention go-finding integration            | 15min  |
+| ~~ | 16       | P2   | Update `SECURITY.md` template                                   | 30min  |
+| ~~ | 17       | P2   | Add `Makefile` or `flake.nix` build                             | 1h     |
+| ~~ | 18       | P2   | Add GitHub Actions SARIF upload step                            | 30min  |
+| ~~ | 19       | P2   | Add configuration file for validation rules                     | 2h     |
+| ~~ | 20       | P3   | Add `docs/adr/` for go-finding migration decision               | 30min  |
+| ~~ | 21       | P3   | Add `FEATURES.md` — audit actual features                       | 1h     |
+| ~~ | 22       | P3   | Add `TODO_LIST.md` — comprehensive task list                    | 1h     |
+| ~~ | 23       | P3   | Clean up stale docs in `docs/status/` and `docs/planning/`      | 30min  |
+| ~~ | 24       | P3   | Add goreleaser config for binary releases                       | 1h     |
+| ~~ | 25       | P3   | Update `CHANGELOG.md` with go-finding migration entry           | 15min  |
 
 ---
 

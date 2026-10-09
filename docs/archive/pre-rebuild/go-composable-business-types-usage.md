@@ -298,31 +298,36 @@ func (r *Repository) GetPolicy(id ids.PolicyID) (*SecurityPolicy, error) {
 
 ~~1. **Add Dependency**~~ NOT-DO — library renamed go-branded-id, adopted 2026-05-04, removed 2026-05-05 (go-finding migration); types deleted at 1c55390
 
-   ```bash
-   go get github.com/larsartmann/go-composable-business-types/id
-   go get github.com/larsartmann/go-composable-business-types/nanoid
-   ```
+```bash
+go get github.com/larsartmann/go-composable-business-types/id
+go get github.com/larsartmann/go-composable-business-types/nanoid
+```
 
 ~~2. **Create ID Package** (`internal/ids/`)~~ NOT-DO — same arc: created, then removed
-   - Define brand types
-   - Create ID type aliases
-   - Implement constructor functions
+
+- Define brand types
+- Create ID type aliases
+- Implement constructor functions
 
 ~~3. **Update Core Types**~~ NOT-DO — core types deleted at 1c55390
-   - Replace `string` ID fields with branded types
-   - Update JSON struct tags if needed
+
+- Replace `string` ID fields with branded types
+- Update JSON struct tags if needed
 
 ~~4. **Update Functions**~~ NOT-DO — moot
-   - Change function signatures to accept branded IDs
-   - Update repository/database layer
+
+- Change function signatures to accept branded IDs
+- Update repository/database layer
 
 ~~5. **Update Tests**~~ NOT-DO — moot
-   - Use `ids.NewPolicyID()` etc. in test fixtures
-   - Verify serialization round-trips
+
+- Use `ids.NewPolicyID()` etc. in test fixtures
+- Verify serialization round-trips
 
 ~~6. **Add Migration Tool** (Optional)~~ NOT-DO — never needed
-   - Script to convert existing string IDs to NanoId format
-   - Handle foreign key relationships
+
+- Script to convert existing string IDs to NanoId format
+- Handle foreign key relationships
 
 ---
 

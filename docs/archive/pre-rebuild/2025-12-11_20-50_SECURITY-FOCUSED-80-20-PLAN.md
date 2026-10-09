@@ -50,8 +50,8 @@
 
 1. **Fix SECURITY.md Template** - Better variables, sections, GitHub best practices
 2. **Add Simple Validation** - Check for required sections only
-~~3. **Fix Project Detection** - Better org/domain detection~~ done — executed Dec 2025; rebuilt as pkg/policy/project.go (git-remote identity)
-4. **Improve Justfile** - Add quick commands
+   ~~3. **Fix Project Detection** - Better org/domain detection~~ done — executed Dec 2025; rebuilt as pkg/policy/project.go (git-remote identity)
+3. **Improve Justfile** - Add quick commands
 
 ### Phase 2: Integration & Automation (4% → 64%)
 
