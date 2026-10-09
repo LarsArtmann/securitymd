@@ -2,7 +2,7 @@
 
 SECURITY.md policy linter and generator. Go, single binary, self-registering BuildFlow provider via go-finding/toolsdk.
 
-- **Module:** `github.com/LarsArtmann/securitymd` — GitHub repo renamed 2026-10-09 (`LarsArtmann/securitymd`); the local checkout dir is still `template-SECURITY` (rename is cosmetic and deferred: it would break BuildFlow's local `replace` path)
+- **Module:** `github.com/LarsArtmann/securitymd` — GitHub repo renamed 2026-10-09 (`LarsArtmann/securitymd`) AND the local checkout moved to `~/projects/securitymd` (dir name now matches the module); BuildFlow's local `replace` paths were retargeted in the same change (go.mod + tools/go.mod)
 - **Published as PRIVATE + tagged `v1.0.0`** — the module proxy/pkg.go.dev resolve only after the GitHub visibility flip (Lars); BuildFlow consumes it via local replace + flake input until then
 - Single detector core (`pkg/policy`) behind both the CLI and the toolsdk provider — never two implementations
 
@@ -59,8 +59,8 @@ Wired in `/home/lars/projects/BuildFlow` (its AGENTS.md is authoritative for tha
 
 - Blank import in `tools/providers/sdk_imports.go` + guard test `TestSecuritymdProviderRegistered`
 - `require` + `replace` in BOTH BuildFlow `go.mod` (indirect) and `tools/go.mod` (direct — separate workspace module)
-- Vendoring in BuildFlow: `go work vendor` (NOT `go mod vendor` — fails in workspace mode)
-- Nix FOD: securitymd is a BuildFlow flake input + preparedSrc dep (local `replace` directives are IGNORED by the nix prepared-source build — this cost a failed FOD cycle; see nix-private-go-repos skill). After publishing, drop replaces + flake input and use the tag
+- BuildFlow does NOT vendor this repo (or any): `go work vendor` was retired 2026-10-08 (BuildFlow gotcha #229) — use the workspace module cache + `GOPRIVATE` + local replaces
+- Nix FOD: securitymd is a BuildFlow flake input + preparedSrc dep; the nix build runs `GOWORK=off` so only the ROOT `go.mod` replace matters (dependency replaces are ignored in that mode) — mkPreparedSource strips the local `/home/...` replace and re-adds `./_local_deps/securitymd` from the `deps` map. Verified 2026-10-09: `nix build .` green, vendorHash invariant, result binary lists securitymd (detect+repair). Flake input URL retargeted to the renamed repo; tracks latest per BuildFlow's 2026-10-05 input policy (flake.lock pins rev 81632cf). Full option channel verified E2E via the built binary: `severity-overrides: missing-file=warning` downgrades the finding, `contact-email` lands in the generated policy, detect→fix→re-detect is clean
 
 ## Testing patterns
 
