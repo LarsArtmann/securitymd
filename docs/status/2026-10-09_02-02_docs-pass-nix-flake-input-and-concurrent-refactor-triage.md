@@ -14,18 +14,21 @@ securitymd's docs are now truthful and its BuildFlow nix wiring is **proven work
 ## Self-review (the questions asked, answered first)
 
 **What did you forget?**
+
 - I never verified that template-SECURITY's daemon **pushes** origin before designing the flake-input approach — I discovered "ahead 1, then caught up" mid-analysis. Had the daemon been push-less, a `git+ssh` input would have silently locked the FOD to the OLD pushed code. Luck, not process.
 - The e2e proof captured the io-footer instead of the "1 fixed" summary line (`tail -6` cut it); I substituted existence + clean re-detect — valid, but sloppier evidence than claimed.
 - `.config/` and `git-town.toml` in the securitymd repo were never examined this session (pre-existing, unexamined scope).
 - I wrote "docs --check first run done 2026-10-09" into TODO_LIST minutes BEFORE actually running it (ordering lie; the run then happened and passed).
 
 **What could you have done better?**
+
 - Survey before fixing: I played whack-a-mole on THREE concurrent-refactor files before running the systematic `grep -ln "testing.T" | grep -v _test.go` sweep that found all seven in one shot. The systematic pass should have been move #1.
 - `go build ./... | head` printed `BUILD_EXIT:0` while compile errors existed — head ate the pipe status. I knew the trap (last session's lesson: "never tail test output") and stepped into its sibling anyway.
 - I fired a full `nix build .` (minutes of FOD compute) against a tree I KNEW was being rewritten by another session — it broke between my `go build` check and the preparedSrc copy. One full wasted build cycle; should have waited for write-quiet (mtime quiescence) first.
 - Two edit-tool refusals from lazy reads (bash `cat` instead of View) — two wasted round trips on files I'd already "read".
 
 **What could you still improve?**
+
 - Concurrent-session coordination has NO mechanism (see e) — my interleaved repairs could have corrupted the other session's sweep; we got lucky that renames are additive.
 - The FOD/vendorHash invariance reasoning relied on reading gotcha #117 carefully; a cheaper direct proof (`nix build .#goModules`-style isolated deps build) would have short-circuited the doubt loop.
 
@@ -89,6 +92,7 @@ securitymd's docs are now truthful and its BuildFlow nix wiring is **proven work
 ## f) NEXT — up to 50, prioritized
 
 **P0 — close out this session's loose ends**
+
 1. When the `execution/` split sweep lands: verify `nix build .` green (no securitymd-side change needed).
 2. e2e with the nix-built binary: `./result/bin/buildflow -s securitymd --fix` in a scratch git repo; re-detect clean.
 3. Post-sweep: `go vet ./execution/` + `go test ./execution/`; supply `testAuditStep` from the refactor's intent if still missing.
@@ -162,4 +166,4 @@ securitymd's docs are now truthful and its BuildFlow nix wiring is **proven work
 
 **State at report time:** template-SECURITY working tree clean (daemon committed + pushes), tests/lint/flake-check green, dogfood passes. BuildFlow: my wiring committed by daemon (flake input locked at rev 519916d, preparedSrc entry, GOTCHAS #230, docs counts), tools/providers tests green, docs --check 0 fail; `nix build .` awaiting the other session's sweep to settle.
 
-*Format note: user explicitly requested `.md` at `docs/status/`; this overrides the status-report skill's HTML default for this instance only.*
+_Format note: user explicitly requested `.md` at `docs/status/`; this overrides the status-report skill's HTML default for this instance only._
