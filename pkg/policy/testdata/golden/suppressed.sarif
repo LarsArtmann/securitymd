@@ -1,0 +1,84 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "securitymd",
+          "version": "dev"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "missing-response-time",
+          "level": "warning",
+          "message": {
+            "text": "Should state a response-time commitment for vulnerability reports"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "<REPO>/SECURITY.md"
+                },
+                "region": {
+                  "startLine": 0,
+                  "startColumn": 0,
+                  "endLine": 0,
+                  "endColumn": 0
+                }
+              }
+            }
+          ],
+          "rank": 100,
+          "properties": {
+            "go-finding/category": "security",
+            "go-finding/confidence": 1,
+            "go-finding/fixStrategy": "suggest",
+            "go-finding/id": "securitymd:missing-response-time:<PATHHASH>",
+            "go-finding/severity": "warning",
+            "go-finding/tags": [
+              "security"
+            ],
+            "go-finding/toolName": "securitymd"
+          }
+        },
+        {
+          "ruleId": "unresolved-template",
+          "level": "error",
+          "message": {
+            "text": "Unresolved template variable: Please email {{.ContactEmail}} with any security issues."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "<REPO>/SECURITY.md"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 1,
+                  "endLine": 0,
+                  "endColumn": 0
+                }
+              }
+            }
+          ],
+          "rank": 100,
+          "properties": {
+            "go-finding/category": "security",
+            "go-finding/confidence": 1,
+            "go-finding/fixStrategy": "suggest",
+            "go-finding/id": "securitymd:unresolved-template:<REPO>/SECURITY.md:14:1",
+            "go-finding/severity": "error",
+            "go-finding/tags": [
+              "security"
+            ],
+            "go-finding/toolName": "securitymd"
+          }
+        }
+      ]
+    }
+  ]
+}

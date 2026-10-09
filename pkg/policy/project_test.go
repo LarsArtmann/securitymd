@@ -88,7 +88,7 @@ func TestDetect_finds_policy_in_github_dir(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	require.NoError(t, writePolicy(filepath.Join(dir, ".github", "SECURITY.md")))
+	writePolicyFixture(t, filepath.Join(dir, ".github", "SECURITY.md"))
 
 	findings, err := Detect(withWorkingDir(t.Context(), dir))
 	require.NoError(t, err)

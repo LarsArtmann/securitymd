@@ -1,0 +1,86 @@
+{
+  "tool": {
+    "name": "securitymd",
+    "version": "dev"
+  },
+  "findings": [
+    {
+      "id": "securitymd:missing-contact:<PATHHASH>",
+      "rule": "missing-contact",
+      "toolName": "securitymd",
+      "message": "No contact channel: add a security email, GitHub advisory link, or security.txt reference",
+      "severity": "error",
+      "position": {
+        "file": "<REPO>/SECURITY.md",
+        "line": 0,
+        "column": 0,
+        "offset": -1
+      },
+      "category": "security",
+      "tags": [
+        "security"
+      ],
+      "fixStrategy": "suggest",
+      "confidence": 1,
+      "suppression": {
+        "kind": "in-source",
+        "rule": "missing-contact",
+        "reason": "organization email pending"
+      }
+    },
+    {
+      "id": "securitymd:missing-response-time:<PATHHASH>",
+      "rule": "missing-response-time",
+      "toolName": "securitymd",
+      "message": "Should state a response-time commitment for vulnerability reports",
+      "severity": "warning",
+      "position": {
+        "file": "<REPO>/SECURITY.md",
+        "line": 0,
+        "column": 0,
+        "offset": -1
+      },
+      "category": "security",
+      "tags": [
+        "security"
+      ],
+      "fixStrategy": "suggest",
+      "confidence": 1
+    },
+    {
+      "id": "securitymd:unresolved-template:<REPO>/SECURITY.md:14:1",
+      "rule": "unresolved-template",
+      "toolName": "securitymd",
+      "message": "Unresolved template variable: Please email {{.ContactEmail}} with any security issues.",
+      "severity": "error",
+      "position": {
+        "file": "<REPO>/SECURITY.md",
+        "line": 14,
+        "column": 1,
+        "offset": -1
+      },
+      "category": "security",
+      "tags": [
+        "security"
+      ],
+      "fixStrategy": "suggest",
+      "confidence": 1
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "bySeverity": {
+      "error": 2,
+      "warning": 1
+    },
+    "byCategory": {
+      "security": 3
+    },
+    "byFixStrategy": {
+      "suggest": 3
+    },
+    "filesAffected": 1,
+    "filesScanned": 0,
+    "suppressed": 1
+  }
+}

@@ -22,30 +22,7 @@ var updateGolden = flag.Bool("update", false, "overwrite golden files with curre
 // fixtures run under t.TempDir, so the value itself must not be pinned.
 var pathHashPattern = regexp.MustCompile(`securitymd:([a-z-]+):[0-9a-f]{16}`)
 
-// flawedPolicy deliberately violates two missing-section rules with different
-// severities (missing-contact error, missing-response-time warning) and
-// carries an unresolved template variable, exercising both go-finding ID
-// formats: path-hash (line 0) and line-precise.
-const flawedPolicy = `# Security Policy
-
-## Supported Versions
-
-| Version | Supported Until |
-| ------- | --------------- |
-| v2.x    | 2026-12-31     |
-
-Only the latest release receives security fixes.
-
-## Reporting a Vulnerability
-
-Please email {{.ContactEmail}} with any security issues.
-
-## Security Practices
-
-We follow security best practices in development and operations.
-
-All changes are reviewed before merge and CI runs security scanning.
-`
+// flawedPolicy and its contract live in fixtures_test.go / testdata/policy.
 
 func TestReport_golden_output_contract(t *testing.T) {
 	t.Parallel()
@@ -72,7 +49,26 @@ func TestReport_golden_output_contract(t *testing.T) {
 				t.Helper()
 
 				path := filepath.Join(dir, "SECURITY.md")
-				require.NoError(t, os.WriteFile(path, []byte(flawedPolicy), 0o600))
+				require.NoError(t, os.WriteFile(path, []byte(flawedPolicy(t)), 0o600))
+
+				return withWorkingDir(t.Context(), dir)
+			},
+		},
+		{
+			name: "suppressed",
+			setup: func(t *testing.T, dir string) context.Context {
+				t.Helper()
+
+				// The flawed policy plus an in-file suppression for its
+				// error-severity contact rule: the finding stays visible with
+				// suppression metadata in JSON and SARIF, while
+				// unresolved-template remains active (the exit gate).
+				suppressed := strings.Replace(flawedPolicy(t),
+					"Please email {{.ContactEmail}}",
+					"<!-- securitymd:ignore(missing-contact) organization email pending -->\nPlease email {{.ContactEmail}}", 1)
+
+				path := filepath.Join(dir, "SECURITY.md")
+				require.NoError(t, os.WriteFile(path, []byte(suppressed), 0o600))
 
 				return withWorkingDir(t.Context(), dir)
 			},

@@ -11,28 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const validPolicy = `# Security Policy
-
-## Supported Versions
-
-| Version | Supported Until |
-| ------- | --------------- |
-| v2.x    | 2026-12-31     |
-
-Only the latest release receives security fixes.
-
-## Reporting a Vulnerability
-
-Email us at security@example.com with any security issues.
-
-We commit to an initial response within 48 hours.
-
-## Security Practices
-
-We follow security best practices in development and operations.
-
-All changes are reviewed before merge and CI runs security scanning.
-`
+// compliantPolicy lives in testdata/policy/compliant.md (see fixtures_test.go):
+// one canonical baseline shared by unit, golden, suppression, and acceptance
+// tests.
 
 func validateContent(t *testing.T, content string) []finding.Finding {
 	t.Helper()
@@ -58,12 +39,14 @@ func ruleIDs(findings []finding.Finding) []string {
 func TestValidate_accepts_compliant_policy(t *testing.T) {
 	t.Parallel()
 
-	findings := validateContent(t, validPolicy)
+	findings := validateContent(t, compliantPolicy(t))
 	assert.Empty(t, findings, "a compliant policy must yield zero findings")
 }
 
 func TestValidate_reports_each_missing_section(t *testing.T) {
 	t.Parallel()
+
+	compliant := compliantPolicy(t)
 
 	tests := []struct {
 		name string
@@ -82,7 +65,7 @@ func TestValidate_reports_each_missing_section(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			broken := strings.ReplaceAll(validPolicy, test.remove, "")
+			broken := strings.ReplaceAll(compliant, test.remove, "")
 			findings := validateContent(t, broken)
 
 			for _, expected := range test.expectIDs {
@@ -95,7 +78,7 @@ func TestValidate_reports_each_missing_section(t *testing.T) {
 func TestValidate_accepts_advisory_link_as_contact(t *testing.T) {
 	t.Parallel()
 
-	content := strings.ReplaceAll(validPolicy,
+	content := strings.ReplaceAll(compliantPolicy(t),
 		"Email us at security@example.com with any security issues.",
 		"Report via https://github.com/AcmeCorp/widget/security/advisories/new privately.")
 

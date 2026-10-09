@@ -8,33 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// noResponsePolicy drops the response commitment from validPolicy: it yields
-// exactly one finding (missing-response-time) to suppress.
-const noResponsePolicy = `# Security Policy
-
-## Supported Versions
-
-| Version | Supported Until |
-| ------- | --------------- |
-| v2.x    | 2026-12-31     |
-
-Only the latest release receives security fixes.
-
-## Reporting a Vulnerability
-
-Email us at security@example.com with any security issues.
-
-## Security Practices
-
-We follow security best practices in development and operations.
-
-All changes are reviewed before merge and CI runs security scanning.
-`
-
 func TestValidate_honors_suppression_comment(t *testing.T) {
 	t.Parallel()
 
-	content := noResponsePolicy + "\n<!-- securitymd:ignore(missing-response-time) commitment published in the support wiki -->\n"
+	content := policyWithoutResponseTime(t) + "\n<!-- securitymd:ignore(missing-response-time) commitment published in the support wiki -->\n"
 
 	findings := validateContent(t, content)
 
@@ -51,7 +28,7 @@ func TestValidate_honors_suppression_comment(t *testing.T) {
 func TestValidate_suppression_requires_reason(t *testing.T) {
 	t.Parallel()
 
-	content := noResponsePolicy + "\n<!-- securitymd:ignore(missing-response-time) -->\n"
+	content := policyWithoutResponseTime(t) + "\n<!-- securitymd:ignore(missing-response-time) -->\n"
 
 	findings := validateContent(t, content)
 
@@ -68,7 +45,7 @@ func TestValidate_suppression_requires_reason(t *testing.T) {
 func TestValidate_suppression_text_counts_as_content(t *testing.T) {
 	t.Parallel()
 
-	content := noResponsePolicy + "\n<!-- securitymd:ignore(missing-response-time) we respond within 48 hours per wiki -->\n"
+	content := policyWithoutResponseTime(t) + "\n<!-- securitymd:ignore(missing-response-time) we respond within 48 hours per wiki -->\n"
 
 	findings := validateContent(t, content)
 
@@ -79,7 +56,7 @@ func TestValidate_suppression_text_counts_as_content(t *testing.T) {
 func TestValidate_suppression_unknown_rule_is_inert(t *testing.T) {
 	t.Parallel()
 
-	content := validPolicy + "\n<!-- securitymd:ignore(not-a-real-rule) typo must fail safe -->\n"
+	content := compliantPolicy(t) + "\n<!-- securitymd:ignore(not-a-real-rule) typo must fail safe -->\n"
 
 	findings := validateContent(t, content)
 

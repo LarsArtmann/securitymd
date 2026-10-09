@@ -107,7 +107,7 @@ func TestApplySeverityOverrides_downgrades_missing_file(t *testing.T) {
 func TestApplySeverityOverrides_empty_is_noop(t *testing.T) {
 	t.Parallel()
 
-	findings := validateContent(t, noResponsePolicy)
+	findings := validateContent(t, policyWithoutResponseTime(t))
 	require.NotEmpty(t, findings)
 
 	assert.Equal(t, findings, ApplySeverityOverrides(findings, SeverityOverrides{}),

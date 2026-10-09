@@ -38,29 +38,19 @@ func ruleNames(findings []finding.Finding) []string {
 }
 
 var _ = ginkgo.Describe("SECURITY.md validation", ginkgo.Label("acceptance"), func() {
-	const compliantPolicy = `# Security Policy
+	// compliantPolicy reads the canonical compliant fixture shared with the
+	// unit, golden, and suppression tests, so every layer exercises the same
+	// contract bytes.
+	compliantPolicy := func() string {
+		content, err := os.ReadFile(
+			filepath.Join("..", "..", "pkg", "policy", "testdata", "policy", "compliant.md"))
+		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
-## Supported Versions
-
-| Version | Supported Until |
-| ------- | --------------- |
-| v2.x    | 2026-12-31     |
-
-Only the latest release receives security fixes.
-
-## Reporting a Vulnerability
-
-Email security@example.com for any security issue; we respond within 48 hours.
-
-## Security Practices
-
-All changes are reviewed, dependencies scanned, releases signed.
-
-We rotate credentials and audit access quarterly across all systems.
-`
+		return string(content)
+	}
 
 	ginkgo.It("passes a compliant policy", func() {
-		withPolicyFile(compliantPolicy, func(path string) {
+		withPolicyFile(compliantPolicy(), func(path string) {
 			findings, err := policy.Validate(path)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			gomega.Expect(findings).To(gomega.BeEmpty())
@@ -77,7 +67,7 @@ We rotate credentials and audit access quarterly across all systems.
 		})
 
 		ginkgo.It("reports a policy with no contact channel", func() {
-			broken := strings.ReplaceAll(compliantPolicy, "Email security@example.com for any security issue; we respond within 48 hours.",
+			broken := strings.ReplaceAll(compliantPolicy(), "Email us at security@example.com with any security issues.",
 				"Please find a way to contact us about problems.")
 
 			withPolicyFile(broken, func(path string) {
@@ -88,8 +78,8 @@ We rotate credentials and audit access quarterly across all systems.
 		})
 
 		ginkgo.It("flags leftover template variables", func() {
-			broken := strings.ReplaceAll(compliantPolicy,
-				"Email security@example.com for any security issue; we respond within 48 hours.",
+			broken := strings.ReplaceAll(compliantPolicy(),
+				"Email us at security@example.com with any security issues.",
 				"Email {{.ContactEmail}} for any security issue; we respond within 48 hours.")
 
 			withPolicyFile(broken, func(path string) {
