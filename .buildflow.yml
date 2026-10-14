@@ -1,10 +1,6 @@
 # BuildFlow project config — non-default decisions only (canonical key list:
 # buildflow references/commands.md). Everything else stays auto-detected.
 skip_steps:
-  # The embedded go-structure-linter snapshot predates project-config support:
-  # it ignores .go-structure-linter.yaml and flags this repo's DELIBERATE
-  # pkg/ layout (the cross-repo public surface BuildFlow's toolsdk provider
-  # imports — internal/ would break the integration this repo exists for).
-  # Fleet precedent: go-error-family (.go-structure-linter.yaml comment).
-  # Run the standalone CLI for the full rule set: go-structure-linter .
-  - go-structure-linter
+# go-structure-linter UNSKIPPED 2026-10-14 (RS2): the v0.11.5 provider
+# honors .go-structure-linter.yaml; the deliberate pkg/ layout is a
+# rule-level disposition there now, not a whole-tool skip.
