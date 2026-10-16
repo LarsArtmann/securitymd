@@ -57,16 +57,22 @@ var _ = ginkgo.Describe("SECURITY.md validation", ginkgo.Label("acceptance"), fu
 
 	ginkgo.Describe("missing essentials", func() {
 		ginkgo.It("reports a missing vulnerability-reporting section", func() {
-			withPolicyFile("# Security Policy\n\nNothing to see here, just filler text for the file.\n", func(path string) {
-				findings, err := policy.Validate(path)
-				gomega.Expect(err).NotTo(gomega.HaveOccurred())
-				gomega.Expect(ruleNames(findings)).To(gomega.ContainElement("missing-reporting"))
-			})
+			withPolicyFile(
+				"# Security Policy\n\nNothing to see here, just filler text for the file.\n",
+				func(path string) {
+					findings, err := policy.Validate(path)
+					gomega.Expect(err).NotTo(gomega.HaveOccurred())
+					gomega.Expect(ruleNames(findings)).To(gomega.ContainElement("missing-reporting"))
+				},
+			)
 		})
 
 		ginkgo.It("reports a policy with no contact channel", func() {
-			broken := strings.ReplaceAll(compliantPolicy(), "Email us at security@example.com with any security issues.",
-				"Please find a way to contact us about problems.")
+			broken := strings.ReplaceAll(
+				compliantPolicy(),
+				"Email us at security@example.com with any security issues.",
+				"Please find a way to contact us about problems.",
+			)
 
 			withPolicyFile(broken, func(path string) {
 				findings, err := policy.Validate(path)

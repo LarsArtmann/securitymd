@@ -5,22 +5,21 @@ import (
 	"fmt"
 	"os"
 
-	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
-	autoconfigure "github.com/larsartmann/linter-autoconfigure-sdk"
-
 	"github.com/LarsArtmann/securitymd/pkg/policy"
 	"github.com/fatih/color"
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	autoconfigure "github.com/larsartmann/linter-autoconfigure-sdk"
 )
 
 // setupFlags carries everything `securitymd setup` accepts.
 type setupFlags struct {
-	Organization string `flag:"organization"                 help:"GitHub organization/owner (default: git remote, else interactive prompt)"`
-	Repository   string `flag:"repository"                   help:"Repository name (default: git remote, else interactive prompt)"`
-	Email        string `flag:"email"                        help:"Security contact email (optional)"`
-	Directory    string `flag:"directory"                    help:"Target repository directory (default: current)"`
-	Location     string `flag:"location" default:"root"      help:"Canonical policy location (root, .github, docs)"`
-	DryRun       bool   `flag:"dry-run" default:"false"      help:"Render without writing"`
-	Force        bool   `flag:"force" default:"false"        help:"Regenerate an existing policy in place (backs it up first)"`
+	Organization string `flag:"organization" help:"GitHub organization/owner (default: git remote, else interactive prompt)"`
+	Repository   string `flag:"repository"   help:"Repository name (default: git remote, else interactive prompt)"`
+	Email        string `flag:"email"        help:"Security contact email (optional)"`
+	Directory    string `flag:"directory"    help:"Target repository directory (default: current)"`
+	Location     string `flag:"location"     help:"Canonical policy location (root, .github, docs)"                          default:"root"`
+	DryRun       bool   `flag:"dry-run"      help:"Render without writing"                                                   default:"false"`
+	Force        bool   `flag:"force"        help:"Regenerate an existing policy in place (backs it up first)"               default:"false"`
 }
 
 func registerSetupCmd(cli *cmdguard.CLI[appConfig]) error {

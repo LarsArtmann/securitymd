@@ -100,9 +100,12 @@ func allFindingsSuppressedUntilFuture(t *testing.T) string {
 func contactSuppressedUntilPast(t *testing.T) string {
 	t.Helper()
 
-	return strings.Replace(fixturePolicy(t, "flawed.md"),
+	return strings.Replace(
+		fixturePolicy(t, "flawed.md"),
 		"Please email {{.ContactEmail}}",
-		"<!-- securitymd:ignore(missing-contact) until 2020-01-01 long-past deferral -->\nPlease email {{.ContactEmail}}", 1)
+		"<!-- securitymd:ignore(missing-contact) until 2020-01-01 long-past deferral -->\nPlease email {{.ContactEmail}}",
+		1,
+	)
 }
 
 func runCLI(t *testing.T, dir string, args ...string) (int, string) {

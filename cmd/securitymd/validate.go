@@ -28,11 +28,11 @@ var errPolicyFindings = errors.New("SECURITY.md validation failed: error-severit
 // parses the struct tags into pflag definitions at construction, so a typo
 // in a tag fails at startup instead of at first use.
 type validateFlags struct {
-	File            string   `flag:"file"                       help:"Validate a specific policy file instead of discovering it"`
-	Format          string   `flag:"format" default:"text"      help:"Output format (text, json, sarif)" values:"text,json,sarif"`
-	MinimumSeverity string   `flag:"severity" default:"info"    help:"Minimum severity to report (info, warning, error, critical)" values:"info,warning,error,critical"`
-	SetSeverity     []string `flag:"set-severity"               help:"Override a rule's severity, rule=level (repeatable, e.g. --set-severity missing-file=warning)"`
-	Location        string   `flag:"location" default:"root"    help:"Preferred canonical policy location (root, .github, docs)"`
+	File            string   `flag:"file"         help:"Validate a specific policy file instead of discovering it"`
+	Format          string   `flag:"format"       help:"Output format (text, json, sarif)"                                                             default:"text" values:"text,json,sarif"`
+	MinimumSeverity string   `flag:"severity"     help:"Minimum severity to report (info, warning, error, critical)"                                   default:"info" values:"info,warning,error,critical"`
+	SetSeverity     []string `flag:"set-severity" help:"Override a rule's severity, rule=level (repeatable, e.g. --set-severity missing-file=warning)"`
+	Location        string   `flag:"location"     help:"Preferred canonical policy location (root, .github, docs)"                                     default:"root"`
 }
 
 func registerValidateCmd(cli *cmdguard.CLI[appConfig]) error {
