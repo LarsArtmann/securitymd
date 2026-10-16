@@ -6,11 +6,11 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/larsartmann/cmdguard/v4 v4.1.0
 	github.com/larsartmann/go-atomic-write v0.6.0
-	github.com/larsartmann/go-finding v1.14.0
-	github.com/larsartmann/go-finding/toolsdk v1.15.0
+	github.com/larsartmann/go-finding v1.15.0
+	github.com/larsartmann/go-finding/toolsdk v1.16.0
 	github.com/larsartmann/linter-autoconfigure-sdk v0.8.0
 	github.com/mattn/go-isatty v0.0.24
-	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 )
