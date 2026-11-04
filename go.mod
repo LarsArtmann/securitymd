@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-atomic-write v0.6.1
 	github.com/larsartmann/go-finding v1.15.0
 	github.com/larsartmann/go-finding/toolsdk v1.16.0
-	github.com/larsartmann/linter-autoconfigure-sdk v0.8.0
+	github.com/larsartmann/linter-autoconfigure-sdk v0.8.1
 	github.com/mattn/go-isatty v0.0.24
 	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
@@ -19,7 +19,7 @@ require (
 	charm.land/fang/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/a-h/templ v0.3.1100 // indirect
+	github.com/a-h/templ v0.3.1070 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20261023060817-a45b7c86333f // indirect
