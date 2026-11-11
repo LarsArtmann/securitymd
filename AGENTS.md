@@ -47,7 +47,7 @@ test/acceptance/       # Ginkgo BDD specs
 - **Contact default**: GitHub advisory link always; email only when explicitly provided (CLI `--email` / provider `contact-email` option). Deliberate — no fabricated `security@domain` addresses. Changing this fleet-wide is a Lars decision, not a code change
 - Stable kebab rule IDs (`missing-file`, `missing-header`, `unresolved-template`, …) — suppressions and configs key on them
 - Errors wrapped via `finding.NewValidationError`/`NewIOError`/`NewParseError`, never `fmt.Errorf`
-- **CLI layer is cmdguard v4** (2026-10-09, satisfies the library-policy cobra-companions rule): `cmdguard.NewCLI[appConfig]` root + typed flag structs (`validateFlags`/`setupFlags`/`statusFlags` with `flag:`/`values:` enum tags), `fang` styling bundled (ANSI-free when piped, verified by the contract test). Exit mapping stays in `main.go` (`exitCodeFor`); cmdguard prints execution errors exactly once — main must NOT print them again. fang capitalizes error headers, so contract assertions pin the domain message (`unknown policy location "bogus"`), not the frame
+- **CLI layer is cmdguard v5** (2026-10-09, satisfies the library-policy cobra-companions rule): `cmdguard.NewCLI[appConfig]` root + typed flag structs (`validateFlags`/`setupFlags`/`statusFlags` with `flag:`/`values:` enum tags), `fang` styling bundled (ANSI-free when piped, verified by the contract test). Exit mapping stays in `main.go` (`exitCodeFor`); cmdguard prints execution errors exactly once — main must NOT print them again. fang capitalizes error headers, so contract assertions pin the domain message (`unknown policy location "bogus"`), not the frame
 
 ## Docs layout
 
