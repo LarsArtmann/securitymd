@@ -53,7 +53,7 @@
               "-s -w"
               "-X main.version=${securitymdVersion}"
             ];
-            vendorHash = "sha256-0AIUr9kEMG2zHvAMJVnY/AaOzIoHJNcHNDg6b3a526g=";
+            vendorHash = "sha256-P/Ee7pLB2RaGn77zGSEqA34rDnid6oX72TMiltS4CQA=";
 
             meta = {
               description = "Validate and generate SECURITY.md files";
